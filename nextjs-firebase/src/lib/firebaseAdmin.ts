@@ -1,0 +1,104 @@
+import fs from "node:fs";
+import { cert, getApp, getApps, initializeApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
+import type { Firestore } from "firebase-admin/firestore";
+import { getStorage } from "firebase-admin/storage";
+import type { Bucket } from "@google-cloud/storage";
+
+let firestore: Firestore | null = null;
+
+function initFirebaseAdmin() {
+  // Idempotent init: safe to call multiple times (Cloud Run hot reload, etc).
+  if (getApps().length > 0) return;
+
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  const serviceAccountJsonBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_KEY_BASE64;
+  const googleApplicationCredentialsPath =
+    process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
+  if (serviceAccountJson) {
+    // Raw JSON string (works well with Cloud Run secrets).
+    initializeApp({ credential: cert(JSON.parse(serviceAccountJson)) });
+    return;
+  } else {
+    if (serviceAccountJsonBase64) {
+      const decoded = Buffer.from(serviceAccountJsonBase64, "base64").toString(
+        "utf8",
+      );
+      initializeApp({ credential: cert(JSON.parse(decoded)) });
+      return;
+    }
+
+    if (googleApplicationCredentialsPath) {
+      // Standard Google env var: points to a JSON file on disk.
+      const raw = fs.readFileSync(googleApplicationCredentialsPath, "utf8");
+      initializeApp({ credential: cert(JSON.parse(raw)) });
+      return;
+    }
+
+    // Uses Application Default Credentials (recommended for Cloud Run):
+    // - bind a service account to the Cloud Run service
+    // - ensure the environment has access to Google creds
+    initializeApp();
+  }
+}
+
+export function getFirestoreAdmin(): Firestore {
+  if (firestore) return firestore;
+  initFirebaseAdmin();
+  firestore = getFirestore();
+  return firestore;
+}
+
+/** Ensures the Firebase Admin app is initialized; use for auth/storage after Firestore init. */
+export function getFirebaseAuthAdmin() {
+  getFirestoreAdmin();
+  return getAuth();
+}
+
+let storageBucket: Bucket | null = null;
+
+/**
+ * Resolves the GCS bucket name for Firebase Storage uploads.
+ * `getStorage().bucket()` with no argument only works if `storageBucket` was set at `initializeApp`,
+ * which we do not set — so we always pass an explicit name.
+ *
+ * Override with `FIREBASE_STORAGE_BUCKET` (e.g. `myproj.firebasestorage.app` or `myproj.appspot.com`).
+ */
+export function resolveFirebaseStorageBucketName(): string {
+  const explicit = process.env.FIREBASE_STORAGE_BUCKET?.trim();
+  if (explicit) return explicit;
+
+  const projectId =
+    (() => {
+      try {
+        return getApp().options.projectId?.trim();
+      } catch {
+        return undefined;
+      }
+    })() ||
+    process.env.GOOGLE_CLOUD_PROJECT?.trim() ||
+    process.env.GCLOUD_PROJECT?.trim() ||
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID?.trim();
+
+  if (!projectId) {
+    throw new Error(
+      "Firebase Storage bucket unknown: set FIREBASE_STORAGE_BUCKET in .env, or ensure the Admin " +
+        "SDK has a project id (service account JSON / GOOGLE_CLOUD_PROJECT).",
+    );
+  }
+
+  // Default bucket created in modern Firebase projects (*.firebasestorage.app in download URLs).
+  return `${projectId}.firebasestorage.app`;
+}
+
+/** Opens the configured Firebase Storage bucket (see `resolveFirebaseStorageBucketName`). */
+export function getFirebaseStorageBucket(): Bucket {
+  if (storageBucket) return storageBucket;
+  getFirestoreAdmin();
+  const name = resolveFirebaseStorageBucketName();
+  storageBucket = getStorage().bucket(name);
+  return storageBucket;
+}
+

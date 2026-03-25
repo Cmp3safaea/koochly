@@ -1,0 +1,38 @@
+.wrap {
+  position: fixed;
+  z-index: 4000;
+  bottom: 16px;
+  inset-inline-end: 16px;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  border: 1px solid var(--border-90);
+  background: var(--surface-glass-80);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 18px var(--shadow-dropdown);
+}
+
+.link {
+  font-family: var(--font-app, system-ui, sans-serif);
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.link:hover {
+  color: var(--accent-hover-deep);
+  background: var(--accent-soft-08);
+}
+
+.active {
+  color: var(--accent-hover-deep);
+  background: var(--accent-soft-12);
+}

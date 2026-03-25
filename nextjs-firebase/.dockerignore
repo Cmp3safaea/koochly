@@ -1,0 +1,12 @@
+node_modules
+.next
+Dockerfile
+README.md
+npm-debug.log
+.git
+.github
+.vscode
+.env
+.env.*
+service.json
+

@@ -1,0 +1,501 @@
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
+import { withLocale } from "../../../../i18n/paths";
+import { resolveLocale } from "../../../../i18n/server";
+import { directoryDepartmentDisplayLabel } from "../../../../lib/directoryDepartmentLabel";
+import CityAdsViewClient, {
+  type CityAdCard,
+  type DepartmentQuickItem,
+} from "../../city/[cityId]/CityAdsViewClient";
+
+type AdDoc = {
+  id?: string;
+  title?: string;
+  engName?: string;
+  images?: string[];
+  image?: string;
+  url?: string;
+  website?: string;
+  cat?: string;
+  cat_code?: string;
+  departmentID?: unknown;
+  city?: string;
+  city_eng?: string;
+  dept?: string;
+  details?: string;
+  phone?: string;
+  location?: { __lat__?: number; __lon__?: number } | unknown;
+  dateTime?: unknown;
+  seq?: number;
+  approved?: boolean;
+  visits?: unknown;
+};
+
+type SelectOption = {
+  value: string;
+  label: string;
+};
+
+function toNonEmptyString(id: unknown): string | null {
+  if (typeof id !== "string") return null;
+  const trimmed = id.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function firstSearchParam(
+  sp: Record<string, string | string[] | undefined> | undefined,
+  key: string,
+): string | null {
+  if (!sp) return null;
+  const v = sp[key];
+  if (typeof v === "string") {
+    const t = v.trim();
+    return t.length > 0 ? t : null;
+  }
+  if (Array.isArray(v) && v.length > 0 && typeof v[0] === "string") {
+    const t = v[0].trim();
+    return t.length > 0 ? t : null;
+  }
+  return null;
+}
+
+function toFiniteNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const n = Number(value);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+
+function toDateTimeMs(value: unknown): number | null {
+  if (!value) return null;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const t = Date.parse(value);
+    return Number.isFinite(t) ? t : null;
+  }
+  if (typeof value === "object") {
+    const v = value as any;
+    if (typeof v.toDate === "function") {
+      const d = v.toDate();
+      const t = d instanceof Date ? d.getTime() : Date.parse(String(d));
+      return Number.isFinite(t) ? t : null;
+    }
+    if (typeof v.__time__ === "string") {
+      const t = Date.parse(v.__time__);
+      return Number.isFinite(t) ? t : null;
+    }
+    if (typeof v._seconds === "number") return v._seconds * 1000;
+    if (typeof v.seconds === "number") return v.seconds * 1000;
+  }
+  return null;
+}
+
+function toDepartmentId(value: unknown): string | null {
+  if (!value) return null;
+  if (typeof value === "string") {
+    const parts = value.split("/");
+    return parts[parts.length - 1] || null;
+  }
+  if (typeof value === "object") {
+    const v = value as any;
+    if (typeof v.id === "string" && v.id) return v.id;
+    if (typeof v.path === "string" && v.path) {
+      const parts = v.path.split("/");
+      return parts[parts.length - 1] || null;
+    }
+    if (typeof v.__ref__ === "string" && v.__ref__) {
+      const parts = v.__ref__.split("/");
+      return parts[parts.length - 1] || null;
+    }
+  }
+  return null;
+}
+
+function collectCategoryCodes(
+  node: unknown,
+  output: Map<string, string>,
+) {
+  if (!node || typeof node !== "object") return;
+
+  if (Array.isArray(node)) {
+    node.forEach((item) => collectCategoryCodes(item, output));
+    return;
+  }
+
+  const obj = node as Record<string, unknown>;
+  const code = obj.code;
+  const label =
+    typeof obj.category === "string" && obj.category.trim()
+      ? obj.category
+      : typeof obj.engName === "string" && obj.engName.trim()
+        ? obj.engName
+        : null;
+
+  if (typeof code === "string" && code && label) {
+    output.set(code, label);
+  }
+
+  Object.values(obj).forEach((v) => collectCategoryCodes(v, output));
+}
+
+function getFirstImage(ad: AdDoc): string | null {
+  const imgs = ad.images;
+  if (Array.isArray(imgs) && imgs.length > 0 && typeof imgs[0] === "string") {
+    return imgs[0];
+  }
+  if (typeof ad.image === "string") return ad.image;
+  return null;
+}
+
+function normalizeLink(ad: AdDoc): string | null {
+  if (typeof ad.url === "string" && ad.url.trim()) return ad.url;
+  if (typeof ad.website === "string" && ad.website.trim()) return ad.website;
+  return null;
+}
+
+function deriveAdDetailPath(ad: AdDoc): string | null {
+  if (typeof ad.url === "string" && ad.url.trim()) {
+    const m = ad.url.match(/\/b\/(\d+)/);
+    if (m?.[1]) return `/b/${m[1]}`;
+  }
+  if (typeof ad.seq === "number" && Number.isFinite(ad.seq)) {
+    return `/b/${ad.seq}`;
+  }
+  return null;
+}
+
+export default async function CityAdsByCountryPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string; country: string; city: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const { country, city, locale: localeRaw } = await params;
+  const uiLocale = resolveLocale(localeRaw);
+  const sp = searchParams ? await searchParams : undefined;
+  const initialCatCode = firstSearchParam(sp, "cat");
+  const initialDepartmentId = firstSearchParam(sp, "dept");
+  const countryParam = toNonEmptyString(country);
+  const cityParam = toNonEmptyString(city);
+  if (!countryParam || !cityParam) return notFound();
+
+  const db = getFirestoreAdmin();
+
+  const countryKey = countryParam;
+  const cityKey = cityParam;
+  const countryLower = countryKey.toLowerCase();
+  const cityLower = cityKey.toLowerCase();
+
+  // Avoid composite-index requirements: fetch by city, then (optionally) pick by country.
+  // This way, `uk/birmingham/` works even if someone passes "United Kingdom" instead of "uk".
+  let citySnap: any = null;
+
+  const pickByCountryOrFirst = (docs: any[]) => {
+    if (docs.length === 0) return null;
+    const matchByCountry =
+      docs.find((d) => {
+        const data = d.data() as Record<string, unknown>;
+        const ce = data.country_eng;
+        if (typeof ce !== "string") return false;
+        return ce.toLowerCase() === countryLower;
+      }) ?? null;
+    return matchByCountry ?? docs[0] ?? null;
+  };
+
+  const cityEngQ = await db
+    .collection("cities")
+    .where("city_eng", "==", cityKey)
+    .limit(20)
+    .get();
+  if (!cityEngQ.empty) {
+    citySnap = pickByCountryOrFirst(cityEngQ.docs);
+  }
+
+  // Fallback: try lower-case city_eng match (some data may not be normalized).
+  if (!citySnap) {
+    const cityEngQL = await db
+      .collection("cities")
+      .where("city_eng", "==", cityLower)
+      .limit(20)
+      .get();
+    if (!cityEngQL.empty) {
+      citySnap = pickByCountryOrFirst(cityEngQL.docs);
+    }
+  }
+
+  // Fallback: try city_fa (if someone uses Persian city in the URL).
+  if (!citySnap) {
+    const cityFaQ = await db
+      .collection("cities")
+      .where("city_fa", "==", cityKey)
+      .limit(20)
+      .get();
+    if (!cityFaQ.empty) {
+      citySnap = pickByCountryOrFirst(cityFaQ.docs);
+    }
+  }
+
+  if (!citySnap) return notFound();
+
+  const cityData = citySnap.data() as Record<string, unknown>;
+  const cityFa = typeof cityData.city_fa === "string" ? cityData.city_fa : "";
+  const cityEng =
+    typeof cityData.city_eng === "string" ? cityData.city_eng : "";
+  const countryFa =
+    typeof cityData.country_fa === "string" ? cityData.country_fa : "";
+  const flagUrl =
+    typeof cityData.flag_url === "string"
+      ? (cityData.flag_url as string)
+      : undefined;
+
+  const rawLatLng = cityData.latlng as any;
+  const cityCenterLat = toFiniteNumber(
+    rawLatLng?.__lat__ ?? rawLatLng?.lat ?? rawLatLng?.latitude,
+  );
+  const cityCenterLon = toFiniteNumber(
+    rawLatLng?.__lon__ ?? rawLatLng?.lon ?? rawLatLng?.longitude,
+  );
+  const cityCenter =
+    cityCenterLat !== null && cityCenterLon !== null
+      ? { lat: cityCenterLat, lon: cityCenterLon }
+      : null;
+
+  // Query ads: prefer city_eng. Fallback to subset + filter.
+  const mergedAds = new Map<string, any>();
+
+  try {
+    // 1) city_eng matches
+    if (cityEng) {
+      const engAds = await db
+        .collection("ads")
+        .where("city_eng", "==", cityEng)
+        .limit(100)
+        .get();
+      engAds.docs.forEach((doc) => mergedAds.set(doc.id, doc));
+    }
+
+    // 2) city_fa matches (covers the case where some ads use `city_fa` only)
+    if (cityFa) {
+      const faAds = await db
+        .collection("ads")
+        .where("city_fa", "==", cityFa)
+        .limit(100)
+        .get();
+      faAds.docs.forEach((doc) => mergedAds.set(doc.id, doc));
+    }
+  } catch {
+    // Last resort: pull a subset and filter client-side.
+    const subset = await db.collection("ads").limit(500).get();
+    subset.docs.forEach((d) => {
+      const data = d.data() as Record<string, unknown>;
+      if (cityEng && data.city_eng === cityEng) mergedAds.set(d.id, d);
+      if (cityFa && data.city_fa === cityFa) mergedAds.set(d.id, d);
+    });
+  }
+
+  const adsDocs = Array.from(mergedAds.values());
+  const adsSnap = { docs: adsDocs };
+
+  const ads: AdDoc[] = adsSnap.docs.map((d) => {
+    const data = d.data() as AdDoc;
+    return { id: d.id, ...data };
+  });
+
+  ads.sort((a, b) => {
+    const ao = typeof a.seq === "number" ? a.seq : Number.MAX_SAFE_INTEGER;
+    const bo = typeof b.seq === "number" ? b.seq : Number.MAX_SAFE_INTEGER;
+    return ao - bo;
+  });
+
+  const pageTitle =
+    cityEng && countryFa ? `${countryFa} - ${cityEng}` : cityEng || cityFa;
+
+  const adsForClient: CityAdCard[] = ads.map((ad) => {
+    const rawLoc = ad.location as any;
+    const lat = toFiniteNumber(
+      rawLoc?.__lat__ ?? rawLoc?.lat ?? rawLoc?.latitude,
+    );
+    const lon = toFiniteNumber(
+      rawLoc?.__lon__ ?? rawLoc?.lon ?? rawLoc?.longitude ?? rawLoc?.lng,
+    );
+    const location = lat !== null && lon !== null ? { lat, lon } : null;
+
+    const title =
+      typeof ad.title === "string" && ad.title.trim()
+        ? ad.title.trim()
+        : typeof ad.engName === "string"
+          ? ad.engName
+          : ad.id ?? "";
+
+    const engRaw =
+      typeof ad.engName === "string" && ad.engName.trim() ? ad.engName.trim() : null;
+    const engName = engRaw && engRaw !== title ? engRaw : null;
+
+    const category =
+      (typeof ad.cat === "string" && ad.cat.trim() ? ad.cat.trim() : null) ??
+      (typeof ad.dept === "string" && ad.dept.trim() ? ad.dept.trim() : null);
+
+    const description =
+      typeof ad.details === "string" && ad.details.trim()
+        ? ad.details.trim()
+        : null;
+
+    const phone =
+      typeof ad.phone === "string" && ad.phone.trim() ? ad.phone.trim() : null;
+
+    const visitsRaw = ad.visits;
+    const visits =
+      typeof visitsRaw === "number" && Number.isFinite(visitsRaw)
+        ? Math.max(0, Math.floor(visitsRaw))
+        : 0;
+
+    return {
+      id: ad.id ?? title,
+      title,
+      engName,
+      category,
+      description,
+      image: getFirstImage(ad),
+      link: deriveAdDetailPath(ad) ?? normalizeLink(ad),
+      phone,
+      location,
+      departmentId: toDepartmentId(ad.departmentID),
+      catCode: typeof ad.cat_code === "string" ? ad.cat_code : null,
+      createdAtMs: toDateTimeMs(ad.dateTime),
+      visits,
+    };
+  });
+
+  const directorySnap = await db.collection("directory").get();
+  const departmentMap = new Map<string, string>();
+  const departmentImageMap = new Map<string, string>();
+  const categoryMap = new Map<string, string>();
+  const adCategoryLabelMap = new Map<string, string>();
+
+  directorySnap.docs.forEach((doc) => {
+    const data = doc.data() as Record<string, unknown>;
+    const deptLabel = directoryDepartmentDisplayLabel(data, doc.id, uiLocale);
+    departmentMap.set(doc.id, deptLabel);
+    const deptImg = data.image;
+    if (typeof deptImg === "string" && deptImg.trim()) {
+      departmentImageMap.set(doc.id, deptImg.trim());
+    }
+
+    collectCategoryCodes(data.categories, categoryMap);
+  });
+
+  ads.forEach((ad) => {
+    if (
+      typeof ad.cat_code === "string" &&
+      ad.cat_code &&
+      typeof ad.cat === "string" &&
+      ad.cat.trim()
+    ) {
+      adCategoryLabelMap.set(ad.cat_code, ad.cat.trim());
+    }
+  });
+
+  const departmentOptions: SelectOption[] = Array.from(
+    new Set(adsForClient.map((a) => a.departmentId).filter(Boolean) as string[]),
+  )
+    .map((id) => ({
+      value: id,
+      label: departmentMap.get(id) ?? id,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  const categoryOptions: SelectOption[] = Array.from(
+    new Set(adsForClient.map((a) => a.catCode).filter(Boolean) as string[]),
+  )
+    .map((code) => ({
+      value: code,
+      label: adCategoryLabelMap.get(code) ?? categoryMap.get(code) ?? code,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  const departmentQuickFilters: DepartmentQuickItem[] = Array.from(
+    new Set(adsForClient.map((a) => a.departmentId).filter(Boolean) as string[]),
+  )
+    .map((id) => ({
+      id,
+      label: departmentMap.get(id) ?? id,
+      imageUrl: departmentImageMap.get(id) ?? null,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  return (
+    <main style={{ maxWidth: 1200, margin: "0 auto", padding: "18px 16px 64px 16px" }}>
+      <CityAdsViewClient
+        cityTitle={pageTitle}
+        cityFa={cityFa}
+        flagUrl={flagUrl}
+        ads={adsForClient}
+        cityCenter={cityCenter}
+        departmentOptions={departmentOptions}
+        categoryOptions={categoryOptions}
+        departmentQuickFilters={departmentQuickFilters}
+        initialCatCode={initialCatCode}
+        initialDepartmentId={initialDepartmentId}
+      />
+    </main>
+  );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; country: string; city: string }>;
+}): Promise<Metadata> {
+  const { country, city, locale: localeRaw } = await params;
+  const locale = resolveLocale(localeRaw);
+  const countryParam = toNonEmptyString(country);
+  const cityParam = toNonEmptyString(city);
+  if (!countryParam || !cityParam) return { title: "Koochly" };
+
+  const db = getFirestoreAdmin();
+  const countryKey = countryParam;
+  const cityKey = cityParam;
+
+  const cityEngQ = await db
+    .collection("cities")
+    .where("city_eng", "==", cityKey)
+    .limit(20)
+    .get();
+  const match =
+    cityEngQ.docs.find((d) => {
+      const data = d.data() as Record<string, unknown>;
+      const ce = data.country_eng;
+      return typeof ce === "string" && ce === countryKey;
+    }) ?? null;
+
+  const citySnap = match ?? (cityEngQ.empty ? null : cityEngQ.docs[0] ?? null);
+  if (!citySnap) return { title: "Koochly" };
+
+  const cityData = citySnap.data() as Record<string, unknown>;
+  const cityEng = typeof cityData.city_eng === "string" ? cityData.city_eng : "";
+  const cityFa = typeof cityData.city_fa === "string" ? cityData.city_fa : "";
+  const countryFa =
+    typeof cityData.country_fa === "string" ? cityData.country_fa : "";
+
+  const seoCity = cityEng || cityFa || "City";
+  const canonicalPath = withLocale(
+    locale,
+    `/${encodeURIComponent(countryParam)}/${encodeURIComponent(cityParam)}/`,
+  );
+
+  return {
+    title: countryFa ? `${seoCity} - Koochly Ads (${countryFa})` : `${seoCity} - Koochly Ads`,
+    description: countryFa
+      ? `Explore business listings and ads for ${seoCity} in ${countryFa}.`
+      : `Explore business listings and ads for ${seoCity}.`,
+    alternates: { canonical: canonicalPath },
+    openGraph: {
+      title: countryFa ? `${seoCity} Ads - Koochly` : `${seoCity} Ads - Koochly`,
+    },
+  };
+}
+

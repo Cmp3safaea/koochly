@@ -1,0 +1,18 @@
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+
+# Local env at repo root (if you add one)
+.env
+.env.local
+.env.*.local
+*.json
+# Optional: IDE / tooling (uncomment if you prefer not to commit)
+# .idea/
+# *.swp
+# *~

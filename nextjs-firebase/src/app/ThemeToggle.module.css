@@ -1,0 +1,42 @@
+.toggle {
+  position: fixed;
+  z-index: 4000;
+  bottom: 16px;
+  inset-inline-start: 16px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid var(--border-90);
+  background: var(--surface-glass-80);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 18px var(--shadow-dropdown);
+  color: var(--text-strong);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    color 0.15s ease;
+}
+
+.toggle:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent-border-mid);
+  color: var(--accent);
+}
+
+.toggle:focus-visible {
+  outline: 3px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+.glyph {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}

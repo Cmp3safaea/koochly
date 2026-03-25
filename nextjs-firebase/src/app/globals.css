@@ -1,0 +1,274 @@
+@import url("https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --font-app: "Vazirmatn", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, Tahoma, "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: var(--font-app);
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+html {
+  color-scheme: light;
+  --body-bg: #f3f4f6;
+  --body-fg: #111827;
+  --surface: #ffffff;
+  --surface-glass-80: rgba(255, 255, 255, 0.8);
+  --surface-glass-75: rgba(255, 255, 255, 0.75);
+  --surface-2: #f8fafc;
+  --surface-3: #f9fafb;
+  --surface-muted: #f6f6f6;
+  --surface-muted-hover: #eceff1;
+  --border-80: rgba(229, 231, 235, 0.8);
+  --border-90: rgba(229, 231, 235, 0.9);
+  --border-95: rgba(229, 231, 235, 0.95);
+  --border-input: rgba(209, 213, 219, 0.9);
+  --border-slate: rgba(226, 232, 240, 0.95);
+  --border-faint: rgba(243, 244, 246, 0.95);
+  --border-subtle: #e5e7eb;
+  --border-country: #eaeaea;
+  --border-accordion: #f1f5f9;
+  --text-strong: #0f172a;
+  --text-heading: #111827;
+  --text-secondary: #333333;
+  --text-ui: #374151;
+  --text-muted: #6b7280;
+  --text-slate: #64748b;
+  --text-slate-600: #475569;
+  --text-slate-700: #334155;
+  --text-placeholder: #9ca3af;
+  --text-slate-400: #94a3b8;
+  --chevron: #111111;
+  --btn-inverse-bg: #111111;
+  --btn-inverse-fg: #ffffff;
+  --input-border: #dddddd;
+  --accent: #0f766e;
+  --accent-bright: #0d9488;
+  --accent-hover-deep: #0d5c52;
+  --accent-soft-08: rgba(15, 118, 110, 0.08);
+  --accent-soft-10: rgba(15, 118, 110, 0.1);
+  --accent-soft-12: rgba(15, 118, 110, 0.12);
+  --accent-soft-16: rgba(15, 118, 110, 0.16);
+  --accent-border-mid: rgba(15, 118, 110, 0.18);
+  --accent-border-strong: rgba(15, 118, 110, 0.45);
+  --accent-border-hover: rgba(15, 118, 110, 0.28);
+  --accent-border-20: rgba(15, 118, 110, 0.2);
+  --accent-link-border: rgba(15, 118, 110, 0.24);
+  --accent-link-border-hover: rgba(15, 118, 110, 0.34);
+  --accent-solid-95: rgba(15, 118, 110, 0.95);
+  --accent-ring-surface: rgba(255, 255, 255, 0.9);
+  --accent-glow-25: rgba(15, 118, 110, 0.25);
+  --accent-35: rgba(15, 118, 110, 0.35);
+  --accent-85: rgba(15, 118, 110, 0.85);
+  --accent-shadow-12: rgba(15, 118, 110, 0.12);
+  --accent-shadow-15: rgba(15, 118, 110, 0.15);
+  --accent-thumb: rgba(15, 118, 110, 0.25);
+  --green-700: #15803d;
+  --chip-cat-border: rgba(187, 247, 208, 0.55);
+  --chip-cat-bg: rgba(240, 253, 244, 0.85);
+  --chip-dept-bg: rgba(240, 253, 250, 0.85);
+  --chip-dept-border: rgba(153, 246, 228, 0.55);
+  --chip-city-bg: rgba(248, 250, 252, 0.95);
+  --card-bg: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(249, 250, 251, 0.96)
+  );
+  --img-ph: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  --dept-chip-bg: linear-gradient(180deg, #ffffff, #f8fafc);
+  --hero-glass: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.78) 0%,
+    rgba(249, 250, 251, 0.72) 100%
+  );
+  --details-page-bg: linear-gradient(165deg, #f8fafc 0%, #f1f5f9 38%, #fafcfd 100%);
+  --page-radial-teal: rgba(15, 118, 110, 0.22);
+  --page-radial-blue: rgba(59, 130, 246, 0.16);
+  --page-scrim-top: rgba(255, 255, 255, 0.55);
+  --page-scrim-mid: rgba(243, 244, 246, 0.78);
+  --page-scrim-bot: rgba(243, 244, 246, 0.92);
+  --overlay-scrim: rgba(243, 244, 246, 0.55);
+  --spinner-border: rgba(15, 118, 110, 0.18);
+  --focus-ring: rgba(17, 24, 39, 0.35);
+  --focus-shadow: rgba(17, 24, 39, 0.08);
+  --focus-outline: rgba(17, 24, 39, 0.15);
+  --shadow-xs: rgba(0, 0, 0, 0.04);
+  --shadow-card-1: rgba(15, 23, 42, 0.06);
+  --shadow-card-2: rgba(15, 23, 42, 0.04);
+  --shadow-card-hover-1: rgba(15, 23, 42, 0.08);
+  --shadow-card-hover-2: rgba(15, 23, 42, 0.06);
+  --shadow-dropdown: rgba(0, 0, 0, 0.1);
+  --shadow-dept: rgba(15, 23, 42, 0.06);
+  --shadow-search: rgba(0, 0, 0, 0.04);
+  --map-panel-bg: rgba(255, 255, 255, 0.5);
+  --map-panel-head: rgba(250, 251, 252, 0.92);
+  --contact-card-bg: rgba(255, 255, 255, 0.65);
+  --sheet-bg: rgba(255, 255, 255, 0.78);
+  --back-btn-bg: rgba(255, 255, 255, 0.85);
+  --shadow-back-hover: rgba(13, 148, 136, 0.08);
+  --shadow-back-glow: rgba(13, 148, 136, 0.12);
+  --border-back: rgba(226, 232, 240, 0.95);
+  --border-gallery: rgba(241, 245, 249, 0.95);
+  --border-contact: rgba(237, 242, 247, 0.98);
+  --border-map: rgba(238, 242, 247, 0.95);
+  --border-sheet: rgba(226, 232, 240, 0.75);
+  --icon-wrap-bg: rgba(13, 148, 136, 0.07);
+  --same-cat-bg: rgba(255, 255, 255, 0.92);
+  --same-cat-hover-bg: rgba(13, 148, 136, 0.1);
+  --same-cat-border: rgba(13, 148, 136, 0.22);
+  --same-cat-border-hover: rgba(13, 148, 136, 0.4);
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --body-bg: #0b1120;
+  --body-fg: #e2e8f0;
+  --surface: #151c2c;
+  --surface-glass-80: rgba(21, 28, 44, 0.9);
+  --surface-glass-75: rgba(21, 28, 44, 0.85);
+  --surface-2: #1a2438;
+  --surface-3: #1e293b;
+  --surface-muted: #1e293b;
+  --surface-muted-hover: #253449;
+  --border-80: rgba(51, 65, 85, 0.65);
+  --border-90: rgba(51, 65, 85, 0.72);
+  --border-95: rgba(51, 65, 85, 0.78);
+  --border-input: rgba(71, 85, 105, 0.85);
+  --border-slate: rgba(51, 65, 85, 0.75);
+  --border-faint: rgba(51, 65, 85, 0.5);
+  --border-subtle: rgba(71, 85, 105, 0.85);
+  --border-country: rgba(71, 85, 105, 0.75);
+  --border-accordion: rgba(51, 65, 85, 0.65);
+  --text-strong: #f1f5f9;
+  --text-heading: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-ui: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-slate: #94a3b8;
+  --text-slate-600: #cbd5e1;
+  --text-slate-700: #cbd5e1;
+  --text-placeholder: #64748b;
+  --text-slate-400: #94a3b8;
+  --chevron: #e2e8f0;
+  --btn-inverse-bg: #e2e8f0;
+  --btn-inverse-fg: #0b1120;
+  --input-border: rgba(71, 85, 105, 0.9);
+  --accent: #2dd4bf;
+  --accent-bright: #5eead4;
+  --accent-hover-deep: #99f6e4;
+  --accent-soft-08: rgba(45, 212, 191, 0.12);
+  --accent-soft-10: rgba(45, 212, 191, 0.14);
+  --accent-soft-12: rgba(45, 212, 191, 0.18);
+  --accent-soft-16: rgba(45, 212, 191, 0.24);
+  --accent-border-mid: rgba(45, 212, 191, 0.28);
+  --accent-border-strong: rgba(45, 212, 191, 0.55);
+  --accent-border-hover: rgba(45, 212, 191, 0.45);
+  --accent-border-20: rgba(45, 212, 191, 0.25);
+  --accent-link-border: rgba(45, 212, 191, 0.35);
+  --accent-link-border-hover: rgba(45, 212, 191, 0.5);
+  --accent-solid-95: rgba(34, 211, 238, 0.95);
+  --accent-ring-surface: rgba(15, 23, 42, 0.92);
+  --accent-glow-25: rgba(45, 212, 191, 0.35);
+  --accent-35: rgba(45, 212, 191, 0.45);
+  --accent-85: rgba(45, 212, 191, 0.88);
+  --accent-shadow-12: rgba(45, 212, 191, 0.22);
+  --accent-shadow-15: rgba(45, 212, 191, 0.28);
+  --accent-thumb: rgba(45, 212, 191, 0.4);
+  --green-700: #4ade80;
+  --chip-cat-border: rgba(34, 197, 94, 0.35);
+  --chip-cat-bg: rgba(20, 83, 45, 0.35);
+  --chip-dept-bg: rgba(15, 118, 110, 0.25);
+  --chip-dept-border: rgba(45, 212, 191, 0.35);
+  --chip-city-bg: rgba(30, 41, 59, 0.85);
+  --card-bg: linear-gradient(180deg, rgba(21, 28, 44, 0.98), rgba(26, 36, 56, 0.96));
+  --img-ph: linear-gradient(135deg, #1e293b, #334155);
+  --dept-chip-bg: linear-gradient(180deg, var(--surface), var(--surface-2));
+  --hero-glass: linear-gradient(
+    180deg,
+    rgba(21, 28, 44, 0.88) 0%,
+    rgba(26, 36, 56, 0.82) 100%
+  );
+  --details-page-bg: linear-gradient(165deg, #0f172a 0%, #0b1120 45%, #111827 100%);
+  --page-radial-teal: rgba(45, 212, 191, 0.12);
+  --page-radial-blue: rgba(96, 165, 250, 0.1);
+  --page-scrim-top: rgba(11, 17, 32, 0.45);
+  --page-scrim-mid: rgba(11, 17, 32, 0.72);
+  --page-scrim-bot: rgba(11, 17, 32, 0.88);
+  --overlay-scrim: rgba(11, 17, 32, 0.65);
+  --spinner-border: rgba(45, 212, 191, 0.28);
+  --focus-ring: rgba(226, 232, 240, 0.35);
+  --focus-shadow: rgba(226, 232, 240, 0.12);
+  --focus-outline: rgba(226, 232, 240, 0.18);
+  --shadow-xs: rgba(0, 0, 0, 0.25);
+  --shadow-card-1: rgba(0, 0, 0, 0.35);
+  --shadow-card-2: rgba(0, 0, 0, 0.22);
+  --shadow-card-hover-1: rgba(0, 0, 0, 0.45);
+  --shadow-card-hover-2: rgba(0, 0, 0, 0.3);
+  --shadow-dropdown: rgba(0, 0, 0, 0.5);
+  --shadow-dept: rgba(0, 0, 0, 0.35);
+  --shadow-search: rgba(0, 0, 0, 0.35);
+  --map-panel-bg: rgba(21, 28, 44, 0.65);
+  --map-panel-head: rgba(15, 23, 42, 0.92);
+  --contact-card-bg: rgba(21, 28, 44, 0.72);
+  --sheet-bg: rgba(21, 28, 44, 0.82);
+  --back-btn-bg: rgba(21, 28, 44, 0.9);
+  --shadow-back-hover: rgba(45, 212, 191, 0.15);
+  --shadow-back-glow: rgba(45, 212, 191, 0.2);
+  --border-back: rgba(51, 65, 85, 0.85);
+  --border-gallery: rgba(51, 65, 85, 0.75);
+  --border-contact: rgba(51, 65, 85, 0.8);
+  --border-map: rgba(51, 65, 85, 0.75);
+  --border-sheet: rgba(51, 65, 85, 0.7);
+  --icon-wrap-bg: rgba(45, 212, 191, 0.12);
+  --same-cat-bg: rgba(21, 28, 44, 0.92);
+  --same-cat-hover-bg: rgba(45, 212, 191, 0.15);
+  --same-cat-border: rgba(45, 212, 191, 0.35);
+  --same-cat-border-hover: rgba(45, 212, 191, 0.55);
+}
+
+html,
+body {
+  font-family: var(--font-app);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--body-bg);
+  color: var(--body-fg);
+}
+
+* {
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/**
+ * Native <select> + popup: browsers often ignore `font: inherit` or draw the list with the
+ * system UI font. Use the app stack explicitly on `select` / `option` (works in many Chromium
+ * / Firefox builds; macOS picker can still be OS-controlled in some versions).
+ */
+select {
+  font-family: var(--font-app);
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
+option,
+optgroup {
+  font-family: var(--font-app);
+  font-size: 0.95em;
+  font-weight: 500;
+}
