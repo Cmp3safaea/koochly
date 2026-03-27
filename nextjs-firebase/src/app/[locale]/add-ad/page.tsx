@@ -4,6 +4,8 @@ import AddAdClient from "./AddAdClient";
 import { withLocale } from "@koochly/shared";
 import { getTranslator, resolveLocale } from "../../../i18n/server";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {

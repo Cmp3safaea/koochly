@@ -4,6 +4,8 @@ import { getTranslator, resolveLocale } from "../../../i18n/server";
 import { getMapsBrowserApiKey } from "../../../lib/mapsBrowserKey";
 import AdminClient from "./AdminClient";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {
