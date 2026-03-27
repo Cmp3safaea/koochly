@@ -637,10 +637,26 @@ export default function CityAdsViewClient({
   const suppressNextCardClickRef = useRef(false);
   const prevPathnameRef = useRef<string | null>(null);
   const prevVisitsSigRef = useRef<string | null>(null);
+  const cardsSectionRef = useRef<HTMLDivElement | null>(null);
+  const prevFilterScrollSigRef = useRef<string | null>(null);
+
+  const filterScrollSig = useMemo(
+    () =>
+      `${[...selectedDepartmentIds].sort().join("\0")}\n${[...selectedCatCodes].sort().join("\0")}`,
+    [selectedDepartmentIds, selectedCatCodes],
+  );
 
   useEffect(() => {
     setCityJumpId(currentCityId ?? "");
   }, [currentCityId, pathname]);
+
+  useEffect(() => {
+    const prev = prevFilterScrollSigRef.current;
+    prevFilterScrollSigRef.current = filterScrollSig;
+    if (prev === null) return;
+    if (prev === filterScrollSig) return;
+    cardsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [filterScrollSig]);
 
   useEffect(() => {
     // Firebase Auth state is global for this client bundle.
@@ -1736,7 +1752,7 @@ export default function CityAdsViewClient({
             ) : null}
           </div>
 
-          <div className={styles.cards}>
+          <div ref={cardsSectionRef} className={styles.cards}>
             {filteredAds.length === 0 ? (
               <div className={styles.empty}>
                 <div className={styles.emptyTitle}>{t("city.emptyTitle")}</div>

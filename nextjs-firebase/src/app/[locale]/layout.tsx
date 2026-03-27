@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { I18nProvider } from "../../i18n/client";
 import { getMessages, isLocale, locales, type Locale } from "@koochly/shared";
 import { LanguageSwitcher } from "../../components/LanguageSwitcher";
+import FirebaseRuntimeInit from "../../components/FirebaseRuntimeInit";
+import { getFirebaseWebPublicConfig } from "../../lib/firebaseWebConfig";
 import { ThemeToggle } from "../ThemeToggle";
 
 export function generateStaticParams() {
@@ -20,9 +22,11 @@ export default async function LocaleLayout({
   if (!isLocale(loc)) notFound();
   const locale = loc as Locale;
   const messages = getMessages(locale);
+  const firebaseWebConfig = getFirebaseWebPublicConfig();
 
   return (
     <I18nProvider locale={locale} messages={messages}>
+      <FirebaseRuntimeInit config={firebaseWebConfig} />
       {children}
       <ThemeToggle />
       <LanguageSwitcher />

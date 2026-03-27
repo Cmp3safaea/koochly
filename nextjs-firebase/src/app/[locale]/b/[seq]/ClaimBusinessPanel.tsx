@@ -35,7 +35,7 @@ function readFileAsBase64(file: File): Promise<{ base64: string; mime: string }>
 export default function ClaimBusinessPanel({ adId }: Props) {
   const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
-  const [configured] = useState(() => isFirebaseClientConfigured());
+  const configured = isFirebaseClientConfigured();
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [comment, setComment] = useState("");
