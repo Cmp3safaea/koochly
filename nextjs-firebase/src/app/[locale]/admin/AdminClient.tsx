@@ -141,7 +141,11 @@ function dateTimeLocalToMs(value: string): number | null {
   return Number.isFinite(t) ? t : null;
 }
 
-export default function AdminClient() {
+export default function AdminClient({
+  googleMapsApiKey = "",
+}: {
+  googleMapsApiKey?: string;
+} = {}) {
   const { t, locale } = useI18n();
   const loc = useLocalizedHref();
 
@@ -214,7 +218,9 @@ export default function AdminClient() {
   const [eventLink, setEventLink] = useState("");
   const [eventStartAtInput, setEventStartAtInput] = useState("");
   const [eventEndAtInput, setEventEndAtInput] = useState("");
-  const cityMapApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  const cityMapApiKey =
+    googleMapsApiKey.trim() ||
+    (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "");
   const { isLoaded: cityMapLoaded } = useLoadScript({
     googleMapsApiKey: cityMapApiKey,
     libraries: GOOGLE_MAP_LIBRARIES,

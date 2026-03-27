@@ -450,6 +450,7 @@ export default async function AdDetailsPage({
                   lat={lat}
                   lon={lon}
                   heroImage={heroImage}
+                  googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ""}
                 />
               ) : (
                 <div className={styles.mapEmpty}>{t("adDetail.noCoords")}</div>

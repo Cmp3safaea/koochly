@@ -568,6 +568,7 @@ export default function CityAdsViewClient({
   currentCityId = null,
   initialDepartmentId = null,
   initialCatCode = null,
+  googleMapsApiKey = "",
 }: {
   cityTitle: string;
   /** Persian city name from Firestore (`city_fa`) for copy; falls back to `cityTitle` if empty. */
@@ -2003,6 +2004,7 @@ export default function CityAdsViewClient({
             activeAdId={selectedAdId}
             onAdSelect={setSelectedAdId}
             onAdOpened={registerAdOpenedForId}
+            mapsApiKey={googleMapsApiKey}
           />
           <p
             className={styles.mapCityIntro}

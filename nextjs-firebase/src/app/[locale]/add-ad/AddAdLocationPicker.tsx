@@ -41,6 +41,7 @@ type Props = {
   lonStr: string;
   onCoordsChange: (lat: number, lon: number) => void;
   onClear?: () => void;
+  mapsApiKey?: string;
 };
 
 export default function AddAdLocationPicker({
@@ -49,9 +50,13 @@ export default function AddAdLocationPicker({
   lonStr,
   onCoordsChange,
   onClear,
+  mapsApiKey: mapsApiKeyProp,
 }: Props) {
   const { t } = useI18n();
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  const apiKey =
+    (mapsApiKeyProp?.trim() ||
+      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
+      "") || "";
   const mapDark = useMapThemeDark();
   const mapStyles = mapDark ? MAP_STYLES_DARK : MAP_STYLES_LIGHT;
   const mapBackgroundColor = mapDark ? "#0f172a" : "#e8ecf1";

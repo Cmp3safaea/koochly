@@ -72,6 +72,7 @@ export default function GoogleMapView({
   onAdOpened,
   className,
   style,
+  mapsApiKey: mapsApiKeyProp,
 }: {
   points: Array<{
     id: string;
@@ -89,10 +90,14 @@ export default function GoogleMapView({
   onAdOpened?: (id: string) => void;
   className?: string;
   style?: CSSProperties;
+  mapsApiKey?: string;
 }) {
   const router = useRouter();
   const loc = useLocalizedHref();
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  const apiKey =
+    (mapsApiKeyProp?.trim() ||
+      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
+      "") || "";
   const mapDark = useMapThemeDark();
   const mapStyles = mapDark ? MAP_STYLES_DARK : MAP_STYLES_LIGHT;
   const mapBackgroundColor = mapDark ? "#0f172a" : "#e8ecf1";

@@ -13,16 +13,19 @@ export default function AdDetailGoogleMap({
   lat,
   lon,
   heroImage,
+  googleMapsApiKey,
 }: {
   adId: string;
   title: string;
   lat: number;
   lon: number;
   heroImage: string | null;
+  googleMapsApiKey?: string;
 }) {
   return (
     <GoogleMapView
       className={styles.mapFrame}
+      mapsApiKey={googleMapsApiKey}
       points={[
         {
           id: adId,

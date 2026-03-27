@@ -20,5 +20,6 @@ export async function generateMetadata({
 }
 
 export default function AddAdPage() {
-  return <AddAdClient />;
+  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  return <AddAdClient googleMapsApiKey={googleMapsApiKey} />;
 }

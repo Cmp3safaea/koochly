@@ -440,9 +440,12 @@ export default async function CityAdsPage({
     .filter((x): x is CityJumpOption => x !== null)
     .sort((a, b) => a.label.localeCompare(b.label, uiLocale));
 
+  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+
   return (
     <main style={{ maxWidth: 1200, margin: "0 auto", padding: "18px 16px 64px 16px" }}>
       <CityAdsViewClient
+        googleMapsApiKey={googleMapsApiKey}
         cityTitle={pageTitle}
         cityFa={cityFa}
         countryFa={countryFa}

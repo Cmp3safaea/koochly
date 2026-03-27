@@ -85,7 +85,11 @@ function cityCenterFromRow(c: CityRow | undefined): { lat: number; lng: number }
   return null;
 }
 
-export default function AddAdClient() {
+export default function AddAdClient({
+  googleMapsApiKey,
+}: {
+  googleMapsApiKey?: string;
+} = {}) {
   const { t, locale } = useI18n();
   const loc = useLocalizedHref();
   const configured = isFirebaseClientConfigured();
@@ -751,6 +755,7 @@ export default function AddAdClient() {
                     cityCenter={mapCenter}
                     latStr={latStr}
                     lonStr={lonStr}
+                    mapsApiKey={googleMapsApiKey}
                     onCoordsChange={(lat, lng) => {
                       setLatStr(lat.toFixed(6));
                       setLonStr(lng.toFixed(6));

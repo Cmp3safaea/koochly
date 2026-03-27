@@ -20,5 +20,6 @@ export async function generateMetadata({
 }
 
 export default function AdminPage() {
-  return <AdminClient />;
+  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  return <AdminClient googleMapsApiKey={googleMapsApiKey} />;
 }
