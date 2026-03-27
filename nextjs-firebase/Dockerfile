@@ -16,6 +16,7 @@ RUN npm ci
 
 WORKDIR /app/nextjs-firebase
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_SITEMAP_BUILD_OFFLINE=1
 RUN npm run build
 
 FROM node:23-alpine AS runner
