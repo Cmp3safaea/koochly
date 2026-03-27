@@ -1,0 +1,26 @@
+# Cloud Build: monorepo root must be the build context (same as Dockerfile comments).
+# Override _REGION / _AR_REPO / _IMAGE in the trigger or with:
+#   gcloud builds submit --config=cloudbuild.yaml --substitutions=_REGION=europe-west1,...
+substitutions:
+  _REGION: europe-west1
+  _AR_REPO: koochly
+  _IMAGE: web
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - Dockerfile
+      - -t
+      - $_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/$_IMAGE:$BUILD_ID
+      - -t
+      - $_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/$_IMAGE:latest
+      - .
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+images:
+  - $_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/$_IMAGE:$BUILD_ID
+  - $_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/$_IMAGE:latest

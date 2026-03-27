@@ -37,7 +37,7 @@ Hit:
 
 ## Docker build
 
-The production image is built from the **monorepo root** (the directory that contains `packages/` and `nextjs-firebase/`). The canonical `Dockerfile` is at repo root; `nextjs-firebase/Dockerfile` includes it for `docker build -f nextjs-firebase/Dockerfile .`.
+The production image is built from the **monorepo root** (the directory that contains `packages/` and `nextjs-firebase/`). Root `Dockerfile` and `nextjs-firebase/Dockerfile` are the same recipe (keep them in sync); Cloud Build uses the root file.
 
 ```bash
 # From monorepo root:

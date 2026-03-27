@@ -1,0 +1,14 @@
+{
+  "name": "koochly",
+  "private": true,
+  "workspaces": [
+    "nextjs-firebase",
+    "mobile",
+    "packages/*"
+  ],
+  "scripts": {
+    "web": "npm run dev -w nextjs-firebase",
+    "web:build": "npm run build -w nextjs-firebase",
+    "mobile": "npm start -w mobile"
+  }
+}

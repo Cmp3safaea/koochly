@@ -1,0 +1,36 @@
+{
+  "name": "nextjs-firebase",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start -p $PORT",
+    "lint": "next lint",
+    "seo:verify": "node ./scripts/seo-verify.mjs",
+    "seo:priority-urls": "node ./scripts/seo-priority-urls.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@koochly/shared": "*",
+    "@react-google-maps/api": "^2.20.8",
+    "@types/leaflet": "^1.9.21",
+    "firebase": "^12.11.0",
+    "firebase-admin": "^13.7.0",
+    "leaflet": "^1.9.4",
+    "next": "^16.2.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-leaflet": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^6.0.2"
+  }
+}

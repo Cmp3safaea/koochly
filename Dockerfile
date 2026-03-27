@@ -1,8 +1,11 @@
 # syntax=docker/dockerfile:1
 #
 # Build context must be the monorepo root (parent of `nextjs-firebase`), e.g.:
+#   docker build .
+# Cloud Build / GitHub quickstart expects this file at the repo root.
+#
+# Legacy one-liner (same context):
 #   docker build -f nextjs-firebase/Dockerfile .
-# Same image as repo root [Dockerfile](../Dockerfile) — keep both in sync.
 
 FROM node:23-alpine AS builder
 WORKDIR /app

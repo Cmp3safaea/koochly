@@ -11,7 +11,19 @@ Desktop.ini
 .env
 .env.local
 .env.*.local
-*.json
+
+# Never use blanket *.json — it prevents committing package.json / lockfiles and breaks Docker + Cloud Build.
+# Ignore common credential / dump JSON instead:
+**/firebase-adminsdk*.json
+**/*-service-account*.json
+
+# Dependencies
+node_modules/
+
+# Expo / React Native (mobile/)
+mobile/.expo/
+mobile/dist/
+
 # Optional: IDE / tooling (uncomment if you prefer not to commit)
 # .idea/
 # *.swp
