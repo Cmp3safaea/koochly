@@ -276,9 +276,13 @@ export default function GoogleMapView({
   if (!apiKey) {
     return (
       <div className={className} style={{ width: "100%" }}>
-        Missing `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (env var not set).
+        Maps API key is not set. Pass <code>mapsApiKey</code> from the server, or set{" "}
+        <code>GOOGLE_MAPS_BROWSER_KEY</code> (recommended on Cloud Run) or{" "}
+        <code>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> in <code>.env</code> for local dev.
         <div style={{ marginTop: 8, color: "#6b7280" }}>
-          Add it to `nextjs-firebase/.env` or restart the dev server.
+          Rebuild the image after changing build-time env; runtime-only{" "}
+          <code>NEXT_PUBLIC_*</code> may be empty if it was not present at{" "}
+          <code>next build</code>.
         </div>
       </div>
     );

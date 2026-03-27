@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { withLocale } from "@koochly/shared";
 import { getTranslator, resolveLocale } from "../../../i18n/server";
+import { getMapsBrowserApiKey } from "../../../lib/mapsBrowserKey";
 import AdminClient from "./AdminClient";
 
 export async function generateMetadata({
@@ -20,6 +21,6 @@ export async function generateMetadata({
 }
 
 export default function AdminPage() {
-  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  const googleMapsApiKey = getMapsBrowserApiKey();
   return <AdminClient googleMapsApiKey={googleMapsApiKey} />;
 }

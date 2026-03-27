@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getMapsBrowserApiKey } from "../../../lib/mapsBrowserKey";
 import AddAdClient from "./AddAdClient";
 import { withLocale } from "@koochly/shared";
 import { getTranslator, resolveLocale } from "../../../i18n/server";
@@ -20,6 +21,6 @@ export async function generateMetadata({
 }
 
 export default function AddAdPage() {
-  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  const googleMapsApiKey = getMapsBrowserApiKey();
   return <AddAdClient googleMapsApiKey={googleMapsApiKey} />;
 }

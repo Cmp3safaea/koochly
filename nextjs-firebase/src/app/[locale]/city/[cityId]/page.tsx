@@ -6,6 +6,7 @@ import { hubPathForCityDoc } from "../../../../lib/seoIndexable";
 import { withLocale } from "@koochly/shared";
 import { resolveLocale } from "../../../../i18n/server";
 import { directoryDepartmentDisplayLabel } from "../../../../lib/directoryDepartmentLabel";
+import { getMapsBrowserApiKey } from "../../../../lib/mapsBrowserKey";
 import CityAdsViewClient, {
   type CityJumpOption,
   type CityAdCard,
@@ -440,7 +441,7 @@ export default async function CityAdsPage({
     .filter((x): x is CityJumpOption => x !== null)
     .sort((a, b) => a.label.localeCompare(b.label, uiLocale));
 
-  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  const googleMapsApiKey = getMapsBrowserApiKey();
 
   return (
     <main style={{ maxWidth: 1200, margin: "0 auto", padding: "18px 16px 64px 16px" }}>

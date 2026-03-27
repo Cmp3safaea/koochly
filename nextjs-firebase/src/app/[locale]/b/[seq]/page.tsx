@@ -4,6 +4,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
+import { getMapsBrowserApiKey } from "../../../../lib/mapsBrowserKey";
 import { isAdDocIndexable } from "../../../../lib/seoIndexable";
 import { telHref } from "@koochly/shared";
 import { withLocale } from "@koochly/shared";
@@ -207,6 +208,7 @@ export default async function AdDetailsPage({
   const { seq, locale: localeRaw } = await params;
   const locale = resolveLocale(localeRaw);
   const t = getTranslator(localeRaw);
+  const googleMapsApiKey = getMapsBrowserApiKey();
   const seqNum = Number(seq);
   if (!Number.isFinite(seqNum)) return notFound();
 
@@ -450,7 +452,7 @@ export default async function AdDetailsPage({
                   lat={lat}
                   lon={lon}
                   heroImage={heroImage}
-                  googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ""}
+                  googleMapsApiKey={googleMapsApiKey}
                 />
               ) : (
                 <div className={styles.mapEmpty}>{t("adDetail.noCoords")}</div>
