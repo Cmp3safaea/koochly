@@ -589,6 +589,7 @@ export default function CityAdsViewClient({
   currentCityId?: string | null;
   initialDepartmentId?: string | null;
   initialCatCode?: string | null;
+  googleMapsApiKey?: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
