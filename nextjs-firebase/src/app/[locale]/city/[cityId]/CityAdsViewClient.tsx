@@ -9,11 +9,11 @@ import { usePathname, useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import KoochlyLogo from "../../../images/Koochly-Logo.png";
 import { recordAdVisit } from "../../../../lib/recordAdVisit";
-import { telHref } from "../../../../lib/telHref";
+import { telHref, type Locale } from "@koochly/shared";
 import { getAuthClientOrNull, getGoogleProvider } from "../../../../lib/firebaseClient";
 import { useI18n, useLocalizedHref } from "../../../../i18n/client";
-import type { Locale } from "../../../../i18n/config";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
+import ActivityLogClient from "../../activity/ActivityLogClient";
 
 // Google Maps is client-only and loads external scripts, so we disable SSR.
 const GoogleMapView = dynamic(() => import("./GoogleMap"), { ssr: false });
@@ -31,7 +31,11 @@ export type CityAdCard = {
   location?: { lat: number; lon: number } | null;
   departmentId?: string | null;
   catCode?: string | null;
+  subcats?: string[];
   createdAtMs?: number | null;
+  approved?: boolean;
+  paidAds?: boolean;
+  paidAdsExpiresAtMs?: number | null;
   visits?: number;
 };
 
@@ -41,10 +45,112 @@ export type DepartmentQuickItem = {
   imageUrl: string | null;
 };
 
+export type CityJumpOption = {
+  id: string;
+  label: string;
+};
+export type PopularCategoryLink = {
+  value: string;
+  label: string;
+  href: string;
+};
+
 type SelectOption = {
   value: string;
   label: string;
 };
+
+/** Matches `/api/ads/priority` rows (up to 35 from the `ads` collection). */
+type PriorityApiAd = {
+  id: string;
+  seq: number;
+  title: string;
+  category: string;
+  isPriority: boolean;
+  image: string | null;
+};
+
+type PriorityStripSlide = PriorityApiAd & {
+  link: string;
+  displayImage: string | null;
+};
+
+function parsePriorityApiAds(json: unknown): PriorityApiAd[] {
+  if (!json || typeof json !== "object") return [];
+  const ads = (json as Record<string, unknown>).ads;
+  if (!Array.isArray(ads)) return [];
+  const out: PriorityApiAd[] = [];
+  for (const row of ads) {
+    if (!row || typeof row !== "object") continue;
+    const o = row as Record<string, unknown>;
+    const id = typeof o.id === "string" ? o.id : null;
+    if (!id) continue;
+    const seqRaw = o.seq;
+    const seq =
+      typeof seqRaw === "number" && Number.isFinite(seqRaw)
+        ? seqRaw
+        : typeof seqRaw === "string"
+          ? Number(seqRaw)
+          : Number.MAX_SAFE_INTEGER;
+    out.push({
+      id,
+      seq: Number.isFinite(seq) ? seq : Number.MAX_SAFE_INTEGER,
+      title: typeof o.title === "string" ? o.title : "",
+      category: typeof o.category === "string" ? o.category : "",
+      isPriority: o.isPriority === true,
+      image: typeof o.image === "string" && o.image.trim() ? o.image.trim() : null,
+    });
+  }
+  return out;
+}
+
+/** Same cap as `src/app/api/ads/priority/route.ts` */
+const PRIORITY_STRIP_LIMIT = 35;
+const PRIORITY_STRIP_AUTO_MS = 4800;
+
+function scrollPriorityStrip(el: HTMLDivElement, direction: "next" | "prev") {
+  const { scrollLeft, clientWidth, scrollWidth } = el;
+  const delta = Math.max(160, clientWidth * 0.72);
+  if (direction === "next") {
+    if (scrollLeft + clientWidth >= scrollWidth - 4) {
+      el.scrollTo({ left: 0, behavior: "smooth" });
+    } else {
+      el.scrollTo({ left: scrollLeft + delta, behavior: "smooth" });
+    }
+  } else if (scrollLeft <= 4) {
+    el.scrollTo({ left: Math.max(0, scrollWidth - clientWidth), behavior: "smooth" });
+  } else {
+    el.scrollTo({ left: Math.max(0, scrollLeft - delta), behavior: "smooth" });
+  }
+}
+
+function PriorityStripChevron({
+  className,
+  direction,
+}: {
+  className?: string;
+  direction: "left" | "right";
+}) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {direction === "left" ? (
+        <path d="M15 18 9 12l6-6" />
+      ) : (
+        <path d="m9 18 6-6-6-6" />
+      )}
+    </svg>
+  );
+}
+
 const MAX_MULTI_SELECTION = 2;
 /** Long-press duration on a card (ms) to open the ad page instead of focusing on the map. */
 const CARD_LONG_PRESS_MS = 550;
@@ -273,6 +379,65 @@ function FilterIconCategory({ className }: { className?: string }) {
   );
 }
 
+function CityPinIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <path
+        d="M8.25 20c2.72-2.26 4.4-4.44 4.4-6.8a4.4 4.4 0 1 0-8.8 0c0 2.36 1.68 4.54 4.4 6.8Z"
+        fill="currentColor"
+        opacity="0.9"
+      />
+      <circle cx="8.25" cy="13.2" r="1.45" fill="white" />
+      <path
+        d="M13.2 8.2h6.2m0 0-1.9-1.9m1.9 1.9-1.9 1.9M19.4 15.8h-6.2m0 0 1.9-1.9m-1.9 1.9 1.9 1.9"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function CardOpenIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M9 6.5 15 12l-6 5.5" />
+    </svg>
+  );
+}
+
+function CardHeartIcon({ className, filled }: { className?: string; filled: boolean }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  );
+}
+
 /** Calendar + arrow: desc = newest first (arrow down), asc = oldest first (arrow up). */
 function CardRevealEyeIcon({ className }: { className?: string }) {
   return (
@@ -388,24 +553,39 @@ function initialCatList(code: string | null | undefined): string[] {
 export default function CityAdsViewClient({
   cityTitle,
   cityFa = "",
+  countryFa = "",
+  countryEng = "",
   flagUrl,
   ads,
   cityCenter,
   departmentOptions,
   categoryOptions,
   departmentQuickFilters,
+  cityOptions,
+  popularCategories,
+  relatedCategoryLabel = null,
+  allCityAdsHref = null,
+  currentCityId = null,
   initialDepartmentId = null,
   initialCatCode = null,
 }: {
   cityTitle: string;
   /** Persian city name from Firestore (`city_fa`) for copy; falls back to `cityTitle` if empty. */
   cityFa?: string;
+  /** Country display names from Firestore for intro copy (`country_fa` / `country_eng`). */
+  countryFa?: string;
+  countryEng?: string;
   flagUrl?: string;
   ads: CityAdCard[];
   cityCenter?: { lat: number; lon: number } | null;
   departmentOptions?: SelectOption[];
   categoryOptions?: SelectOption[];
   departmentQuickFilters?: DepartmentQuickItem[];
+  cityOptions?: CityJumpOption[];
+  popularCategories?: PopularCategoryLink[];
+  relatedCategoryLabel?: string | null;
+  allCityAdsHref?: string | null;
+  currentCityId?: string | null;
   initialDepartmentId?: string | null;
   initialCatCode?: string | null;
 }) {
@@ -415,6 +595,8 @@ export default function CityAdsViewClient({
   const loc = useLocalizedHref();
   const [mobileMode, setMobileMode] = useState<"list" | "map">("list");
   const [selectedAdId, setSelectedAdId] = useState<string | null>(null);
+  const [cityJumpId, setCityJumpId] = useState<string>(currentCityId ?? "");
+  const [cityPickerOpen, setCityPickerOpen] = useState(false);
   const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<string[]>(() =>
     initialDeptList(initialDepartmentId),
   );
@@ -431,6 +613,7 @@ export default function CityAdsViewClient({
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [authConfigured, setAuthConfigured] = useState(false);
   const [userDisplayName, setUserDisplayName] = useState<string | null>(null);
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(() => new Set());
   /**
    * Optimistic visit increments while navigating away loses React state; persisted in
    * sessionStorage and dropped once `visitsSig` updates after `router.refresh()`.
@@ -442,13 +625,20 @@ export default function CityAdsViewClient({
   const [clientUiReady, setClientUiReady] = useState(false);
   const [directoryQuery, setDirectoryQuery] = useState("");
   const [categoryQuery, setCategoryQuery] = useState("");
+  const [priorityPool, setPriorityPool] = useState<PriorityApiAd[]>([]);
   const directoryRef = useRef<HTMLDivElement | null>(null);
   const categoryRef = useRef<HTMLDivElement | null>(null);
+  const cityRef = useRef<HTMLDivElement | null>(null);
+  const priorityStripRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const cardLongPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suppressNextCardClickRef = useRef(false);
   const prevPathnameRef = useRef<string | null>(null);
   const prevVisitsSigRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    setCityJumpId(currentCityId ?? "");
+  }, [currentCityId, pathname]);
 
   useEffect(() => {
     // Firebase Auth state is global for this client bundle.
@@ -487,6 +677,57 @@ export default function CityAdsViewClient({
     }
     return () => {
       unsubscribe?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!authConfigured || !userEmail) {
+      setBookmarkedIds(new Set());
+      return;
+    }
+    const auth = getAuthClientOrNull();
+    const u = auth?.currentUser;
+    if (!u) {
+      setBookmarkedIds(new Set());
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const token = await u.getIdToken();
+        const res = await fetch("/api/user/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const json = (await res.json().catch(() => ({}))) as {
+          profile?: { bookmarkedAdIds?: string[] };
+        };
+        if (cancelled || !res.ok) return;
+        const ids = json.profile?.bookmarkedAdIds;
+        setBookmarkedIds(new Set(Array.isArray(ids) ? ids : []));
+      } catch {
+        if (!cancelled) setBookmarkedIds(new Set());
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authConfigured, userEmail]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/ads/priority");
+        if (!res.ok) return;
+        const json: unknown = await res.json();
+        if (cancelled) return;
+        setPriorityPool(parsePriorityApiAds(json));
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -582,6 +823,37 @@ export default function CityAdsViewClient({
     });
   }, []);
 
+  const toggleBookmark = useCallback(async (adId: string, mark: boolean) => {
+    const auth = getAuthClientOrNull();
+    const u = auth?.currentUser;
+    if (!u) return;
+    setBookmarkedIds((prev) => {
+      const next = new Set(prev);
+      if (mark) next.add(adId);
+      else next.delete(adId);
+      return next;
+    });
+    try {
+      const token = await u.getIdToken();
+      const res = await fetch("/api/user/bookmarks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ adId, bookmark: mark }),
+      });
+      if (!res.ok) throw new Error("bookmark");
+    } catch {
+      setBookmarkedIds((prev) => {
+        const next = new Set(prev);
+        if (mark) next.delete(adId);
+        else next.add(adId);
+        return next;
+      });
+    }
+  }, []);
+
   const directoryLabelMap = useMemo(
     () => new Map((departmentOptions ?? []).map((opt) => [opt.value, opt.label] as const)),
     [departmentOptions],
@@ -664,13 +936,39 @@ export default function CityAdsViewClient({
       if (!target) return;
       if (directoryRef.current?.contains(target)) return;
       if (categoryRef.current?.contains(target)) return;
+      if (cityRef.current?.contains(target)) return;
       if (menuRef.current?.contains(target)) return;
       setOpenFilter(null);
       setMenuOpen(false);
+      setCityPickerOpen(false);
     };
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
+
+  const priorityStrip = useMemo(() => {
+    const byId = new Map(ads.map((a) => [a.id, a]));
+    const out: PriorityStripSlide[] = [];
+    for (const p of priorityPool) {
+      const card = byId.get(p.id);
+      const link = card?.link;
+      if (typeof link !== "string" || !link.trim()) continue;
+      out.push({
+        ...p,
+        link: link.trim(),
+        displayImage: card?.image ?? p.image,
+      });
+      if (out.length >= PRIORITY_STRIP_LIMIT) break;
+    }
+    return out;
+  }, [priorityPool, ads]);
+
+  useEffect(() => {
+    const el = priorityStripRef.current;
+    if (!el || priorityStrip.length < 2) return;
+    const id = window.setInterval(() => scrollPriorityStrip(el, "next"), PRIORITY_STRIP_AUTO_MS);
+    return () => window.clearInterval(id);
+  }, [priorityStrip.length]);
 
   const filteredAds = useMemo(
     () => {
@@ -777,6 +1075,16 @@ export default function CityAdsViewClient({
 
   const listTitle = cityTitle;
   const introCityName = (typeof cityFa === "string" && cityFa.trim()) || cityTitle;
+  const introCountryLabel = useMemo(() => {
+    const fa = typeof countryFa === "string" ? countryFa.trim() : "";
+    const en = typeof countryEng === "string" ? countryEng.trim() : "";
+    if (locale === "fa") return fa || en;
+    return en || fa;
+  }, [countryFa, countryEng, locale]);
+  const cityIntroText =
+    introCountryLabel.length > 0
+      ? t("city.introPrefix", { city: introCityName, country: introCountryLabel })
+      : t("city.introPrefixNoCountry", { city: introCityName });
   const fmtN = (n: number) => (locale === "fa" ? toPersianDigits(n) : String(n));
   const selectedDirectorySummary =
     selectedDepartmentIds.length === 0
@@ -802,6 +1110,13 @@ export default function CityAdsViewClient({
 
   return (
     <div className={styles.shell}>
+      <ActivityLogClient
+        page="city_ads"
+        pathname={pathname}
+        city={cityTitle}
+        departmentIds={selectedDepartmentIds}
+        categoryCodes={selectedCatCodes}
+      />
       <div className={styles.mobileToggle}>
         <button
           type="button"
@@ -848,6 +1163,7 @@ export default function CityAdsViewClient({
               <Link
                 href={loc("/")}
                 className={styles.menuItem}
+                prefetch={false}
                 onClick={() => setMenuOpen(false)}
               >
                 {t("city.changeCity")}
@@ -855,6 +1171,7 @@ export default function CityAdsViewClient({
               <Link
                 href={loc("/#about")}
                 className={styles.menuItem}
+                prefetch={false}
                 onClick={() => setMenuOpen(false)}
               >
                 {t("city.about")}
@@ -862,6 +1179,7 @@ export default function CityAdsViewClient({
               <Link
                 href={loc("/#help")}
                 className={styles.menuItem}
+                prefetch={false}
                 onClick={() => setMenuOpen(false)}
               >
                 {t("city.help")}
@@ -869,6 +1187,40 @@ export default function CityAdsViewClient({
             </div>
           ) : null}
         </div>
+        {cityOptions && cityOptions.length > 0 ? (
+          <div className={`${styles.filterBlock} ${styles.filterBlockCity}`} ref={cityRef}>
+            <button
+              type="button"
+              className={styles.cityQuickBtn}
+              aria-label={t("city.changeCity")}
+              aria-expanded={cityPickerOpen}
+              onClick={() => setCityPickerOpen((v) => !v)}
+            >
+              <CityPinIcon className={styles.cityQuickIcon} />
+            </button>
+            {cityPickerOpen ? (
+              <div className={styles.cityQuickMenu}>
+                {cityOptions.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    className={`${styles.cityQuickItem} ${
+                      opt.id === cityJumpId ? styles.cityQuickItemActive : ""
+                    }`}
+                    onClick={() => {
+                      setCityPickerOpen(false);
+                      setCityJumpId(opt.id);
+                      if (!opt.id || opt.id === currentCityId) return;
+                      router.push(loc(`/city/${encodeURIComponent(opt.id)}`));
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         <div className={styles.filterBlockCompact}>
           <button
             type="button"
@@ -1181,17 +1533,109 @@ export default function CityAdsViewClient({
           ) : null}
         </div>
         <div className={styles.filterLogoWrap}>
-          <Image
-            src={KoochlyLogo}
-            alt=""
-            className={styles.filterLogo}
-            priority
-          />
+          <Link href={loc("/")}>
+            <Image
+              src={KoochlyLogo}
+              alt=""
+              className={styles.filterLogo}
+              priority
+            />
+          </Link>
+          {flagUrl ? <img src={flagUrl} alt="" className={styles.filterCityFlag} /> : null}
           <span className={styles.filterWordmark} lang={locale === "fa" ? "fa" : "en"}>
-            {t("city.brand")}
+            {`${t("city.brand")} · ${introCityName}`}
           </span>
         </div>
       </div>
+
+      {priorityStrip.length > 0 ? (
+        <section
+          className={styles.priorityStripSection}
+          aria-labelledby="priority-strip-heading"
+        >
+          <div className={styles.priorityStripHead}>
+            <h2 id="priority-strip-heading" className={styles.priorityStripTitle}>
+              {t("home.priorityAdsTitle")}
+            </h2>
+          </div>
+          <div className={styles.priorityStripRow}>
+            {priorityStrip.length > 1 ? (
+              <button
+                type="button"
+                className={styles.priorityStripNavBtn}
+                aria-label={t("city.priorityStripPrevAria")}
+                onClick={() => {
+                  const el = priorityStripRef.current;
+                  if (el) scrollPriorityStrip(el, "prev");
+                }}
+              >
+                <PriorityStripChevron
+                  direction="left"
+                  className={styles.priorityStripNavGlyph}
+                />
+              </button>
+            ) : null}
+            <div
+              ref={priorityStripRef}
+              className={styles.priorityStrip}
+              dir="ltr"
+              role="region"
+              aria-label={t("city.priorityStripAria")}
+            >
+              {priorityStrip.map((item) => (
+                <Link
+                  key={item.id}
+                  href={loc(item.link)}
+                  prefetch={false}
+                  className={styles.priorityStripCard}
+                  lang={locale === "fa" ? "fa" : "en"}
+                >
+                  <div className={styles.priorityStripImgWrap}>
+                    {item.displayImage ? (
+                      <img
+                        src={item.displayImage}
+                        alt=""
+                        className={styles.priorityStripImg}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : (
+                      <span className={styles.priorityStripPlaceholder} aria-hidden>
+                        {item.title.trim().slice(0, 1) || "?"}
+                      </span>
+                    )}
+                  </div>
+                  <div className={styles.priorityStripBody}>
+                    {item.isPriority ? (
+                      <span className={styles.priorityStripBadge}>{t("home.priorityBadge")}</span>
+                    ) : null}
+                    <div className={styles.priorityStripCardTitle}>{item.title}</div>
+                    {item.category ? (
+                      <div className={styles.priorityStripCat}>{item.category}</div>
+                    ) : null}
+                  </div>
+                </Link>
+              ))}
+            </div>
+            {priorityStrip.length > 1 ? (
+              <button
+                type="button"
+                className={styles.priorityStripNavBtn}
+                aria-label={t("city.priorityStripNextAria")}
+                onClick={() => {
+                  const el = priorityStripRef.current;
+                  if (el) scrollPriorityStrip(el, "next");
+                }}
+              >
+                <PriorityStripChevron
+                  direction="right"
+                  className={styles.priorityStripNavGlyph}
+                />
+              </button>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       {departmentQuickFilters && departmentQuickFilters.length > 0 ? (
         <div className={styles.deptQuickStrip} role="list" aria-label={t("city.deptQuickAria")}>
@@ -1250,15 +1694,44 @@ export default function CityAdsViewClient({
               ) : null}
               <div>
                 <h1 className={styles.pageTitle}>{listTitle}</h1>
-                <div className={styles.pageSubtitle}>{t("city.relatedAds")}</div>
+                <div className={styles.pageSubtitle}>
+                  {relatedCategoryLabel && relatedCategoryLabel.trim()
+                    ? `${t("city.relatedAds")} · ${relatedCategoryLabel.trim()}`
+                    : t("city.relatedAds")}
+                </div>
+                {allCityAdsHref ? (
+                  <Link href={allCityAdsHref} className={styles.allCityAdsLink} prefetch={false}>
+                    {locale === "fa" ? "نمایش همه آگهی‌های شهر" : "View all city ads"}
+                  </Link>
+                ) : null}
               </div>
             </div>
             <p
               className={styles.cityIntro}
               lang={locale === "fa" ? "fa" : "en"}
             >
-              {t("city.introPrefix", { city: introCityName })}
+              {cityIntroText}
             </p>
+            {popularCategories ? (
+              <section className={styles.popularCategoriesPanel} aria-label={locale === "fa" ? "دسته های محبوب این شهر" : "Popular categories in this city"}>
+                <h2 className={styles.popularCategoriesTitle}>
+                  {locale === "fa" ? "دسته های محبوب این شهر" : "Popular categories in this city"}
+                </h2>
+                {popularCategories.length > 0 ? (
+                  <div className={styles.popularCategoriesWrap}>
+                    {popularCategories.slice(0, 20).map((cat) => (
+                      <Link key={cat.value} href={cat.href} className={styles.popularCategoryChip} prefetch={false}>
+                        {cat.label}
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={styles.popularCategoriesEmpty}>
+                    {locale === "fa" ? "هنوز دسته فعالی برای این شهر ثبت نشده است." : "No active categories found for this city yet."}
+                  </p>
+                )}
+              </section>
+            ) : null}
           </div>
 
           <div className={styles.cards}>
@@ -1272,6 +1745,13 @@ export default function CityAdsViewClient({
             ) : null}
 
             {filteredAds.map((ad) => {
+              const approved = ad.approved === true;
+              const paidValid =
+                ad.paidAds === true &&
+                typeof ad.paidAdsExpiresAtMs === "number" &&
+                Number.isFinite(ad.paidAdsExpiresAtMs) &&
+                ad.paidAdsExpiresAtMs > Date.now();
+              const valid = approved; // valid to users (approved) regardless of paid
               const addedAgoLabel = clientUiReady
                 ? formatAddedAgo(ad.createdAtMs, locale, t)
                 : null;
@@ -1285,7 +1765,7 @@ export default function CityAdsViewClient({
               return (
               <article
                 key={ad.id}
-                className={styles.card}
+                className={`${styles.card} ${paidValid ? styles.cardPaidValid : valid ? styles.cardValid : ""}`}
                 onPointerDown={(e) => {
                   if (e.button !== 0) return;
                   clearCardLongPressTimer();
@@ -1337,6 +1817,15 @@ export default function CityAdsViewClient({
                     {ad.category ? (
                       <div className={styles.cardCat}>{ad.category}</div>
                     ) : null}
+                    {Array.isArray(ad.subcats) && ad.subcats.length > 0 ? (
+                      <div className={styles.cardSubcatWrap}>
+                        {ad.subcats.map((tag) => (
+                          <span key={`${ad.id}-${tag}`} className={styles.cardSubcatChip}>
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
                     {ad.description ? (
                       <p className={styles.cardDesc}>{ad.description}</p>
                     ) : null}
@@ -1344,30 +1833,57 @@ export default function CityAdsViewClient({
                 </div>
 
                 <div className={styles.cardFoot}>
-                    {ad.link || ad.phone ? (
+                    {ad.link || ad.phone || userEmail ? (
                       <div className={styles.cardFootActions}>
                         {ad.link ? (
                           <Link
                             className={`${styles.cardLink} ${styles.cardFootBtn}`}
                             href={loc(ad.link)}
+                            prefetch={false}
+                            title={t("city.view")}
+                            aria-label={t("city.view")}
                             onPointerDown={(e) => e.stopPropagation()}
                             onClick={(e) => {
                               e.stopPropagation();
                               registerAdOpenedForId(ad.id);
                             }}
                           >
-                            <span className={styles.cardLinkIcon} aria-hidden="true">
-                              ↗
-                            </span>
-                            <span>{t("city.view")}</span>
+                            <CardOpenIcon className={styles.cardLinkIcon} />
                           </Link>
+                        ) : null}
+                        {userEmail ? (
+                          <button
+                            type="button"
+                            className={`${styles.cardBookmarkBtn} ${bookmarkedIds.has(ad.id) ? styles.cardBookmarkBtnOn : ""}`}
+                            aria-pressed={bookmarkedIds.has(ad.id)}
+                            title={
+                              bookmarkedIds.has(ad.id)
+                                ? t("city.bookmarkRemove")
+                                : t("city.bookmarkAdd")
+                            }
+                            aria-label={
+                              bookmarkedIds.has(ad.id)
+                                ? t("city.bookmarkAriaRemove")
+                                : t("city.bookmarkAriaAdd")
+                            }
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void toggleBookmark(ad.id, !bookmarkedIds.has(ad.id));
+                            }}
+                          >
+                            <CardHeartIcon
+                              className={styles.cardBookmarkIcon}
+                              filled={bookmarkedIds.has(ad.id)}
+                            />
+                          </button>
                         ) : null}
                         {ad.phone ? (
                           revealedPhones[ad.id] ? (
                             <a
                               href={telHref(ad.phone)}
                               dir="ltr"
-                              className={`${styles.cardPhoneLink} ${styles.cardFootBtn} ${styles.cardPhoneLinkFoot}`}
+                              className={`${styles.cardPhoneLink} ${styles.cardPhoneLinkFoot}`}
                               onPointerDown={(e) => e.stopPropagation()}
                               onClick={(e) => e.stopPropagation()}
                             >
@@ -1376,7 +1892,7 @@ export default function CityAdsViewClient({
                           ) : (
                             <button
                               type="button"
-                              className={`${styles.cardPhoneShowBtn} ${styles.cardFootBtn}`}
+                              className={styles.cardPhoneShowBtn}
                               title={t("city.showPhoneTitle")}
                               aria-label={t("city.showPhoneAria", { title: ad.title })}
                               onPointerDown={(e) => e.stopPropagation()}
@@ -1413,20 +1929,30 @@ export default function CityAdsViewClient({
         <section className={styles.mapCol} aria-label={t("city.mapColAria")}>
           <div className={styles.mapAuthBar}>
             {authLoading ? (
-              <div className={styles.mapAuthStatus} aria-live="polite">
-                {t("city.mapChecking")}
+              <div className={styles.mapAuthInner}>
+                <div className={styles.mapAuthStatus} aria-live="polite">
+                  {t("city.mapChecking")}
+                </div>
+                <Link href={loc("/add-ad")} className={styles.mapAuthAddLink}>
+                  {t("city.postAd")}
+                </Link>
               </div>
             ) : !authConfigured ? (
-              <button
-                type="button"
-                className={styles.mapAuthIconBtn}
-                disabled
-                aria-disabled="true"
-                aria-label={t("city.signInDisabledAria")}
-                title={t("city.signInTitle")}
-              >
-                <MapSignInIcon className={styles.mapAuthIconGlyph} />
-              </button>
+              <div className={styles.mapAuthInner}>
+                <Link href={loc("/add-ad")} className={styles.mapAuthAddLink}>
+                  {t("city.postAd")}
+                </Link>
+                <button
+                  type="button"
+                  className={styles.mapAuthIconBtn}
+                  disabled
+                  aria-disabled="true"
+                  aria-label={t("city.signInDisabledAria")}
+                  title={t("city.signInTitle")}
+                >
+                  <MapSignInIcon className={styles.mapAuthIconGlyph} />
+                </button>
+              </div>
             ) : userEmail ? (
               <div className={styles.mapAuthInner}>
                 <div className={styles.mapUserWelcome} aria-live="polite">
@@ -1436,6 +1962,9 @@ export default function CityAdsViewClient({
                 </div>
                 <Link href={loc("/add-ad")} className={styles.mapAuthAddLink}>
                   {t("city.postAd")}
+                </Link>
+                <Link href={loc("/workspace")} className={styles.mapAuthAddLink}>
+                  {t("city.myWorkspace")}
                 </Link>
                 <button
                   type="button"
@@ -1452,6 +1981,9 @@ export default function CityAdsViewClient({
                 <p className={styles.mapAuthPromo}>
                   {t("city.signInHint")}
                 </p>
+                <Link href={loc("/add-ad")} className={styles.mapAuthAddLink}>
+                  {t("city.postAd")}
+                </Link>
                 <button
                   type="button"
                   className={styles.mapAuthIconBtn}
@@ -1472,6 +2004,12 @@ export default function CityAdsViewClient({
             onAdSelect={setSelectedAdId}
             onAdOpened={registerAdOpenedForId}
           />
+          <p
+            className={styles.mapCityIntro}
+            lang={locale === "fa" ? "fa" : "en"}
+          >
+            {cityIntroText}
+          </p>
         </section>
       </div>
     </div>

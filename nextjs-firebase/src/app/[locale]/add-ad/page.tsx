@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import AddAdClient from "./AddAdClient";
-import { withLocale } from "../../../i18n/paths";
+import { withLocale } from "@koochly/shared";
 import { getTranslator, resolveLocale } from "../../../i18n/server";
 
 export async function generateMetadata({
@@ -15,6 +15,7 @@ export async function generateMetadata({
     title: t("addAd.metaTitle"),
     description: t("addAd.metaDesc"),
     alternates: { canonical: withLocale(locale, "/add-ad") },
+    robots: { index: false, follow: false },
   };
 }
 

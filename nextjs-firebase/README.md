@@ -49,3 +49,29 @@ Build/push the image to a registry, then deploy with:
 - set `FIREBASE_SERVICE_ACCOUNT_KEY` as an environment variable/secret
 - ensure the container listens on `PORT` (this image uses `8080`)
 
+## SEO operations
+
+Run basic SEO endpoint checks:
+
+```bash
+npm run seo:verify
+```
+
+Generate a priority URL list for Search Console indexing:
+
+```bash
+npm run seo:priority-urls
+```
+
+Use a production domain:
+
+```bash
+SEO_BASE_URL="https://YOUR_DOMAIN" npm run seo:verify
+SEO_BASE_URL="https://YOUR_DOMAIN" npm run seo:priority-urls
+```
+
+Operational runbooks:
+
+- `docs/seo-search-console-runbook.md`
+- `docs/seo-weekly-process.md`
+

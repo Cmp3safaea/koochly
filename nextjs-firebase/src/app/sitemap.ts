@@ -4,7 +4,7 @@ import {
   SITEMAP_MAX_URLS_PER_FILE,
 } from "../lib/sitemapCache";
 import { getSiteBaseUrl } from "../lib/siteUrl";
-import { locales } from "../i18n/config";
+import { locales } from "@koochly/shared";
 
 export const revalidate = 3600;
 

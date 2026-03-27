@@ -240,6 +240,14 @@ body {
   color: var(--body-fg);
 }
 
+html[dir="ltr"] body {
+  text-align: left;
+}
+
+html[dir="rtl"] body {
+  text-align: right;
+}
+
 * {
   box-sizing: border-box;
   font-family: inherit;

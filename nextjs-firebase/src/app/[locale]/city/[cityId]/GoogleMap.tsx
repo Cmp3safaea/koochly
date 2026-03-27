@@ -67,6 +67,7 @@ export default function GoogleMapView({
   points,
   center,
   activeAdId,
+  showResetButton = true,
   onAdSelect,
   onAdOpened,
   className,
@@ -82,7 +83,8 @@ export default function GoogleMapView({
   }>;
   center?: { lat: number; lon: number } | null;
   activeAdId?: string | null;
-  onAdSelect?: (id: string) => void;
+  showResetButton?: boolean;
+  onAdSelect?: (id: string | null) => void;
   /** Visit recording + optimistic bumps when opening the ad detail page from a pin. */
   onAdOpened?: (id: string) => void;
   className?: string;
@@ -135,6 +137,38 @@ export default function GoogleMapView({
    */
   const SELECTED_AD_ZOOM_SINGLE = 14;
   const SELECTED_AD_ZOOM_MULTI = 16;
+
+  const resetToDefaultView = () => {
+    const map = mapRef.current;
+    if (!map) return;
+    setInfoWindowId(null);
+    onAdSelect?.(null);
+
+    if (points.length === 0) {
+      if (center) {
+        map.setCenter({ lat: center.lat, lng: center.lon });
+        map.setZoom(11);
+      }
+      return;
+    }
+
+    if (points.length === 1) {
+      const p = points[0];
+      map.setCenter({ lat: p.lat, lng: p.lon });
+      map.setZoom(14);
+      return;
+    }
+
+    if (center && Number.isFinite(center.lat) && Number.isFinite(center.lon)) {
+      map.setCenter({ lat: center.lat, lng: center.lon });
+      map.setZoom(12);
+      return;
+    }
+
+    const p = points[0];
+    map.setCenter({ lat: p.lat, lng: p.lon });
+    map.setZoom(12);
+  };
 
   const resizeAndFocusSelection = (map: google.maps.Map) => {
     const maps = getGoogleMaps();
@@ -341,6 +375,32 @@ export default function GoogleMapView({
           </InfoWindow>
         ) : null}
       </GoogleMap>
+      {showResetButton && activeAdId ? (
+        <button
+          type="button"
+          onClick={resetToDefaultView}
+          title="Reset map view"
+          aria-label="Reset map view"
+          style={{
+            position: "absolute",
+            top: 12,
+            right: 12,
+            zIndex: 10,
+            width: 34,
+            height: 34,
+            borderRadius: 8,
+            border: "1px solid rgba(15,23,42,0.18)",
+            background: "rgba(255,255,255,0.95)",
+            color: "#0f172a",
+            fontSize: 18,
+            lineHeight: 1,
+            fontWeight: 700,
+            cursor: "pointer",
+          }}
+        >
+          ↺
+        </button>
+      ) : null}
     </div>
   );
 }

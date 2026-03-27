@@ -22,8 +22,44 @@ export async function GET(
     }
 
     const data = snap.data() as Record<string, unknown>;
-    const categories = await resolveDirectoryCategoriesForAdmin(db, deptId, data);
-    return NextResponse.json({ categories });
+    const base = await resolveDirectoryCategoriesForAdmin(db, deptId, data);
+    const sub = await db.collection("directory").doc(deptId).collection("categories").limit(500).get();
+
+    if (!sub.empty) {
+      const byId = new Map(
+        sub.docs.map((d) => [d.id, d.data() as Record<string, unknown>] as const),
+      );
+      const categories = base.map((c) => {
+        const row = byId.get(c.code);
+        const rawTags = row?.subcategories;
+        const subcategories =
+          Array.isArray(rawTags)
+            ? rawTags
+                .map((v) => (typeof v === "string" ? v.trim() : ""))
+                .filter((v) => v.length > 0)
+            : [];
+        return { ...c, subcategories };
+      });
+      return NextResponse.json(
+        { categories },
+        {
+          headers: {
+            "Cache-Control": "public, s-maxage=600, stale-while-revalidate=1200",
+          },
+        },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        categories: base.map((c) => ({ ...c, subcategories: [] as string[] })),
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=600, stale-while-revalidate=1200",
+        },
+      },
+    );
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Unknown error" },

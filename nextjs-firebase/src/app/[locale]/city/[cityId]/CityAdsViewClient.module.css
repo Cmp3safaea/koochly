@@ -77,6 +77,14 @@
   height: 34px;
 }
 
+.filterCityFlag {
+  width: 26px;
+  height: 18px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--border-slate);
+}
+
 .filterWordmark {
   font-family: "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
   font-weight: 800;
@@ -106,6 +114,78 @@
   flex: 0 1 200px;
   min-width: 140px;
   max-width: 236px;
+}
+
+.filterBlockCity {
+  flex: 0 0 40px;
+  min-width: 40px;
+  max-width: none;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.cityQuickBtn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border-input));
+  border-radius: 8px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-soft-12) 74%, white) 0%,
+    color-mix(in srgb, var(--accent-soft-08) 70%, var(--surface)) 100%
+  );
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.cityQuickBtn:hover {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border-input));
+}
+
+.cityQuickIcon {
+  width: 21px;
+  height: 21px;
+}
+
+.cityQuickMenu {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 8px);
+  min-width: 190px;
+  max-height: 260px;
+  overflow: auto;
+  z-index: 80;
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 10px 26px var(--shadow-float);
+  padding: 4px;
+}
+
+.cityQuickItem {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: start;
+  padding: 7px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.cityQuickItem:hover {
+  background: var(--accent-soft-08);
+}
+
+.cityQuickItemActive {
+  color: var(--accent);
+  font-weight: 700;
+  background: var(--accent-soft-08);
 }
 
 .filterBlockSearch .filterTrigger {
@@ -712,6 +792,71 @@
   text-align: right;
 }
 
+.popularCategoriesPanel {
+  margin-top: 14px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 90%, white),
+    color-mix(in srgb, var(--surface-2) 94%, white)
+  );
+  border: 1px solid var(--border-80);
+  border-radius: 14px;
+  padding: 10px 12px 12px;
+}
+
+.popularCategoriesTitle {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-slate-700);
+}
+
+.popularCategoriesWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.popularCategoriesEmpty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+.popularCategoryChip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  text-decoration: none;
+  border: 1px solid var(--accent-border-mid);
+  background: color-mix(in srgb, var(--accent-soft-08) 70%, var(--surface));
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.74rem;
+  padding: 6px 11px;
+  transition:
+    transform 120ms ease,
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.popularCategoryChip:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--accent-soft-12) 72%, var(--surface));
+  border-color: var(--accent-border-strong);
+}
+
+.mapCityIntro {
+  display: none;
+  margin: 10px 10px 12px;
+  font-size: 0.86rem;
+  font-weight: 500;
+  line-height: 1.75;
+  color: var(--text-muted);
+  text-align: right;
+}
+
 .flag {
   width: 48px;
   height: 34px;
@@ -730,6 +875,30 @@
   color: var(--text-muted);
   font-size: 0.98rem;
   font-weight: 600;
+}
+
+.allCityAdsLink {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  border-radius: 999px;
+  border: 1px solid var(--accent-border-mid);
+  background: color-mix(in srgb, var(--accent-soft-08) 72%, var(--surface));
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 5px 11px;
+  transition:
+    transform 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.allCityAdsLink:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent-border-strong);
+  background: color-mix(in srgb, var(--accent-soft-12) 74%, var(--surface));
 }
 
 .cards {
@@ -755,6 +924,22 @@
     transform 140ms ease,
     box-shadow 140ms ease,
     border-color 140ms ease;
+}
+
+.cardValid {
+  border-color: color-mix(in srgb, #16a34a 45%, var(--border-95));
+  box-shadow:
+    0 10px 24px var(--shadow-card-1),
+    0 2px 8px var(--shadow-card-2),
+    0 0 0 2px color-mix(in srgb, #16a34a 18%, transparent);
+}
+
+.cardPaidValid {
+  border-color: color-mix(in srgb, #f59e0b 55%, var(--border-95));
+  box-shadow:
+    0 10px 24px var(--shadow-card-1),
+    0 2px 8px var(--shadow-card-2),
+    0 0 0 2px color-mix(in srgb, #f59e0b 22%, transparent);
 }
 
 .card:hover {
@@ -858,6 +1043,26 @@
   word-break: break-word;
 }
 
+.cardSubcatWrap {
+  margin-top: 7px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cardSubcatChip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border-input));
+  background: color-mix(in srgb, var(--accent-soft-08) 72%, var(--surface));
+  color: var(--accent);
+  padding: 2px 8px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .cardFoot {
   display: flex;
   flex-wrap: wrap;
@@ -879,9 +1084,9 @@
 }
 
 .cardFootBtn {
-  flex: 1;
-  min-width: min(148px, 100%);
-  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 0;
+  justify-content: flex-start;
   box-sizing: border-box;
 }
 
@@ -928,28 +1133,25 @@
 .cardPhoneShowBtn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 4px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: var(--accent-soft-10);
-  color: var(--accent);
-  border: 1px solid var(--accent-link-border);
+  padding: 2px 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-slate-600);
+  border: 0;
   font-family: inherit;
-  font-weight: 700;
-  font-size: 0.68rem;
+  font-weight: 600;
+  font-size: 0.63rem;
   cursor: pointer;
   box-shadow: none;
   transition:
     transform 120ms ease,
-    background 120ms ease,
-    border-color 120ms ease;
+    color 120ms ease;
 }
 
 .cardPhoneShowBtn:hover {
-  transform: translateY(-1px);
-  background: var(--accent-soft-16);
-  border-color: var(--accent-link-border-hover);
+  color: var(--accent);
 }
 
 .cardPhoneShowBtn:focus-visible {
@@ -959,8 +1161,8 @@
 
 /* Match `.cardLinkIcon` visual weight (same pill as «مشاهده»). */
 .cardPhoneShowBtnIcon {
-  width: 0.68rem;
-  height: 0.68rem;
+  width: 0.62rem;
+  height: 0.62rem;
   flex-shrink: 0;
 }
 
@@ -981,53 +1183,101 @@
 .cardPhoneLinkFoot {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  text-align: center;
+  justify-content: flex-start;
+  text-align: left;
   text-decoration: none;
-  padding: 5px 8px;
-  min-height: 30px;
-  border-radius: 999px;
-  background: var(--accent-soft-10);
-  border: 1px solid var(--accent-link-border);
-  font-size: 0.65rem;
+  padding: 1px 0;
+  min-height: 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
   line-height: 1.25;
   word-break: break-all;
 }
 
 .cardPhoneLinkFoot:hover {
-  text-decoration: none;
-  background: var(--accent-soft-16);
-  border-color: var(--accent-link-border-hover);
+  text-decoration: underline;
+  background: transparent;
+  border-color: transparent;
 }
 
 .cardLink {
-  display: inline-block;
-  margin-top: 0;
-  align-self: flex-end;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: var(--accent-soft-10);
-  color: var(--accent);
-  border: 1px solid var(--accent-link-border);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.68rem;
-  box-shadow: none;
-  transition: transform 120ms ease, box-shadow 120ms ease;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 0;
+  margin-top: 0;
+  align-self: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #2563eb;
+  border: 0;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.63rem;
+  box-shadow: none;
+  transition:
+    transform 120ms ease,
+    background 120ms ease;
 }
 
 .cardLink:hover {
   transform: translateY(-1px);
-  background: var(--accent-soft-16);
-  border-color: var(--accent-link-border-hover);
+  background: #bfdbfe;
 }
 
 .cardLinkIcon {
-  font-size: 0.68rem;
+  width: 16px;
+  height: 16px;
   line-height: 1;
+}
+
+.cardBookmarkBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, #f43f5e 35%, var(--border-input));
+  background: color-mix(in srgb, #fff5f5 88%, var(--surface));
+  color: #e11d48;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    transform 120ms ease,
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.cardBookmarkBtn:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, #ffe4e6 70%, var(--surface));
+  border-color: color-mix(in srgb, #f43f5e 55%, var(--border-input));
+}
+
+.cardBookmarkBtn:focus-visible {
+  outline: 2px solid color-mix(in srgb, #f43f5e 45%, transparent);
+  outline-offset: 2px;
+}
+
+.cardBookmarkBtnOn {
+  background: color-mix(in srgb, #fda4af 42%, white);
+  border-color: color-mix(in srgb, #e11d48 40%, var(--border-input));
+  color: #9f1239;
+}
+
+.cardBookmarkIcon {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
 }
 
 .empty {
@@ -1204,6 +1454,178 @@
   box-shadow: 0 6px 14px var(--accent-glow-25);
 }
 
+/* Priority / featured strip: below category + directory filters */
+.priorityStripSection {
+  width: 100%;
+  margin: 0 0 10px;
+}
+
+.priorityStripHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding: 0 2px;
+}
+
+.priorityStripTitle {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.priorityStripRow {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+}
+
+.priorityStripNavBtn {
+  flex: 0 0 40px;
+  width: 40px;
+  align-self: center;
+  height: 40px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--border-input);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-ui);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.priorityStripNavBtn:hover {
+  border-color: var(--accent-35);
+  background: var(--accent-soft-08);
+  color: var(--accent);
+}
+
+.priorityStripNavGlyph {
+  width: 22px;
+  height: 22px;
+}
+
+.priorityStrip {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 2px 10px;
+  margin: 0;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.priorityStrip::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.priorityStripCard {
+  flex: 0 0 min(288px, 85vw);
+  max-width: min(288px, 85vw);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid var(--border-slate);
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 2px 8px var(--shadow-dept);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
+}
+
+.priorityStripCard:hover {
+  border-color: var(--accent-35);
+  box-shadow: 0 4px 14px var(--accent-shadow-12);
+}
+
+.priorityStripImgWrap {
+  flex: 0 0 76px;
+  width: 76px;
+  height: 76px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--dept-chip-bg);
+  align-self: center;
+}
+
+.priorityStripImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.priorityStripPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--text-slate);
+}
+
+.priorityStripBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+}
+
+.priorityStripBadge {
+  align-self: flex-start;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--accent-soft-12);
+  color: var(--accent);
+}
+
+.priorityStripCardTitle {
+  font-weight: 800;
+  font-size: 0.88rem;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.priorityStripCat {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .deptQuickStrip {
   display: flex;
   flex-wrap: nowrap;
@@ -1337,11 +1759,11 @@
   }
 
   .filterLogo {
-    height: 28px;
+    height: 40px;
   }
 
   .filterWordmark {
-    font-size: 0.88rem;
+    font-size: 0.96rem;
   }
 
   .filterBar > .filterBlockCompact:nth-child(1) {
@@ -1350,7 +1772,7 @@
     flex: 0 0 40px;
   }
 
-  .filterBar > .filterBlockCompact:nth-child(2) {
+  .filterBar > .filterBlockCompact:nth-child(3) {
     order: 3;
     width: 40px;
     flex: 0 0 40px;
@@ -1363,20 +1785,26 @@
     min-width: 0;
   }
 
-  .filterBar > .filterBlockCompact:nth-child(4) {
+  .filterBar > .filterBlockCity {
+    order: 4;
+    flex: 0 0 40px;
+    min-width: 40px;
+  }
+
+  .filterBar > .filterBlockCompact:nth-child(5) {
     order: 5;
     width: auto;
     flex: 0 0 auto;
   }
 
-  .filterBar > .filterBlockWide:nth-child(5) {
+  .filterBar > .filterBlockWide:nth-child(6) {
     order: 6;
     flex: 1 1 100%;
     min-width: 0;
     max-width: none;
   }
 
-  .filterBar > .filterBlockWide:nth-child(6) {
+  .filterBar > .filterBlockWide:nth-child(7) {
     order: 7;
     flex: 1 1 100%;
     min-width: 0;
@@ -1439,6 +1867,10 @@
 
   .columns[data-mobile-mode="map"] .listCol {
     display: none;
+  }
+
+  .columns[data-mobile-mode="map"] .mapCityIntro {
+    display: block;
   }
 
 }

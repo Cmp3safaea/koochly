@@ -28,7 +28,14 @@ export async function GET(request: Request) {
       return { id: doc.id, label };
     });
     departments.sort((a, b) => a.label.localeCompare(b.label, sortLocale));
-    return NextResponse.json({ departments });
+    return NextResponse.json(
+      { departments },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=600, stale-while-revalidate=1200",
+        },
+      },
+    );
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Unknown error" },

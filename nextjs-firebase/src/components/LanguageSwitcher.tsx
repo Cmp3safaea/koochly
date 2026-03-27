@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
-import { locales } from "../i18n/config";
-import { stripLocaleFromPathname, withLocale } from "../i18n/paths";
+import { locales, stripLocaleFromPathname, withLocale } from "@koochly/shared";
 import { useI18n } from "../i18n/client";
 import styles from "./LanguageSwitcher.module.css";
 

@@ -35,6 +35,7 @@ export default function AdDetailGoogleMap({
       ]}
       center={{ lat, lon }}
       activeAdId={adId}
+      showResetButton={false}
     />
   );
 }

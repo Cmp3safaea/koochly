@@ -1,10 +1,13 @@
 "use client";
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
-import type { Locale } from "./config";
-import { createTranslator, type TranslateFn } from "./createTranslator";
-import type { Messages } from "./messages/fa";
-import { withLocale } from "./paths";
+import {
+  createTranslator,
+  type Locale,
+  type Messages,
+  type TranslateFn,
+  withLocale,
+} from "@koochly/shared";
 
 type I18nCtx = { locale: Locale; t: TranslateFn };
 
@@ -30,7 +33,7 @@ export function useI18n(): I18nCtx {
   return v;
 }
 
-/** Prefix internal paths with the active locale (`/b/1` → `/fa/b/1`). External http(s) URLs unchanged. */
+/** Localize internal paths (default locale stays unprefixed; non-default gets `/{locale}` prefix). */
 export function useLocalizedHref(): (path: string) => string {
   const { locale } = useI18n();
   return useMemo(

@@ -1,11 +1,9 @@
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { I18nProvider } from "../../i18n/client";
-import { isLocale, type Locale } from "../../i18n/config";
-import { getMessages } from "../../i18n/getMessages";
+import { getMessages, isLocale, locales, type Locale } from "@koochly/shared";
 import { LanguageSwitcher } from "../../components/LanguageSwitcher";
 import { ThemeToggle } from "../ThemeToggle";
-import { locales } from "../../i18n/config";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));

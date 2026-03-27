@@ -1,12 +1,15 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
-import { withLocale } from "../../../../i18n/paths";
+import { withLocale } from "@koochly/shared";
 import { resolveLocale } from "../../../../i18n/server";
 import { directoryDepartmentDisplayLabel } from "../../../../lib/directoryDepartmentLabel";
+import { getSiteBaseUrl } from "../../../../lib/siteUrl";
 import CityAdsViewClient, {
+  type CityJumpOption,
   type CityAdCard,
   type DepartmentQuickItem,
+  type PopularCategoryLink,
 } from "../../city/[cityId]/CityAdsViewClient";
 
 type AdDoc = {
@@ -30,6 +33,8 @@ type AdDoc = {
   seq?: number;
   approved?: boolean;
   visits?: unknown;
+  subcat?: unknown;
+  selectedCategoryTags?: unknown;
 };
 
 type SelectOption = {
@@ -41,6 +46,11 @@ function toNonEmptyString(id: unknown): string | null {
   if (typeof id !== "string") return null;
   const trimmed = id.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function sanitizeCityToken(value: unknown): string {
+  if (typeof value !== "string") return "";
+  return value.replace(/[\u200B-\u200D\u2060\uFEFF]/g, "").trim();
 }
 
 function firstSearchParam(
@@ -114,6 +124,14 @@ function toDepartmentId(value: unknown): string | null {
   return null;
 }
 
+function normalizeSubcats(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((v) => (typeof v === "string" ? v.trim() : ""))
+    .filter((v, i, arr) => v.length > 0 && arr.indexOf(v) === i)
+    .slice(0, 8);
+}
+
 function collectCategoryCodes(
   node: unknown,
   output: Map<string, string>,
@@ -185,8 +203,8 @@ export default async function CityAdsByCountryPage({
 
   const db = getFirestoreAdmin();
 
-  const countryKey = countryParam;
-  const cityKey = cityParam;
+  const countryKey = sanitizeCityToken(countryParam);
+  const cityKey = sanitizeCityToken(cityParam);
   const countryLower = countryKey.toLowerCase();
   const cityLower = cityKey.toLowerCase();
 
@@ -242,11 +260,12 @@ export default async function CityAdsByCountryPage({
   if (!citySnap) return notFound();
 
   const cityData = citySnap.data() as Record<string, unknown>;
-  const cityFa = typeof cityData.city_fa === "string" ? cityData.city_fa : "";
-  const cityEng =
-    typeof cityData.city_eng === "string" ? cityData.city_eng : "";
+  const cityFa = sanitizeCityToken(cityData.city_fa);
+  const cityEng = sanitizeCityToken(cityData.city_eng);
   const countryFa =
     typeof cityData.country_fa === "string" ? cityData.country_fa : "";
+  const countryEng =
+    typeof cityData.country_eng === "string" ? cityData.country_eng : "";
   const flagUrl =
     typeof cityData.flag_url === "string"
       ? (cityData.flag_url as string)
@@ -273,6 +292,7 @@ export default async function CityAdsByCountryPage({
       const engAds = await db
         .collection("ads")
         .where("city_eng", "==", cityEng)
+        .where("approved", "==", true)
         .limit(100)
         .get();
       engAds.docs.forEach((doc) => mergedAds.set(doc.id, doc));
@@ -283,6 +303,7 @@ export default async function CityAdsByCountryPage({
       const faAds = await db
         .collection("ads")
         .where("city_fa", "==", cityFa)
+        .where("approved", "==", true)
         .limit(100)
         .get();
       faAds.docs.forEach((doc) => mergedAds.set(doc.id, doc));
@@ -292,6 +313,7 @@ export default async function CityAdsByCountryPage({
     const subset = await db.collection("ads").limit(500).get();
     subset.docs.forEach((d) => {
       const data = d.data() as Record<string, unknown>;
+      if (data.approved !== true) return;
       if (cityEng && data.city_eng === cityEng) mergedAds.set(d.id, d);
       if (cityFa && data.city_fa === cityFa) mergedAds.set(d.id, d);
     });
@@ -352,6 +374,9 @@ export default async function CityAdsByCountryPage({
       typeof visitsRaw === "number" && Number.isFinite(visitsRaw)
         ? Math.max(0, Math.floor(visitsRaw))
         : 0;
+    const subcats = normalizeSubcats(ad.subcat).length
+      ? normalizeSubcats(ad.subcat)
+      : normalizeSubcats(ad.selectedCategoryTags);
 
     return {
       id: ad.id ?? title,
@@ -365,6 +390,7 @@ export default async function CityAdsByCountryPage({
       location,
       departmentId: toDepartmentId(ad.departmentID),
       catCode: typeof ad.cat_code === "string" ? ad.cat_code : null,
+      subcats,
       createdAtMs: toDateTimeMs(ad.dateTime),
       visits,
     };
@@ -427,17 +453,104 @@ export default async function CityAdsByCountryPage({
     }))
     .sort((a, b) => a.label.localeCompare(b.label));
 
+  let citiesSnap;
+  try {
+    citiesSnap = await db
+      .collection("cities")
+      .where("active", "==", true)
+      .orderBy("order")
+      .limit(300)
+      .get();
+  } catch {
+    citiesSnap = await db.collection("cities").limit(300).get();
+  }
+  const cityOptions: CityJumpOption[] = citiesSnap.docs
+    .map((doc) => {
+      const c = doc.data() as Record<string, unknown>;
+      if (c.active !== true) return null;
+      const fa = sanitizeCityToken(c.city_fa);
+      const en = sanitizeCityToken(c.city_eng);
+      const cityPath = en || fa || doc.id;
+      const label = fa && en ? `${fa} · ${en}` : fa || en || doc.id;
+      return { id: cityPath, label };
+    })
+    .filter((x): x is CityJumpOption => x !== null)
+    .sort((a, b) => a.label.localeCompare(b.label, uiLocale));
+
+  const pathWithinLocale = `/${encodeURIComponent(countryParam)}/${encodeURIComponent(cityParam)}/`;
+  const canonicalPath = withLocale(uiLocale, pathWithinLocale);
+  const canonicalUrl = `${getSiteBaseUrl()}${canonicalPath}`;
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Koochly",
+        item: `${getSiteBaseUrl()}/${uiLocale}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: pageTitle,
+        item: canonicalUrl,
+      },
+    ],
+  };
+  const topAdUrls = adsForClient
+    .map((a) => a.link)
+    .filter((link): link is string => typeof link === "string" && link.startsWith("/b/"))
+    .slice(0, 10)
+    .map((link) => `${getSiteBaseUrl()}${withLocale(uiLocale, link)}`);
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `${pageTitle} - Koochly`,
+    url: canonicalUrl,
+    inLanguage: uiLocale,
+    description: `Business listings for ${pageTitle}.`,
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: topAdUrls.map((url, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url,
+      })),
+    },
+  };
+
   return (
     <main style={{ maxWidth: 1200, margin: "0 auto", padding: "18px 16px 64px 16px" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
       <CityAdsViewClient
         cityTitle={pageTitle}
         cityFa={cityFa}
+        countryFa={countryFa}
+        countryEng={countryEng}
         flagUrl={flagUrl}
         ads={adsForClient}
         cityCenter={cityCenter}
         departmentOptions={departmentOptions}
         categoryOptions={categoryOptions}
         departmentQuickFilters={departmentQuickFilters}
+        cityOptions={cityOptions}
+        popularCategories={categoryOptions.map((cat): PopularCategoryLink => ({
+          value: cat.value,
+          label: cat.label,
+          href: withLocale(
+            uiLocale,
+            `/${countryParam}/${cityParam}/category/${cat.value}/`,
+          ),
+        }))}
+        currentCityId={(cityEng || cityFa || citySnap.id || "").trim()}
         initialCatCode={initialCatCode}
         initialDepartmentId={initialDepartmentId}
       />
@@ -457,8 +570,8 @@ export async function generateMetadata({
   if (!countryParam || !cityParam) return { title: "Koochly" };
 
   const db = getFirestoreAdmin();
-  const countryKey = countryParam;
-  const cityKey = cityParam;
+  const countryKey = sanitizeCityToken(countryParam);
+  const cityKey = sanitizeCityToken(cityParam);
 
   const cityEngQ = await db
     .collection("cities")
@@ -476,23 +589,28 @@ export async function generateMetadata({
   if (!citySnap) return { title: "Koochly" };
 
   const cityData = citySnap.data() as Record<string, unknown>;
-  const cityEng = typeof cityData.city_eng === "string" ? cityData.city_eng : "";
-  const cityFa = typeof cityData.city_fa === "string" ? cityData.city_fa : "";
+  const cityEng = sanitizeCityToken(cityData.city_eng);
+  const cityFa = sanitizeCityToken(cityData.city_fa);
   const countryFa =
     typeof cityData.country_fa === "string" ? cityData.country_fa : "";
 
   const seoCity = cityEng || cityFa || "City";
-  const canonicalPath = withLocale(
-    locale,
-    `/${encodeURIComponent(countryParam)}/${encodeURIComponent(cityParam)}/`,
-  );
+  const pathWithinLocale = `/${encodeURIComponent(countryParam)}/${encodeURIComponent(cityParam)}/`;
+  const canonicalPath = withLocale(locale, pathWithinLocale);
 
   return {
     title: countryFa ? `${seoCity} - Koochly Ads (${countryFa})` : `${seoCity} - Koochly Ads`,
     description: countryFa
       ? `Explore business listings and ads for ${seoCity} in ${countryFa}.`
       : `Explore business listings and ads for ${seoCity}.`,
-    alternates: { canonical: canonicalPath },
+    alternates: {
+      canonical: canonicalPath,
+      languages: {
+        fa: withLocale("fa", pathWithinLocale),
+        en: withLocale("en", pathWithinLocale),
+        "x-default": withLocale("en", pathWithinLocale),
+      },
+    },
     openGraph: {
       title: countryFa ? `${seoCity} Ads - Koochly` : `${seoCity} Ads - Koochly`,
     },

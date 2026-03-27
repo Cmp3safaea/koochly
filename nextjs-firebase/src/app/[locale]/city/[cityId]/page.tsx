@@ -1,12 +1,13 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { collectCategoryCodes } from "../../../../lib/directoryMetadata";
 import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
 import { hubPathForCityDoc } from "../../../../lib/seoIndexable";
-import { withLocale } from "../../../../i18n/paths";
+import { withLocale } from "@koochly/shared";
 import { resolveLocale } from "../../../../i18n/server";
 import { directoryDepartmentDisplayLabel } from "../../../../lib/directoryDepartmentLabel";
 import CityAdsViewClient, {
+  type CityJumpOption,
   type CityAdCard,
   type DepartmentQuickItem,
 } from "./CityAdsViewClient";
@@ -31,7 +32,11 @@ type AdDoc = {
   dateTime?: unknown;
   seq?: number;
   approved?: boolean;
+  paidAds?: boolean;
+  paidAdsExpiresAt?: unknown;
   visits?: unknown;
+  subcat?: unknown;
+  selectedCategoryTags?: unknown;
 };
 
 type SelectOption = {
@@ -69,6 +74,12 @@ function toNonEmptyString(id: unknown): string | null {
   if (typeof id !== "string") return null;
   const trimmed = id.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function sanitizeCityToken(value: unknown): string {
+  if (typeof value !== "string") return "";
+  // Remove zero-width/invisible formatting chars that can poison URL segments.
+  return value.replace(/[\u200B-\u200D\u2060\uFEFF]/g, "").trim();
 }
 
 function firstSearchParam(
@@ -142,6 +153,14 @@ function toDepartmentId(value: unknown): string | null {
   return null;
 }
 
+function normalizeSubcats(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((v) => (typeof v === "string" ? v.trim() : ""))
+    .filter((v, i, arr) => v.length > 0 && arr.indexOf(v) === i)
+    .slice(0, 8);
+}
+
 export default async function CityAdsPage({
   params,
   searchParams,
@@ -154,7 +173,8 @@ export default async function CityAdsPage({
   const sp = searchParams ? await searchParams : undefined;
   const initialCatCode = firstSearchParam(sp, "cat");
   const initialDepartmentId = firstSearchParam(sp, "dept");
-  const cityKey = toNonEmptyString(cityId);
+  const cityKeyRaw = toNonEmptyString(cityId);
+  const cityKey = cityKeyRaw ? sanitizeCityToken(cityKeyRaw) : null;
 
   if (!cityKey) return notFound();
 
@@ -191,11 +211,16 @@ export default async function CityAdsPage({
 
   const cityData = citySnap.data() as Record<string, unknown>;
 
-  const cityFa = typeof cityData.city_fa === "string" ? cityData.city_fa : "";
-  const cityEng =
-    typeof cityData.city_eng === "string" ? cityData.city_eng : "";
+  const cityFa = sanitizeCityToken(cityData.city_fa);
+  const cityEng = sanitizeCityToken(cityData.city_eng);
   const countryFa =
     typeof cityData.country_fa === "string" ? cityData.country_fa : "";
+  const countryEng =
+    typeof cityData.country_eng === "string" ? cityData.country_eng : "";
+  const canonicalCityKey = sanitizeCityToken(cityEng || cityFa || citySnap.id || "");
+  if (canonicalCityKey && cityKey !== canonicalCityKey) {
+    redirect(withLocale(uiLocale, `/city/${encodeURIComponent(canonicalCityKey)}`));
+  }
   const flagUrl =
     typeof cityData.flag_url === "string" ? cityData.flag_url : undefined;
 
@@ -218,12 +243,14 @@ export default async function CityAdsPage({
       adsSnap = await db
         .collection("ads")
         .where("city_eng", "==", cityEng)
+        .where("approved", "==", true)
         .limit(100)
         .get();
     } else {
       adsSnap = await db
         .collection("ads")
         .where("city_fa", "==", cityFa)
+        .where("approved", "==", true)
         .limit(100)
         .get();
     }
@@ -235,7 +262,7 @@ export default async function CityAdsPage({
       if (cityEng && data.city_eng === cityEng) return true;
       if (cityFa && data.city_fa === cityFa) return true;
       return false;
-    });
+    }).filter((d) => (d.data() as Record<string, unknown>).approved === true);
 
     adsSnap = {
       docs: filtered,
@@ -301,6 +328,12 @@ export default async function CityAdsPage({
     const catCode = typeof ad.cat_code === "string" ? ad.cat_code : null;
     const createdAtMs = toDateTimeMs(ad.dateTime);
 
+    const approved = ad.approved === true;
+    const paidAds = ad.paidAds === true;
+    const paidAdsExpiresAtMsRaw = toDateTimeMs(ad.paidAdsExpiresAt);
+    const paidAdsExpiresAtMs =
+      paidAds && typeof paidAdsExpiresAtMsRaw === "number" ? paidAdsExpiresAtMsRaw : null;
+
     const phone =
       typeof ad.phone === "string" && ad.phone.trim() ? ad.phone.trim() : null;
 
@@ -309,6 +342,9 @@ export default async function CityAdsPage({
       typeof visitsRaw === "number" && Number.isFinite(visitsRaw)
         ? Math.max(0, Math.floor(visitsRaw))
         : 0;
+    const subcats = normalizeSubcats(ad.subcat).length
+      ? normalizeSubcats(ad.subcat)
+      : normalizeSubcats(ad.selectedCategoryTags);
 
     return {
       id: ad.id ?? title,
@@ -322,8 +358,12 @@ export default async function CityAdsPage({
       location,
       departmentId,
       catCode,
+      subcats,
       createdAtMs,
       visits,
+      approved,
+      paidAds,
+      paidAdsExpiresAtMs,
     };
   });
 
@@ -386,17 +426,35 @@ export default async function CityAdsPage({
     }))
     .sort((a, b) => a.label.localeCompare(b.label));
 
+  const citiesSnap = await db.collection("cities").limit(300).get();
+  const cityOptions: CityJumpOption[] = citiesSnap.docs
+    .map((doc) => {
+      const c = doc.data() as Record<string, unknown>;
+      if (c.active !== true) return null;
+      const fa = sanitizeCityToken(c.city_fa);
+      const en = sanitizeCityToken(c.city_eng);
+      const cityPath = en || fa || doc.id;
+      const label = fa && en ? `${fa} · ${en}` : fa || en || doc.id;
+      return { id: cityPath, label };
+    })
+    .filter((x): x is CityJumpOption => x !== null)
+    .sort((a, b) => a.label.localeCompare(b.label, uiLocale));
+
   return (
     <main style={{ maxWidth: 1200, margin: "0 auto", padding: "18px 16px 64px 16px" }}>
       <CityAdsViewClient
         cityTitle={pageTitle}
         cityFa={cityFa}
+        countryFa={countryFa}
+        countryEng={countryEng}
         flagUrl={flagUrl}
         ads={adsForClient}
         cityCenter={cityCenter}
         departmentOptions={departmentOptions}
         categoryOptions={categoryOptions}
         departmentQuickFilters={departmentQuickFilters}
+        cityOptions={cityOptions}
+        currentCityId={canonicalCityKey}
         initialCatCode={initialCatCode}
         initialDepartmentId={initialDepartmentId}
       />
@@ -411,7 +469,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { cityId, locale: localeRaw } = await params;
   const locale = resolveLocale(localeRaw);
-  const cityKey = toNonEmptyString(cityId);
+  const cityKeyRaw = toNonEmptyString(cityId);
+  const cityKey = cityKeyRaw ? sanitizeCityToken(cityKeyRaw) : null;
   if (!cityKey) return { title: "Koochly" };
 
   const db = getFirestoreAdmin();
@@ -444,8 +503,8 @@ export async function generateMetadata({
   if (!citySnap) return { title: "Koochly" };
 
   const cityData = citySnap.data() as Record<string, unknown>;
-  const cityFa = typeof cityData.city_fa === "string" ? cityData.city_fa : "";
-  const cityEng = typeof cityData.city_eng === "string" ? cityData.city_eng : "";
+  const cityFa = sanitizeCityToken(cityData.city_fa);
+  const cityEng = sanitizeCityToken(cityData.city_eng);
   const countryFa =
     typeof cityData.country_fa === "string" ? cityData.country_fa : "";
 
@@ -462,7 +521,14 @@ export async function generateMetadata({
     description: countryFa
       ? `Explore business listings and ads for ${seoCity} in ${countryFa}.`
       : `Explore business listings and ads for ${seoCity}.`,
-    alternates: { canonical: canonicalPath },
+    alternates: {
+      canonical: canonicalPath,
+      languages: {
+        fa: withLocale("fa", pathWithinLocale),
+        en: withLocale("en", pathWithinLocale),
+        "x-default": withLocale("en", pathWithinLocale),
+      },
+    },
     openGraph: {
       title: countryFa ? `${seoCity} Ads - Koochly` : `${seoCity} Ads - Koochly`,
     },

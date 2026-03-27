@@ -4,20 +4,25 @@ import { getFirestoreAdmin } from "../../../lib/firebaseAdmin";
 export async function GET() {
   try {
     const db = getFirestoreAdmin();
-    // Some schemas may not have an `order` field on every doc.
-    // Try ordering, but fall back to a plain query and sort in JS.
+    // Fast path: only active cities, ordered by `order`.
+    // Falls back for legacy schemas without `active`/`order`.
     let snap;
     try {
       snap = await db
         .collection("cities")
+        .where("active", "==", true)
         .orderBy("order")
         .limit(100)
         .get();
     } catch {
-      snap = await db.collection("cities").limit(100).get();
+      try {
+        snap = await db.collection("cities").orderBy("order").limit(100).get();
+      } catch {
+        snap = await db.collection("cities").limit(100).get();
+      }
     }
 
-    const cities = snap.docs.map((d) => {
+    const cities = snap.docs.map((d): Record<string, unknown> & { id: string } => {
       const data = d.data() as Record<string, unknown>;
 
       // In your export, `results` is a string containing JSON.
@@ -52,7 +57,14 @@ export async function GET() {
       return ao - bo;
     });
 
-    return NextResponse.json({ cities });
+    return NextResponse.json(
+      { cities: cities.filter((c) => c.active === true) },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+        },
+      },
+    );
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Unknown error" },

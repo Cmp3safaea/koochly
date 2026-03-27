@@ -46,6 +46,12 @@ function adLastModified(data: Record<string, unknown>): Date | undefined {
   );
 }
 
+function cleanPathToken(value: unknown): string {
+  if (typeof value !== "string") return "";
+  const t = value.replace(/[\u200B-\u200D\u2060\uFEFF]/g, "").trim();
+  return t;
+}
+
 /**
  * Fetches hub paths and ad paths suitable for `MetadataRoute.Sitemap`.
  * Callers should cache (e.g. `unstable_cache`) to avoid hammering Firestore.
@@ -74,6 +80,7 @@ export async function buildSitemapEntries(): Promise<{
   }
 
   const adBySeq = new Map<number, SitemapSourceEntry>();
+  const categoryByPath = new Map<string, Date | undefined>();
   let lastDoc: QueryDocumentSnapshot | undefined;
   const batchSize = 500;
 
@@ -95,6 +102,16 @@ export async function buildSitemapEntries(): Promise<{
             : NaN;
       if (!Number.isFinite(seq)) continue;
       const lm = adLastModified(data);
+      const country = cleanPathToken(data.country_eng);
+      const city = cleanPathToken(data.city_eng);
+      const catCode = cleanPathToken(data.cat_code);
+      if (country && city && catCode) {
+        const p = `/${encodeURIComponent(country)}/${encodeURIComponent(city)}/category/${encodeURIComponent(catCode)}/`;
+        const existingLm = categoryByPath.get(p);
+        if (!existingLm || (lm && lm.getTime() > existingLm.getTime())) {
+          categoryByPath.set(p, lm);
+        }
+      }
       const existing = adBySeq.get(seq);
       if (
         !existing ||
@@ -117,6 +134,10 @@ export async function buildSitemapEntries(): Promise<{
     const bn = Number(b.path.replace("/b/", ""));
     return an - bn;
   });
+
+  for (const [path, lastModified] of categoryByPath.entries()) {
+    staticEntries.push({ path, lastModified });
+  }
 
   return { staticEntries, adEntries };
 }

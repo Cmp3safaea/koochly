@@ -7,7 +7,7 @@ import { getSiteBaseUrl } from "../../../../lib/siteUrl";
 
 export const runtime = "nodejs";
 
-const MAX_IMAGES = 3;
+const MAX_IMAGES = 4;
 const MAX_IMAGE_BYTES = 100 * 1024;
 const IMAGE_MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
 
@@ -34,7 +34,7 @@ function parseImageUploadSpecs(b: Record<string, unknown>): { error?: string; sp
   if ("images" in b && Array.isArray(b.images)) {
     const rawArr = b.images;
     if (rawArr.length > MAX_IMAGES) {
-      return { error: "حداکثر ۳ تصویر مجاز است", specs: [] };
+      return { error: "حداکثر ۴ تصویر مجاز است", specs: [] };
     }
     const specs: ImageUploadSpec[] = [];
     for (let i = 0; i < rawArr.length; i++) {
@@ -98,6 +98,11 @@ export async function POST(req: Request) {
   const phone = typeof b.phone === "string" ? b.phone.trim() : "";
   const websiteRaw = typeof b.website === "string" ? b.website.trim() : "";
   const instagram = typeof b.instagram === "string" ? b.instagram.trim() : "";
+  const selectedTagsRaw = Array.isArray(b.selectedTags) ? b.selectedTags : [];
+  const selectedTags = selectedTagsRaw
+    .map((v) => (typeof v === "string" ? v.trim() : ""))
+    .filter((v, i, arr) => v.length > 0 && arr.indexOf(v) === i)
+    .slice(0, 2);
   const lat =
     typeof b.lat === "number" && Number.isFinite(b.lat) ? b.lat : null;
   const lon =
@@ -153,6 +158,26 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
+
+  const catDoc = await db
+    .collection("directory")
+    .doc(departmentId)
+    .collection("categories")
+    .doc(catCode)
+    .get();
+  const allowedTagsRaw = catDoc.exists
+    ? (((catDoc.data() as Record<string, unknown>).subcategories as unknown[]) ?? [])
+    : [];
+  const allowedTags = Array.isArray(allowedTagsRaw)
+    ? allowedTagsRaw
+        .map((v) => (typeof v === "string" ? v.trim() : ""))
+        .filter((v) => v.length > 0)
+    : [];
+  const allowedSet = new Set(allowedTags.map((t) => t.toLowerCase()));
+  const selectedCategoryTags =
+    allowedSet.size === 0
+      ? []
+      : selectedTags.filter((t) => allowedSet.has(t.toLowerCase()));
 
   const parsedImages = parseImageUploadSpecs(b);
   if (parsedImages.error) {
@@ -216,7 +241,7 @@ export async function POST(req: Request) {
 
   const location =
     lat !== null && lon !== null
-      ? { __lat__: lat, __lon__: lon }
+      ? { lat, lon }
       : null;
 
   await adsRef.set({
@@ -237,6 +262,8 @@ export async function POST(req: Request) {
     location,
     phone: phone || "",
     seq,
+    subcat: selectedCategoryTags,
+    selectedCategoryTags,
     title,
     url,
     user: userRef,

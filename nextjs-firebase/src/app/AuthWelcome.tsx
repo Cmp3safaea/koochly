@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
 import type { User } from "firebase/auth";
 import { getAuthClientOrNull } from "../lib/firebaseClient";
 import { useI18n } from "../i18n/client";
-import { withLocale } from "../i18n/paths";
 import styles from "./AuthWelcome.module.css";
 
 function welcomeLabel(user: User, fallback: string): string {
@@ -24,7 +22,7 @@ function welcomeLabel(user: User, fallback: string): string {
 }
 
 export function AuthWelcome() {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -42,9 +40,6 @@ export function AuthWelcome() {
       <div className={styles.welcome}>
         {t("auth.welcome", { name: welcomeLabel(user, t("auth.userFallback")) })}
       </div>
-      <Link href={withLocale(locale, "/add-ad")} className={styles.addAd}>
-        {t("auth.addYourAd")}
-      </Link>
     </div>
   );
 }

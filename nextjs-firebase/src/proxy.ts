@@ -1,21 +1,30 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { defaultLocale, isLocale, type Locale } from "./i18n/config";
+import { defaultLocale, isLocale, type Locale } from "@koochly/shared";
 
 function firstSegment(pathname: string): string | undefined {
   return pathname.split("/").filter(Boolean)[0];
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const seg = firstSegment(pathname);
   const hasLocale = Boolean(seg && isLocale(seg));
+
+  if (hasLocale && seg === defaultLocale) {
+    const url = request.nextUrl.clone();
+    const parts = pathname.split("/").filter(Boolean).slice(1);
+    url.pathname = parts.length > 0 ? `/${parts.join("/")}` : "/";
+    return NextResponse.redirect(url);
+  }
 
   if (!hasLocale) {
     const url = request.nextUrl.clone();
     const suffix = pathname === "/" ? "" : pathname;
     url.pathname = `/${defaultLocale}${suffix}`;
-    return NextResponse.redirect(url);
+    const res = NextResponse.rewrite(url);
+    res.headers.set("x-next-locale", defaultLocale);
+    return res;
   }
 
   const res = NextResponse.next();

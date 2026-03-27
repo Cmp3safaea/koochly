@@ -1,6 +1,11 @@
-import { createTranslator, type TranslateFn } from "./createTranslator";
-import { defaultLocale, isLocale, type Locale } from "./config";
-import { getMessages } from "./getMessages";
+import {
+  createTranslator,
+  defaultLocale,
+  getMessages,
+  isLocale,
+  type Locale,
+  type TranslateFn,
+} from "@koochly/shared";
 
 export function resolveLocale(raw: string | undefined): Locale {
   if (raw && isLocale(raw)) return raw;

@@ -3,11 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { onAuthStateChanged, type User } from "firebase/auth";
 import styles from "./page.module.css";
 import KoochlyLogo from "../images/Koochly-Logo.png";
 import IranBg from "../images/iran.jpg";
 import { AuthWelcome } from "../AuthWelcome";
 import { useI18n, useLocalizedHref } from "../../i18n/client";
+import { getAuthClientOrNull, isFirebaseClientConfigured } from "../../lib/firebaseClient";
+import { getCitiesCached } from "../../lib/citiesClientCache";
 
 type City = {
   id: string;
@@ -19,6 +22,13 @@ type City = {
   flag_url?: string;
 } & Record<string, unknown>;
 
+type EventItem = {
+  id: string;
+  event: string;
+  desc: string;
+  event_image: string;
+};
+
 export default function HomePage() {
   const { t, locale } = useI18n();
   const loc = useLocalizedHref();
@@ -27,6 +37,12 @@ export default function HomePage() {
   const [openCountry, setOpenCountry] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [search, setSearch] = useState("");
+  const [user, setUser] = useState<User | null>(null);
+  const [profileCity, setProfileCity] = useState("");
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [eventsStatus, setEventsStatus] = useState<string | null>(null);
+  const [eventIndex, setEventIndex] = useState(0);
+  const authConfigured = isFirebaseClientConfigured();
   // We only show cities where `active === true` (or `active` is missing).
 
   function getCityDisplayName(city: City): string {
@@ -51,12 +67,37 @@ export default function HomePage() {
   }
 
   async function loadCities({ silent }: { silent?: boolean } = {}) {
-    const res = await fetch("/api/cities", { method: "GET" });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.error ?? t("home.loadError"));
-    setCities(data.cities ?? []);
+    const data = await getCitiesCached();
+    setCities((data.cities as City[]) ?? []);
     if (!silent) setCitiesStatus(null);
     setHasLoaded(true);
+  }
+
+  async function loadEvents() {
+    const res = await fetch("/api/events", { method: "GET" });
+    const data = (await res.json().catch(() => ({}))) as {
+      events?: Array<Record<string, unknown>>;
+      error?: string;
+    };
+    if (!res.ok) throw new Error(data?.error ?? "Failed to load events");
+    const normalized = Array.isArray(data.events)
+      ? data.events
+          .map((raw, idx) => {
+            const id =
+              typeof raw.id === "string" && raw.id.trim()
+                ? raw.id.trim()
+                : String(idx);
+            const event = typeof raw.event === "string" ? raw.event.trim() : "";
+            const desc = typeof raw.desc === "string" ? raw.desc.trim() : "";
+            const event_image =
+              typeof raw.event_image === "string" ? raw.event_image.trim() : "";
+            return { id, event, desc, event_image };
+          })
+          .filter((e) => e.event || e.desc || e.event_image)
+      : [];
+    setEvents(normalized);
+    setEventsStatus(null);
+    setEventIndex((prev) => (normalized.length === 0 ? 0 : Math.min(prev, normalized.length - 1)));
   }
 
   const activeCities = useMemo(
@@ -149,6 +190,29 @@ export default function HomePage() {
     return groups;
   }, [activeCities, search]);
 
+  const profileCityHref = useMemo(() => {
+    if (!profileCity.trim()) return null;
+    const q = profileCity.trim().toLowerCase();
+    const matched = activeCities.find((c) => {
+      const fa = typeof c.city_fa === "string" ? c.city_fa.trim().toLowerCase() : "";
+      const en = typeof c.city_eng === "string" ? c.city_eng.trim().toLowerCase() : "";
+      const id = typeof c.id === "string" ? c.id.trim().toLowerCase() : "";
+      return fa === q || en === q || id === q;
+    });
+    if (!matched) return null;
+    const country =
+      typeof matched.country_eng === "string" && matched.country_eng.trim()
+        ? matched.country_eng
+        : getCountryDisplayName(matched);
+    const city =
+      typeof matched.city_eng === "string" && matched.city_eng.trim()
+        ? matched.city_eng
+        : typeof matched.city_fa === "string" && matched.city_fa.trim()
+          ? matched.city_fa
+          : matched.id;
+    return loc(`/${encodeURIComponent(country)}/${encodeURIComponent(city)}/`);
+  }, [profileCity, activeCities, loc]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -165,22 +229,91 @@ export default function HomePage() {
     };
 
     // Initial load (show loading/errors)
-    refresh(false);
+    void refresh(false);
 
-    // Poll every few seconds so UI updates quickly when Firestore changes.
-    const intervalMs = 3000;
-    const id = setInterval(() => refresh(true), intervalMs);
+    // Refresh occasionally and when tab regains focus.
+    const intervalMs = 120000;
+    const id = window.setInterval(() => {
+      void refresh(true);
+    }, intervalMs);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        void refresh(true);
+      }
+    };
+    window.addEventListener("focus", onVisible);
+    document.addEventListener("visibilitychange", onVisible);
 
     return () => {
       cancelled = true;
       clearInterval(id);
+      window.removeEventListener("focus", onVisible);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [t]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        await loadEvents();
+      } catch (e: unknown) {
+        if (cancelled) return;
+        const msg = e instanceof Error ? e.message : typeof e === "string" ? e : "Failed to load events";
+        setEventsStatus(msg);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (events.length <= 1) return;
+    const id = setInterval(() => {
+      setEventIndex((prev) => (prev + 1) % events.length);
+    }, 5000);
+    return () => clearInterval(id);
+  }, [events]);
 
   useEffect(() => {
     // Open the first country by default (nice UX), but don't keep overriding user choice.
     if (!openCountry && countries.length > 0) setOpenCountry(countries[0].country);
   }, [countries, openCountry]);
+
+  useEffect(() => {
+    if (!authConfigured) return;
+    const auth = getAuthClientOrNull();
+    if (!auth) return;
+    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
+    return () => unsub();
+  }, [authConfigured]);
+
+  useEffect(() => {
+    if (!user) {
+      setProfileCity("");
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch("/api/user/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const json = (await res.json().catch(() => ({}))) as {
+          profile?: { city?: string };
+        };
+        if (!res.ok || cancelled) return;
+        setProfileCity(typeof json.profile?.city === "string" ? json.profile.city.trim() : "");
+      } catch {
+        if (!cancelled) setProfileCity("");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   useEffect(() => {
     if (countries.length === 0) {
@@ -234,7 +367,31 @@ export default function HomePage() {
         <div className={styles.twoPanelLayout}>
           <div className={styles.rightPanel}>
         <div className={styles.hero}>
-          <h1 className={styles.heroTitle}>{t("home.heroTitle")}</h1>
+          <h1 className={styles.heroTitle}>
+            {user && profileCity ? (
+              profileCityHref ? (
+                <Link href={profileCityHref} className={styles.heroCityLink}>
+                  {t("home.heroTitleWithCity", { city: profileCity })}
+                </Link>
+              ) : (
+                t("home.heroTitleWithCity", { city: profileCity })
+              )
+            ) : (
+              t("home.heroTitle")
+            )}
+          </h1>
+          {user && profileCity ? (
+            <p className={styles.sub}>
+              {t("home.heroExploreMoreCities")}
+            </p>
+          ) : null}
+          {user ? (
+            <div className={styles.heroActions}>
+              <Link href={loc("/add-ad")} className={styles.heroAddAd}>
+                {t("auth.addYourAd")}
+              </Link>
+            </div>
+          ) : null}
           <div className={styles.searchRow}>
             <input
               className={styles.searchInput}
@@ -309,6 +466,7 @@ export default function HomePage() {
                             )}/`,
                           )}
                           className={styles.cityLink}
+                          prefetch={false}
                         >
                           {getCityDisplayName(c)}
                         </Link>
@@ -331,6 +489,41 @@ export default function HomePage() {
           <p className={styles.infoParagraph}>
             {t("home.infoWhatBody")}
           </p>
+          <section className={styles.eventsPanel} aria-label="Koochly events">
+            <h3 className={styles.eventsHeading}>Events</h3>
+            {eventsStatus ? <p className={styles.eventsStatus}>{eventsStatus}</p> : null}
+            {!eventsStatus && events.length === 0 ? (
+              <p className={styles.eventsStatus}>No events yet.</p>
+            ) : null}
+            {events.length > 0 ? (
+              <>
+                <div className={styles.eventSlide}>
+                  {events[eventIndex]?.event_image ? (
+                    <img
+                      src={events[eventIndex].event_image}
+                      alt={events[eventIndex].event || "Event image"}
+                      className={styles.eventImage}
+                      loading="lazy"
+                    />
+                  ) : null}
+                  <h4 className={styles.eventTitle}>{events[eventIndex]?.event}</h4>
+                  <p className={styles.eventDesc}>{events[eventIndex]?.desc}</p>
+                </div>
+                {events.length > 1 ? (
+                  <div className={styles.eventDots} aria-hidden="true">
+                    {events.map((e, idx) => (
+                      <button
+                        key={e.id}
+                        type="button"
+                        className={`${styles.eventDot} ${idx === eventIndex ? styles.eventDotActive : ""}`}
+                        onClick={() => setEventIndex(idx)}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </>
+            ) : null}
+          </section>
 
           <h2 className={styles.infoHeading2} id="help">
             {t("home.infoHowTitle")}

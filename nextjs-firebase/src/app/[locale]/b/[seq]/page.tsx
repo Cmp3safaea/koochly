@@ -5,12 +5,14 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
 import { isAdDocIndexable } from "../../../../lib/seoIndexable";
-import { telHref } from "../../../../lib/telHref";
-import { withLocale } from "../../../../i18n/paths";
+import { telHref } from "@koochly/shared";
+import { withLocale } from "@koochly/shared";
 import { getTranslator, resolveLocale } from "../../../../i18n/server";
 import BackToCityButton from "./BackToCityButton";
 import AdDetailGoogleMap from "./AdDetailGoogleMap";
 import ClaimBusinessPanel from "./ClaimBusinessPanel";
+import GalleryStripLightbox from "./GalleryStripLightbox";
+import ActivityLogClient from "../../activity/ActivityLogClient";
 import styles from "./AdDetailsPage.module.css";
 
 type AdDoc = {
@@ -37,6 +39,8 @@ type AdDoc = {
   qr_code?: string;
   seq?: number;
   approved?: boolean;
+  subcat?: unknown;
+  selectedCategoryTags?: unknown;
 };
 
 function toFiniteNumber(value: unknown): number | null {
@@ -128,6 +132,14 @@ function toDepartmentId(value: unknown): string | null {
   return null;
 }
 
+function normalizeSubcats(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((v) => (typeof v === "string" ? v.trim() : ""))
+    .filter((v, i, arr) => v.length > 0 && arr.indexOf(v) === i)
+    .slice(0, 8);
+}
+
 async function resolveCityAdsPath(
   db: Firestore,
   cityEng: string | null | undefined,
@@ -200,6 +212,7 @@ export default async function AdDetailsPage({
 
   const ad = await loadAdBySeq(seqNum);
   if (!ad) return notFound();
+  if (ad.approved !== true) return notFound();
 
   const title =
     (typeof ad.title === "string" && ad.title.trim()) ||
@@ -243,15 +256,53 @@ export default async function AdDetailsPage({
       : `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(pageUrl)}`;
 
   const instagram = parseInstagram(ad, t);
+  const subcats = normalizeSubcats(ad.subcat).length
+    ? normalizeSubcats(ad.subcat)
+    : normalizeSubcats(ad.selectedCategoryTags);
+  const indexable = isAdDocIndexable(ad as Record<string, unknown>);
+  const localBusinessJsonLd =
+    indexable
+      ? {
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          name: title,
+          description: typeof ad.details === "string" ? ad.details.slice(0, 320) : undefined,
+          url: pageUrl,
+          image: images.slice(0, 6),
+          telephone: typeof ad.phone === "string" ? ad.phone : undefined,
+          address:
+            typeof ad.address === "string" && ad.address.trim()
+              ? { "@type": "PostalAddress", streetAddress: ad.address.trim() }
+              : undefined,
+          geo:
+            lat !== null && lon !== null
+              ? { "@type": "GeoCoordinates", latitude: lat, longitude: lon }
+              : undefined,
+        }
+      : null;
 
   return (
     <main className={styles.page}>
+      {localBusinessJsonLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
+        />
+      ) : null}
       <div className={styles.inner}>
         <div className={styles.topNav}>
           <BackToCityButton className={styles.backBtn} label={t("adDetail.back")} />
         </div>
 
         <section className={styles.sheet}>
+          <ActivityLogClient
+            page="ad_detail"
+            pathname={withLocale(locale, `/b/${seqNum}`)}
+            city={ad.city_eng || ad.city || ""}
+            adId={ad.id}
+            departmentIds={deptId ? [deptId] : []}
+            categoryCodes={catCode ? [catCode] : []}
+          />
           <h1 className={styles.title}>{title}</h1>
 
           <div className={styles.chips}>
@@ -264,6 +315,11 @@ export default async function AdDetailsPage({
             {ad.city_eng || ad.city ? (
               <span className={`${styles.chip} ${styles.chipCity}`}>{ad.city_eng || ad.city}</span>
             ) : null}
+            {subcats.map((tag) => (
+              <span key={tag} className={`${styles.chip} ${styles.chipSubcat}`}>
+                {tag}
+              </span>
+            ))}
             {sameCategoryHref ? (
               <Link
                 href={sameCategoryHref}
@@ -297,19 +353,7 @@ export default async function AdDetailsPage({
             ) : null}
           </div>
 
-          {images.length > 0 ? (
-            <div className={styles.gallery}>
-              {images.map((src, idx) => (
-                <img
-                  key={`${src}-${idx}`}
-                  src={src}
-                  alt={title}
-                  className={styles.galleryImg}
-                  loading="lazy"
-                />
-              ))}
-            </div>
-          ) : null}
+          <GalleryStripLightbox images={images} title={title} />
 
           {ad.details ? <p className={styles.details}>{ad.details}</p> : null}
 
@@ -450,7 +494,14 @@ export async function generateMetadata({
         ? ad.details.slice(0, 160)
         : t("adDetail.metaDescFallback"),
     alternates: indexable
-      ? { canonical: withLocale(locale, `/b/${seqNum}`) }
+      ? {
+          canonical: withLocale(locale, `/b/${seqNum}`),
+          languages: {
+            fa: withLocale("fa", `/b/${seqNum}`),
+            en: withLocale("en", `/b/${seqNum}`),
+            "x-default": withLocale("en", `/b/${seqNum}`),
+          },
+        }
       : undefined,
     robots: indexable ? undefined : { index: false, follow: false },
   };
