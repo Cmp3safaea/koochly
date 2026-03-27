@@ -37,10 +37,15 @@ Hit:
 
 ## Docker build
 
+The production image is built from the **monorepo root** (the directory that contains `packages/` and `nextjs-firebase/`). The canonical `Dockerfile` is at repo root; `nextjs-firebase/Dockerfile` includes it for `docker build -f nextjs-firebase/Dockerfile .`.
+
 ```bash
-docker build -t nextjs-firebase:local .
-docker run --rm -p 8080:8080 -e PORT=8080 nextjs-firebase:local
+# From monorepo root:
+docker build -t koochly-web:local .
+docker run --rm -p 8080:8080 -e PORT=8080 koochly-web:local
 ```
+
+**Cloud Build:** use repo root [`cloudbuild.yaml`](../cloudbuild.yaml) (expects root `Dockerfile` / `cloudbuild.yaml` so the GitHub quickstart can find them).
 
 ## Cloud Run deploy (high level)
 
