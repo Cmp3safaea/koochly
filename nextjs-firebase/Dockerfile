@@ -5,6 +5,10 @@
 # Same image as repo root [Dockerfile](../Dockerfile) — keep both in sync.
 
 FROM node:23-alpine AS builder
+ARG GCP_PROJECT_ID
+ENV GOOGLE_CLOUD_PROJECT=${GCP_PROJECT_ID}
+ENV GCLOUD_PROJECT=${GCP_PROJECT_ID}
+
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -16,8 +20,7 @@ RUN npm ci
 
 WORKDIR /app/nextjs-firebase
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NEXT_SITEMAP_BUILD_OFFLINE=1
-RUN npm run build
+RUN touch /tmp/koochly-offline-sitemap-build && npm run build && rm -f /tmp/koochly-offline-sitemap-build
 
 FROM node:23-alpine AS runner
 WORKDIR /app

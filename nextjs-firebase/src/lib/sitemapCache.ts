@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { unstable_cache } from "next/cache";
 import {
   buildSitemapEntries,
@@ -12,13 +13,27 @@ const getLiveCachedSitemapPayload = unstable_cache(
   { revalidate: 3600 },
 );
 
+/** Created only during `docker build` (see root Dockerfile). */
+const DOCKER_OFFLINE_SITEMAP_MARKER = "/tmp/koochly-offline-sitemap-build";
+
+function isDockerImageBuildWithoutFirestore(): boolean {
+  try {
+    return fs.existsSync(DOCKER_OFFLINE_SITEMAP_MARKER);
+  } catch {
+    return false;
+  }
+}
+
 /**
- * During `docker build` / Cloud Build there is no GCP ADC; Dockerfile sets
- * `NEXT_SITEMAP_BUILD_OFFLINE=1` for the builder only. We must not call
- * Firestore or populate `unstable_cache` for production keys with empty data.
+ * During `docker build` there is no GCP ADC. Next may run sitemap data
+ * collection in a worker where `process.env` from the Dockerfile is missing
+ * or inlined wrong, so we key off a marker file in `/tmp` instead.
  */
 export function getCachedSitemapPayload() {
-  if (process.env.NEXT_SITEMAP_BUILD_OFFLINE === "1") {
+  if (
+    isDockerImageBuildWithoutFirestore() ||
+    process.env.NEXT_SITEMAP_BUILD_OFFLINE === "1"
+  ) {
     return Promise.resolve({
       staticEntries: [{ path: "/" }],
       adEntries: [] as SitemapSourceEntry[],

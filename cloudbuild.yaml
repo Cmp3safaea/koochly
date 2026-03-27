@@ -12,6 +12,8 @@ steps:
       - build
       - -f
       - Dockerfile
+      - --build-arg
+      - GCP_PROJECT_ID=$PROJECT_ID
       - -t
       - $_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/$_IMAGE:$BUILD_ID
       - -t

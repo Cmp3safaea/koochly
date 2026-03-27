@@ -6,6 +6,9 @@ Desktop.ini
 
 # Logs
 *.log
+build-log.txt
+build-log2.txt
+build-out.txt
 
 # Local env at repo root (if you add one)
 .env
@@ -16,6 +19,8 @@ Desktop.ini
 # Ignore common credential / dump JSON instead:
 **/firebase-adminsdk*.json
 **/*-service-account*.json
+# Common local filename for downloaded GCP service account keys (do not commit).
+service.json
 
 # Dependencies
 node_modules/

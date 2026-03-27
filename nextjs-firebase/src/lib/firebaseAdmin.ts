@@ -37,10 +37,18 @@ function initFirebaseAdmin() {
       return;
     }
 
-    // Uses Application Default Credentials (recommended for Cloud Run):
-    // - bind a service account to the Cloud Run service
-    // - ensure the environment has access to Google creds
-    initializeApp();
+    // Uses Application Default Credentials (recommended for Cloud Run).
+    // Include explicit project id when present (e.g. Docker build-arg) so init
+    // does not fail with "Unable to detect a Project Id" before ADC works.
+    const projectId =
+      process.env.GOOGLE_CLOUD_PROJECT?.trim() ||
+      process.env.GCLOUD_PROJECT?.trim() ||
+      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID?.trim();
+    if (projectId) {
+      initializeApp({ projectId });
+    } else {
+      initializeApp();
+    }
   }
 }
 

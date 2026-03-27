@@ -8,6 +8,10 @@
 #   docker build -f nextjs-firebase/Dockerfile .
 
 FROM node:23-alpine AS builder
+ARG GCP_PROJECT_ID
+ENV GOOGLE_CLOUD_PROJECT=${GCP_PROJECT_ID}
+ENV GCLOUD_PROJECT=${GCP_PROJECT_ID}
+
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -19,7 +23,8 @@ RUN npm ci
 
 WORKDIR /app/nextjs-firebase
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+# No ADC in the builder; marker file skips Firestore for sitemap during `next build` (see sitemapCache.ts).
+RUN touch /tmp/koochly-offline-sitemap-build && npm run build && rm -f /tmp/koochly-offline-sitemap-build
 
 FROM node:23-alpine AS runner
 WORKDIR /app
