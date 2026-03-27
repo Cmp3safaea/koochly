@@ -30,8 +30,8 @@ ENV PORT=8080
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY --from=builder /app/nextjs-firebase/.next/standalone ./
-COPY --from=builder /app/nextjs-firebase/.next/static ./.next/static
-COPY --from=builder /app/nextjs-firebase/public ./public
+COPY --from=builder /app/nextjs-firebase/.next/static ./nextjs-firebase/.next/static
+COPY --from=builder /app/nextjs-firebase/public ./nextjs-firebase/public
 
 EXPOSE 8080
-CMD ["node", "server.js"]
+CMD ["node", "nextjs-firebase/server.js"]
