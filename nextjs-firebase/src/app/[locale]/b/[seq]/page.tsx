@@ -16,6 +16,8 @@ import GalleryStripLightbox from "./GalleryStripLightbox";
 import ActivityLogClient from "../../activity/ActivityLogClient";
 import styles from "./AdDetailsPage.module.css";
 
+export const dynamic = "force-dynamic";
+
 type AdDoc = {
   title?: string;
   engName?: string;

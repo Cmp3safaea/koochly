@@ -13,6 +13,8 @@ import CityAdsViewClient, {
   type DepartmentQuickItem,
 } from "./CityAdsViewClient";
 
+export const dynamic = "force-dynamic";
+
 type AdDoc = {
   id?: string;
   title?: string;

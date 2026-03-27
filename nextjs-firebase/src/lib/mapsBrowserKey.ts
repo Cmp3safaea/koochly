@@ -1,14 +1,22 @@
+import { unstable_noStore } from "next/cache";
+
 /**
- * Google Maps JavaScript API key, read on the server only and passed into client
- * map components. `NEXT_PUBLIC_*` is inlined at `next build`; if the image was
- * built without that key, `process.env.NEXT_PUBLIC_...` stays empty at runtime on
- * Cloud Run. Use `GOOGLE_MAPS_BROWSER_KEY` (same secret value) in production.
+ * Google Maps JS API key for Server → Client props. Prefer `GOOGLE_MAPS_BROWSER_KEY`
+ * on Cloud Run (`NEXT_PUBLIC_*` is often inlined empty at `next build`).
+ *
+ * Bracket env access + `noStore()` avoid static/cached shells that skip runtime env.
  */
 export function getMapsBrowserApiKey(): string {
+  unstable_noStore();
+  const e = process.env;
+  const pick = (name: string) => {
+    const v = e[name];
+    return typeof v === "string" ? v.trim() : "";
+  };
   return (
-    process.env.GOOGLE_MAPS_BROWSER_KEY?.trim() ||
-    process.env.GOOGLE_MAPS_API_KEY?.trim() ||
-    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() ||
+    pick("GOOGLE_MAPS_BROWSER_KEY") ||
+    pick("GOOGLE_MAPS_API_KEY") ||
+    pick("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY") ||
     ""
   );
 }
