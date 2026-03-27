@@ -6,8 +6,10 @@
 
 FROM node:23-alpine AS builder
 ARG GCP_PROJECT_ID
+ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 ENV GOOGLE_CLOUD_PROJECT=${GCP_PROJECT_ID}
 ENV GCLOUD_PROJECT=${GCP_PROJECT_ID}
+ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
 
 WORKDIR /app
 
@@ -23,11 +25,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN touch /tmp/koochly-offline-sitemap-build && npm run build && rm -f /tmp/koochly-offline-sitemap-build
 
 FROM node:23-alpine AS runner
+ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=8080
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
 
 COPY --from=builder /app/nextjs-firebase/.next/standalone ./
 COPY --from=builder /app/nextjs-firebase/.next/static ./nextjs-firebase/.next/static
