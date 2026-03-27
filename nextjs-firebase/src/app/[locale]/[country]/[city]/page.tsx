@@ -5,12 +5,15 @@ import { withLocale } from "@koochly/shared";
 import { resolveLocale } from "../../../../i18n/server";
 import { directoryDepartmentDisplayLabel } from "../../../../lib/directoryDepartmentLabel";
 import { getSiteBaseUrl } from "../../../../lib/siteUrl";
+import { getMapsBrowserApiKey } from "../../../../lib/mapsBrowserKey";
 import CityAdsViewClient, {
   type CityJumpOption,
   type CityAdCard,
   type DepartmentQuickItem,
   type PopularCategoryLink,
 } from "../../city/[cityId]/CityAdsViewClient";
+
+export const dynamic = "force-dynamic";
 
 type AdDoc = {
   id?: string;
@@ -520,6 +523,8 @@ export default async function CityAdsByCountryPage({
     },
   };
 
+  const googleMapsApiKey = getMapsBrowserApiKey();
+
   return (
     <main style={{ maxWidth: 1200, margin: "0 auto", padding: "18px 16px 64px 16px" }}>
       <script
@@ -531,6 +536,7 @@ export default async function CityAdsByCountryPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
       />
       <CityAdsViewClient
+        googleMapsApiKey={googleMapsApiKey}
         cityTitle={pageTitle}
         cityFa={cityFa}
         countryFa={countryFa}

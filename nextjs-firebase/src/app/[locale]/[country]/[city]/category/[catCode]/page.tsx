@@ -6,11 +6,14 @@ import { resolveLocale } from "../../../../../../i18n/server";
 import { getSiteBaseUrl } from "../../../../../../lib/siteUrl";
 import { withLocale } from "@koochly/shared";
 import { directoryDepartmentDisplayLabel } from "../../../../../../lib/directoryDepartmentLabel";
+import { getMapsBrowserApiKey } from "../../../../../../lib/mapsBrowserKey";
 import CityAdsViewClient, {
   type CityAdCard,
   type CityJumpOption,
   type DepartmentQuickItem,
 } from "../../../../city/[cityId]/CityAdsViewClient";
+
+export const dynamic = "force-dynamic";
 
 type AdDoc = {
   id?: string;
@@ -369,6 +372,8 @@ export default async function CityCategoryLandingPage({
     inLanguage: locale,
   };
 
+  const googleMapsApiKey = getMapsBrowserApiKey();
+
   return (
     <main style={{ maxWidth: 1200, margin: "0 auto", padding: "18px 16px 56px 16px" }}>
       <script
@@ -380,6 +385,7 @@ export default async function CityCategoryLandingPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
       />
       <CityAdsViewClient
+        googleMapsApiKey={googleMapsApiKey}
         cityTitle={pageTitle}
         cityFa={cityFa}
         countryFa={countryFa}
