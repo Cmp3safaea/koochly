@@ -14,6 +14,7 @@ import { getAuthClientOrNull, getGoogleProvider } from "../../../../lib/firebase
 import { useI18n, useLocalizedHref } from "../../../../i18n/client";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 import ActivityLogClient from "../../activity/ActivityLogClient";
+import StarRating from "../../../../components/StarRating";
 
 // Google Maps is client-only and loads external scripts, so we disable SSR.
 const GoogleMapView = dynamic(() => import("./GoogleMap"), { ssr: false });
@@ -37,6 +38,9 @@ export type CityAdCard = {
   paidAds?: boolean;
   paidAdsExpiresAtMs?: number | null;
   visits?: number;
+  /** From `ads.reviewRatingSum` / `reviewCount` (see ad reviews API). */
+  reviewAvg?: number | null;
+  reviewCount?: number;
 };
 
 export type DepartmentQuickItem = {
@@ -639,11 +643,17 @@ export default function CityAdsViewClient({
   const prevVisitsSigRef = useRef<string | null>(null);
   const cardsSectionRef = useRef<HTMLDivElement | null>(null);
   const prevFilterScrollSigRef = useRef<string | null>(null);
+  const prevSortScrollSigRef = useRef<string | null>(null);
 
   const filterScrollSig = useMemo(
     () =>
       `${[...selectedDepartmentIds].sort().join("\0")}\n${[...selectedCatCodes].sort().join("\0")}`,
     [selectedDepartmentIds, selectedCatCodes],
+  );
+
+  const sortScrollSig = useMemo(
+    () => `${listSortKey}\n${listSortDir}`,
+    [listSortKey, listSortDir],
   );
 
   useEffect(() => {
@@ -657,6 +667,14 @@ export default function CityAdsViewClient({
     if (prev === filterScrollSig) return;
     cardsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [filterScrollSig]);
+
+  useEffect(() => {
+    const prev = prevSortScrollSigRef.current;
+    prevSortScrollSigRef.current = sortScrollSig;
+    if (prev === null) return;
+    if (prev === sortScrollSig) return;
+    cardsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [sortScrollSig]);
 
   useEffect(() => {
     // Firebase Auth state is global for this client bundle.
@@ -1834,6 +1852,24 @@ export default function CityAdsViewClient({
                     ) : null}
                     {ad.category ? (
                       <div className={styles.cardCat}>{ad.category}</div>
+                    ) : null}
+                    {(ad.reviewCount ?? 0) > 0 && ad.reviewAvg != null ? (
+                      <div className={styles.cardReviewRow}>
+                        <StarRating
+                          value={ad.reviewAvg}
+                          size="sm"
+                          ariaLabel={t("adDetail.reviewsOutOf", {
+                            n: ad.reviewAvg.toFixed(1),
+                          })}
+                        />
+                        <span className={styles.cardReviewCount}>
+                          {(ad.reviewCount ?? 0) === 1
+                            ? t("adDetail.reviewsCountOne")
+                            : t("adDetail.reviewsCount", {
+                                count: String(ad.reviewCount ?? 0),
+                              })}
+                        </span>
+                      </div>
                     ) : null}
                     {Array.isArray(ad.subcats) && ad.subcats.length > 0 ? (
                       <div className={styles.cardSubcatWrap}>

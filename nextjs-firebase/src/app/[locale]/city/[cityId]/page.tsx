@@ -7,6 +7,7 @@ import { withLocale } from "@koochly/shared";
 import { resolveLocale } from "../../../../i18n/server";
 import { directoryDepartmentDisplayLabel } from "../../../../lib/directoryDepartmentLabel";
 import { getMapsBrowserApiKey } from "../../../../lib/mapsBrowserKey";
+import { reviewSummaryFromAdData } from "../../../../lib/adReviewSummary";
 import CityAdsViewClient, {
   type CityJumpOption,
   type CityAdCard,
@@ -349,6 +350,8 @@ export default async function CityAdsPage({
       ? normalizeSubcats(ad.subcat)
       : normalizeSubcats(ad.selectedCategoryTags);
 
+    const review = reviewSummaryFromAdData(ad as unknown as Record<string, unknown>);
+
     return {
       id: ad.id ?? title,
       title,
@@ -367,6 +370,8 @@ export default async function CityAdsPage({
       approved,
       paidAds,
       paidAdsExpiresAtMs,
+      reviewAvg: review.avg,
+      reviewCount: review.count,
     };
   });
 

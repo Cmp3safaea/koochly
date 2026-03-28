@@ -7,6 +7,7 @@ import { getSiteBaseUrl } from "../../../../../../lib/siteUrl";
 import { withLocale } from "@koochly/shared";
 import { directoryDepartmentDisplayLabel } from "../../../../../../lib/directoryDepartmentLabel";
 import { getMapsBrowserApiKey } from "../../../../../../lib/mapsBrowserKey";
+import { reviewSummaryFromAdData } from "../../../../../../lib/adReviewSummary";
 import CityAdsViewClient, {
   type CityAdCard,
   type CityJumpOption,
@@ -279,6 +280,7 @@ export default async function CityCategoryLandingPage({
       const subcats = normalizeSubcats(ad.subcat).length
         ? normalizeSubcats(ad.subcat)
         : normalizeSubcats(ad.selectedCategoryTags);
+      const review = reviewSummaryFromAdData(ad as unknown as Record<string, unknown>);
       return {
         id: ad.id ?? title,
         title,
@@ -294,6 +296,8 @@ export default async function CityCategoryLandingPage({
         subcats,
         createdAtMs: toDateTimeMs(ad.dateTime),
         visits,
+        reviewAvg: review.avg,
+        reviewCount: review.count,
       } satisfies CityAdCard;
     })
     .sort((a, b) => {

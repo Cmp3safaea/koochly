@@ -1,0 +1,39 @@
+.wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  line-height: 1;
+}
+
+.starSlot {
+  position: relative;
+  display: inline-flex;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+.starBg,
+.starFg {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.starBg {
+  color: var(--border-input);
+  opacity: 0.85;
+}
+
+.starFg {
+  color: #f59e0b;
+  overflow: hidden;
+}
+
+.sm {
+  font-size: 14px;
+}
+
+.md {
+  font-size: 18px;
+}

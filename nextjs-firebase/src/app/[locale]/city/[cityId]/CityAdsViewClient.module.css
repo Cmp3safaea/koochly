@@ -1031,6 +1031,20 @@
   vertical-align: -0.08em;
 }
 
+.cardReviewRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.cardReviewCount {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 .cardDesc {
   margin-top: 5px;
   color: var(--text-muted);

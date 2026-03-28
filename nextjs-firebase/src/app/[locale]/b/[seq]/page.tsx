@@ -4,6 +4,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
+import { reviewSummaryFromAdData } from "../../../../lib/adReviewSummary";
 import { getMapsBrowserApiKey } from "../../../../lib/mapsBrowserKey";
 import { isAdDocIndexable } from "../../../../lib/seoIndexable";
 import { telHref } from "@koochly/shared";
@@ -12,6 +13,8 @@ import { getTranslator, resolveLocale } from "../../../../i18n/server";
 import BackToCityButton from "./BackToCityButton";
 import AdDetailGoogleMap from "./AdDetailGoogleMap";
 import ClaimBusinessPanel from "./ClaimBusinessPanel";
+import AdReviewsSection from "./AdReviewsSection";
+import AdDetailReviewSummary from "./AdDetailReviewSummary";
 import GalleryStripLightbox from "./GalleryStripLightbox";
 import ActivityLogClient from "../../activity/ActivityLogClient";
 import styles from "./AdDetailsPage.module.css";
@@ -259,6 +262,8 @@ export default async function AdDetailsPage({
       ? `data:image/png;base64,${ad.qr_code.trim()}`
       : `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(pageUrl)}`;
 
+  const initialReviewSummary = reviewSummaryFromAdData(ad as Record<string, unknown>);
+
   const instagram = parseInstagram(ad, t);
   const subcats = normalizeSubcats(ad.subcat).length
     ? normalizeSubcats(ad.subcat)
@@ -308,6 +313,7 @@ export default async function AdDetailsPage({
             categoryCodes={catCode ? [catCode] : []}
           />
           <h1 className={styles.title}>{title}</h1>
+          <AdDetailReviewSummary avg={initialReviewSummary.avg} count={initialReviewSummary.count} />
 
           <div className={styles.chips}>
             {ad.dept ? (
@@ -469,6 +475,7 @@ export default async function AdDetailsPage({
           </div>
 
           <ClaimBusinessPanel adId={ad.id} />
+          <AdReviewsSection adId={ad.id} initialSummary={initialReviewSummary} />
         </section>
       </div>
     </main>

@@ -6,6 +6,7 @@ import { resolveLocale } from "../../../../i18n/server";
 import { directoryDepartmentDisplayLabel } from "../../../../lib/directoryDepartmentLabel";
 import { getSiteBaseUrl } from "../../../../lib/siteUrl";
 import { getMapsBrowserApiKey } from "../../../../lib/mapsBrowserKey";
+import { reviewSummaryFromAdData } from "../../../../lib/adReviewSummary";
 import CityAdsViewClient, {
   type CityJumpOption,
   type CityAdCard,
@@ -381,6 +382,8 @@ export default async function CityAdsByCountryPage({
       ? normalizeSubcats(ad.subcat)
       : normalizeSubcats(ad.selectedCategoryTags);
 
+    const review = reviewSummaryFromAdData(ad as unknown as Record<string, unknown>);
+
     return {
       id: ad.id ?? title,
       title,
@@ -396,6 +399,8 @@ export default async function CityAdsByCountryPage({
       subcats,
       createdAtMs: toDateTimeMs(ad.dateTime),
       visits,
+      reviewAvg: review.avg,
+      reviewCount: review.count,
     };
   });
 
