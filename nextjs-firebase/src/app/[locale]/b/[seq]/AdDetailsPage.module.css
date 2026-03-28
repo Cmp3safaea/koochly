@@ -396,6 +396,33 @@
     padding: 20px 18px 24px;
     border-radius: 18px;
   }
+
+  .page {
+    padding: 20px 14px max(88px, calc(72px + env(safe-area-inset-bottom, 0px)));
+  }
+
+  .backBtn {
+    min-height: 48px;
+    padding: 12px 20px;
+    font-size: 0.95rem;
+  }
+
+  .sameCategoryBtn {
+    min-height: 48px;
+    padding: 10px 16px 10px 14px;
+  }
+
+  .sameCategoryLabel {
+    font-size: 0.84rem;
+  }
+
+  .lightboxClose,
+  .lightboxNavLeft,
+  .lightboxNavRight {
+    width: 48px;
+    height: 48px;
+    font-size: 1.35rem;
+  }
 }
 
 .mapPanel {

@@ -1768,14 +1768,14 @@
 
   .filterBar > .filterBlockCompact:nth-child(1) {
     order: 2;
-    width: 40px;
-    flex: 0 0 40px;
+    width: 48px;
+    flex: 0 0 48px;
   }
 
   .filterBar > .filterBlockCompact:nth-child(3) {
     order: 3;
-    width: 40px;
-    flex: 0 0 40px;
+    width: 48px;
+    flex: 0 0 48px;
   }
 
   .filterBar > .filterBlockSearch {
@@ -1787,8 +1787,8 @@
 
   .filterBar > .filterBlockCity {
     order: 4;
-    flex: 0 0 40px;
-    min-width: 40px;
+    flex: 0 0 48px;
+    min-width: 48px;
   }
 
   .filterBar > .filterBlockCompact:nth-child(5) {
@@ -1816,15 +1816,17 @@
   }
 
   .clearFiltersBtn {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     margin: 0;
+    border-radius: 12px;
   }
 
   .filterBlockSearch .filterTrigger {
-    height: 40px;
-    min-height: 40px;
-    padding: 0 9px;
+    height: 48px;
+    min-height: 48px;
+    padding: 0 12px;
+    font-size: 1rem;
   }
 
   .filterLeadIcon {
@@ -1833,10 +1835,11 @@
   }
 
   .filterBlockWide .filterTrigger {
-    height: 40px;
-    min-height: 40px;
-    max-height: 40px;
-    padding: 0 8px 0 6px;
+    min-height: 48px;
+    height: auto;
+    max-height: none;
+    padding: 10px 10px 10px 8px;
+    font-size: 0.98rem;
   }
 
   .filterRowThumb,
@@ -1871,6 +1874,110 @@
 
   .columns[data-mobile-mode="map"] .mapCityIntro {
     display: block;
+  }
+
+  /* ~48px touch targets, clearer labels on narrow viewports */
+  .mobileToggle {
+    padding: 10px;
+    gap: 10px;
+    border-radius: 16px;
+  }
+
+  .toggleBtn {
+    min-height: 48px;
+    padding: 14px 16px;
+    font-size: 1rem;
+    border-radius: 14px;
+  }
+
+  .toggleBtnGlyph {
+    width: 22px;
+    height: 22px;
+  }
+
+  .mapAuthBar {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .mapAuthInner {
+    gap: 12px;
+  }
+
+  .mapAuthAddLink {
+    font-size: 0.88rem;
+    padding: 12px 18px;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mapAuthIconBtn {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .mapAuthIconGlyph {
+    width: 24px;
+    height: 24px;
+  }
+
+  .menuIconBtn {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .clearFiltersBtn {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .sortIconBtn {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .priorityStripNavBtn {
+    flex: 0 0 48px;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .filterSelect {
+    height: 48px;
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .menuItem {
+    padding: 14px 14px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+  }
+
+  .filterOption {
+    padding: 12px 12px;
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  .filterCheckboxRow {
+    padding: 12px 12px;
+    min-height: 44px;
+    font-size: 0.98rem;
+  }
+
+  .filterCheckboxRow input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
   }
 
 }

@@ -36,3 +36,11 @@
   transform: translateY(-1px);
   box-shadow: 0 6px 20px var(--accent-glow-25);
 }
+
+@media (max-width: 640px) {
+  .addAd {
+    padding: 12px 18px;
+    font-size: 0.9rem;
+    min-height: 48px;
+  }
+}

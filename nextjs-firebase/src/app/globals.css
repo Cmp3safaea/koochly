@@ -280,3 +280,10 @@ optgroup {
   font-size: 0.95em;
   font-weight: 500;
 }
+
+/* Softer tap feedback on phones; keeps primary actions readable at ~48px min height in module CSS */
+@media (max-width: 640px) {
+  html {
+    -webkit-tap-highlight-color: color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+}

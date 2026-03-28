@@ -40,3 +40,18 @@
   height: 22px;
   flex-shrink: 0;
 }
+
+@media (max-width: 640px) {
+  .toggle {
+    bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    inset-inline-start: max(12px, env(safe-area-inset-left, 0px));
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+  }
+
+  .glyph {
+    width: 26px;
+    height: 26px;
+  }
+}
