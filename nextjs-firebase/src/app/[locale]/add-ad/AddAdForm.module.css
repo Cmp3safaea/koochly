@@ -627,6 +627,128 @@
   box-shadow: 0 4px 16px var(--accent-shadow-12);
 }
 
+.mainCatOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.mainCatOption {
+  flex: 1 1 160px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border-input);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.mainCatOption:has(input:checked) {
+  border-color: var(--accent-bright);
+  background: var(--accent-soft-12);
+  box-shadow: 0 0 0 1px var(--accent-border-mid);
+}
+
+.mainCatOption input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--accent-bright);
+  flex-shrink: 0;
+}
+
+.toggleRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+  grid-column: 1 / -1;
+}
+
+.toggleCell {
+  flex: 1 1 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.toggleCellLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-slate-700);
+  text-align: center;
+  line-height: 1.35;
+  max-width: 7.5rem;
+}
+
+.switch {
+  position: relative;
+  width: 46px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.switchInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.switchTrack {
+  display: block;
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--border-input);
+  transition: background 0.15s ease;
+  pointer-events: none;
+}
+
+.switchKnob {
+  display: block;
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  top: 3px;
+  left: 3px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.18);
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+  pointer-events: none;
+}
+
+.switchInput:checked + .switchTrack {
+  background: var(--accent-bright);
+}
+
+.switchInput:checked ~ .switchKnob {
+  transform: translateX(18px);
+}
+
+.switchInput:focus-visible + .switchTrack {
+  box-shadow: 0 0 0 3px var(--accent-soft-12);
+}
+
 .mutedCfg {
   text-align: center;
   color: var(--text-muted);

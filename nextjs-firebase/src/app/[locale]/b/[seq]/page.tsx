@@ -457,6 +457,7 @@ export default async function AdDetailsPage({
                 <AdDetailGoogleMap
                   adId={ad.id}
                   title={title}
+                  category={typeof ad.cat === "string" && ad.cat.trim() ? ad.cat.trim() : null}
                   lat={lat}
                   lon={lon}
                   heroImage={heroImage}

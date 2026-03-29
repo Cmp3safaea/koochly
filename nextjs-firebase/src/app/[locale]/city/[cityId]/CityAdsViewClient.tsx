@@ -41,6 +41,13 @@ export type CityAdCard = {
   /** From `ads.reviewRatingSum` / `reviewCount` (see ad reviews API). */
   reviewAvg?: number | null;
   reviewCount?: number;
+  /** Set for goods listings with a numeric price; null/omitted for services or unset. */
+  price?: number | null;
+  isFree?: boolean;
+  isNewItem?: boolean;
+  exchangeable?: boolean;
+  negotiable?: boolean;
+  mainCategory?: string | null;
 };
 
 export type DepartmentQuickItem = {
@@ -63,6 +70,13 @@ type SelectOption = {
   value: string;
   label: string;
 };
+
+function parseListingFilterPrice(s: string): number | null {
+  const t = s.trim().replace(/[,\s\u066C]/g, "");
+  if (!t) return null;
+  const n = Number(t);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
 
 /** Matches `/api/ads/priority` rows (up to 35 from the `ads` collection). */
 type PriorityApiAd = {
@@ -347,6 +361,27 @@ function FilterIconSearch({ className }: { className?: string }) {
   );
 }
 
+function AiSearchGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .962L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+      <path d="M20 3v4" />
+      <path d="M22 5h-4" />
+      <path d="M4 17v2" />
+      <path d="M5 18H3" />
+    </svg>
+  );
+}
+
 function FilterIconDept({ className }: { className?: string }) {
   return (
     <svg
@@ -379,6 +414,23 @@ function FilterIconCategory({ className }: { className?: string }) {
       aria-hidden
     >
       <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v11z" />
+    </svg>
+  );
+}
+
+function FilterIconListing({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 10h4M18 8h4" />
     </svg>
   );
 }
@@ -601,6 +653,9 @@ export default function CityAdsViewClient({
   const loc = useLocalizedHref();
   const [mobileMode, setMobileMode] = useState<"list" | "map">("list");
   const [selectedAdId, setSelectedAdId] = useState<string | null>(null);
+  /** Wide layout (≥901px): moving the mouse over a list card tints the map pin. */
+  const [allowListMapHover, setAllowListMapHover] = useState(false);
+  const [hoveredListAdId, setHoveredListAdId] = useState<string | null>(null);
   const [cityJumpId, setCityJumpId] = useState<string>(currentCityId ?? "");
   const [cityPickerOpen, setCityPickerOpen] = useState(false);
   const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<string[]>(() =>
@@ -612,7 +667,7 @@ export default function CityAdsViewClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [listSortKey, setListSortKey] = useState<"date" | "visits">("date");
   const [listSortDir, setListSortDir] = useState<"desc" | "asc">("desc");
-  const [openFilter, setOpenFilter] = useState<null | "directory" | "category">(null);
+  const [openFilter, setOpenFilter] = useState<null | "directory" | "category" | "listing">(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [revealedPhones, setRevealedPhones] = useState<Record<string, boolean>>({});
   const [authLoading, setAuthLoading] = useState(true);
@@ -631,9 +686,22 @@ export default function CityAdsViewClient({
   const [clientUiReady, setClientUiReady] = useState(false);
   const [directoryQuery, setDirectoryQuery] = useState("");
   const [categoryQuery, setCategoryQuery] = useState("");
+  const [priceMinStr, setPriceMinStr] = useState("");
+  const [priceMaxStr, setPriceMaxStr] = useState("");
+  const [filterFreeOnly, setFilterFreeOnly] = useState(false);
+  const [filterNewOnly, setFilterNewOnly] = useState(false);
+  const [filterExchangeOnly, setFilterExchangeOnly] = useState(false);
+  const [filterNegotiableOnly, setFilterNegotiableOnly] = useState(false);
   const [priorityPool, setPriorityPool] = useState<PriorityApiAd[]>([]);
+  const [aiSearchOpen, setAiSearchOpen] = useState(false);
+  const [aiQuery, setAiQuery] = useState("");
+  /** `null` = AI filter off; array = last AI result order (may be empty). */
+  const [aiMatchedIds, setAiMatchedIds] = useState<string[] | null>(null);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
   const directoryRef = useRef<HTMLDivElement | null>(null);
   const categoryRef = useRef<HTMLDivElement | null>(null);
+  const listingFilterRef = useRef<HTMLDivElement | null>(null);
   const cityRef = useRef<HTMLDivElement | null>(null);
   const priorityStripRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -647,8 +715,17 @@ export default function CityAdsViewClient({
 
   const filterScrollSig = useMemo(
     () =>
-      `${[...selectedDepartmentIds].sort().join("\0")}\n${[...selectedCatCodes].sort().join("\0")}`,
-    [selectedDepartmentIds, selectedCatCodes],
+      `${[...selectedDepartmentIds].sort().join("\0")}\n${[...selectedCatCodes].sort().join("\0")}\n${priceMinStr}\n${priceMaxStr}\n${filterFreeOnly}\n${filterNewOnly}\n${filterExchangeOnly}\n${filterNegotiableOnly}`,
+    [
+      selectedDepartmentIds,
+      selectedCatCodes,
+      priceMinStr,
+      priceMaxStr,
+      filterFreeOnly,
+      filterNewOnly,
+      filterExchangeOnly,
+      filterNegotiableOnly,
+    ],
   );
 
   const sortScrollSig = useMemo(
@@ -659,6 +736,15 @@ export default function CityAdsViewClient({
   useEffect(() => {
     setCityJumpId(currentCityId ?? "");
   }, [currentCityId, pathname]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mqWide = window.matchMedia("(min-width: 901px)");
+    const update = () => setAllowListMapHover(mqWide.matches);
+    update();
+    mqWide.addEventListener("change", update);
+    return () => mqWide.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     const prev = prevFilterScrollSigRef.current;
@@ -766,6 +852,15 @@ export default function CityAdsViewClient({
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!aiSearchOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !aiBusy) setAiSearchOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [aiSearchOpen, aiBusy]);
 
   useLayoutEffect(() => {
     setVisitBumps(readStoredVisitBumps());
@@ -972,6 +1067,7 @@ export default function CityAdsViewClient({
       if (!target) return;
       if (directoryRef.current?.contains(target)) return;
       if (categoryRef.current?.contains(target)) return;
+      if (listingFilterRef.current?.contains(target)) return;
       if (cityRef.current?.contains(target)) return;
       if (menuRef.current?.contains(target)) return;
       setOpenFilter(null);
@@ -1009,6 +1105,15 @@ export default function CityAdsViewClient({
   const filteredAds = useMemo(
     () => {
       const q = searchQuery.trim().toLowerCase();
+      let minP = parseListingFilterPrice(priceMinStr);
+      let maxP = parseListingFilterPrice(priceMaxStr);
+      if (minP !== null && maxP !== null && minP > maxP) {
+        const s = minP;
+        minP = maxP;
+        maxP = s;
+      }
+      const hasPriceRange = minP !== null || maxP !== null;
+
       const out = ads.filter((a) => {
         if (
           selectedDepartmentIds.length > 0 &&
@@ -1026,6 +1131,17 @@ export default function CityAdsViewClient({
           const title = a.title.toLowerCase();
           const category = (a.category ?? "").toLowerCase();
           if (!title.includes(q) && !category.includes(q)) return false;
+        }
+        if (filterFreeOnly && !a.isFree) return false;
+        if (filterNewOnly && !a.isNewItem) return false;
+        if (filterExchangeOnly && !a.exchangeable) return false;
+        if (filterNegotiableOnly && !a.negotiable) return false;
+        if (hasPriceRange) {
+          const p =
+            typeof a.price === "number" && Number.isFinite(a.price) ? a.price : null;
+          if (p === null) return false;
+          if (minP !== null && p < minP) return false;
+          if (maxP !== null && p > maxP) return false;
         }
         return true;
       });
@@ -1072,21 +1188,90 @@ export default function CityAdsViewClient({
       listSortKey,
       listSortDir,
       visitBumps,
+      priceMinStr,
+      priceMaxStr,
+      filterFreeOnly,
+      filterNewOnly,
+      filterExchangeOnly,
+      filterNegotiableOnly,
     ],
   );
+
+  const displayedAds = useMemo(() => {
+    if (aiMatchedIds === null) return filteredAds;
+    const byId = new Map(filteredAds.map((a) => [a.id, a]));
+    const out: CityAdCard[] = [];
+    for (const id of aiMatchedIds) {
+      const c = byId.get(id);
+      if (c) out.push(c);
+    }
+    return out;
+  }, [filteredAds, aiMatchedIds]);
+
+  const runAiSearch = useCallback(async () => {
+    const q = aiQuery.trim();
+    if (!q) return;
+    setAiBusy(true);
+    setAiError(null);
+    try {
+      const auth = getAuthClientOrNull();
+      const u = auth?.currentUser;
+      if (!u) {
+        setAiError(t("city.aiSearchErrAuth"));
+        return;
+      }
+      const token = await u.getIdToken();
+      const items = ads.map((a) => ({
+        id: a.id,
+        title: a.title,
+        category: a.category ?? null,
+        description: a.description ?? null,
+      }));
+      const res = await fetch("/api/ai/search-ads", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ query: q, items }),
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        ids?: string[];
+      };
+      if (!res.ok) {
+        if (res.status === 401) setAiError(t("city.aiSearchErrAuth"));
+        else if (res.status === 503) setAiError(t("city.aiSearchErrConfig"));
+        else if (res.status === 502) setAiError(t("city.aiSearchErrService"));
+        else setAiError(json.error || t("city.aiSearchErrGeneric"));
+        return;
+      }
+      const nextIds = Array.isArray(json.ids) ? json.ids : [];
+      setAiMatchedIds(nextIds);
+      setAiSearchOpen(false);
+      requestAnimationFrame(() => {
+        cardsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    } catch {
+      setAiError(t("city.aiSearchErrGeneric"));
+    } finally {
+      setAiBusy(false);
+    }
+  }, [aiQuery, ads, t]);
 
   const mapPoints = useMemo(
     () => {
       const out: Array<{
         id: string;
         title: string;
+        category: string | null;
         link: string | null;
         image: string | null;
         lat: number;
         lon: number;
       }> = [];
 
-      for (const a of filteredAds) {
+      for (const a of displayedAds) {
         if (!a.location) continue;
         if (
           typeof a.location.lat !== "number" ||
@@ -1094,9 +1279,15 @@ export default function CityAdsViewClient({
         )
           continue;
 
+        const cat =
+          typeof a.category === "string" && a.category.trim()
+            ? a.category.trim()
+            : null;
+
         out.push({
           id: a.id,
           title: a.title,
+          category: cat,
           link: a.link ?? null,
           image: a.image ?? null,
           lat: a.location.lat,
@@ -1106,7 +1297,7 @@ export default function CityAdsViewClient({
 
       return out;
     },
-    [filteredAds],
+    [displayedAds],
   );
 
   const listTitle = cityTitle;
@@ -1137,12 +1328,22 @@ export default function CityAdsViewClient({
           t("city.oneCategorySelected"))
         : t("city.nCategoriesSelected", { n: fmtN(selectedCatCodes.length) });
 
+  const listingFiltersActive =
+    priceMinStr.trim() !== "" ||
+    priceMaxStr.trim() !== "" ||
+    filterFreeOnly ||
+    filterNewOnly ||
+    filterExchangeOnly ||
+    filterNegotiableOnly;
+
   const hasActiveFilters =
     selectedDepartmentIds.length > 0 ||
     selectedCatCodes.length > 0 ||
     searchQuery.trim().length > 0 ||
     listSortKey !== "date" ||
-    listSortDir !== "desc";
+    listSortDir !== "desc" ||
+    listingFiltersActive ||
+    aiMatchedIds !== null;
 
   return (
     <div className={styles.shell}>
@@ -1270,6 +1471,15 @@ export default function CityAdsViewClient({
               setDirectoryQuery("");
               setCategoryQuery("");
               setOpenFilter(null);
+              setPriceMinStr("");
+              setPriceMaxStr("");
+              setFilterFreeOnly(false);
+              setFilterNewOnly(false);
+              setFilterExchangeOnly(false);
+              setFilterNegotiableOnly(false);
+              setAiMatchedIds(null);
+              setAiQuery("");
+              setAiError(null);
             }}
             disabled={!hasActiveFilters}
             aria-label={t("city.clearFiltersAria")}
@@ -1294,6 +1504,41 @@ export default function CityAdsViewClient({
             </div>
           </div>
         </div>
+
+        {authConfigured && userEmail ? (
+          <div className={`${styles.filterBlockCompact} ${styles.aiSearchWrap}`}>
+            <button
+              type="button"
+              className={`${styles.sortIconBtn} ${
+                aiMatchedIds !== null ? styles.sortIconBtnActive : ""
+              }`}
+              onClick={() => {
+                if (aiMatchedIds !== null) {
+                  setAiMatchedIds(null);
+                  setAiError(null);
+                  setAiSearchOpen(false);
+                  return;
+                }
+                setAiSearchOpen(true);
+                setAiError(null);
+              }}
+              disabled={authLoading}
+              aria-label={
+                aiMatchedIds !== null
+                  ? t("city.aiSearchClearAria")
+                  : t("city.aiSearchAria")
+              }
+              aria-pressed={aiMatchedIds !== null}
+              title={
+                aiMatchedIds !== null
+                  ? t("city.aiSearchClearTitle")
+                  : t("city.aiSearchTitle")
+              }
+            >
+              <AiSearchGlyph className={styles.sortDateGlyph} />
+            </button>
+          </div>
+        ) : null}
 
         <div className={`${styles.filterBlockCompact} ${styles.sortBtnGroup}`}>
           <button
@@ -1364,7 +1609,10 @@ export default function CityAdsViewClient({
           </button>
         </div>
 
-        <div className={`${styles.filterBlock} ${styles.filterBlockWide}`} ref={directoryRef}>
+        <div
+          className={`${styles.filterBlock} ${styles.filterBlockWide} ${styles.filterBarDept}`}
+          ref={directoryRef}
+        >
           <div
             className={`${styles.filterTrigger} ${
               selectedDepartmentIds.length > 1 ? styles.filterTriggerDense : ""
@@ -1472,7 +1720,10 @@ export default function CityAdsViewClient({
           ) : null}
         </div>
 
-        <div className={`${styles.filterBlock} ${styles.filterBlockWide}`} ref={categoryRef}>
+        <div
+          className={`${styles.filterBlock} ${styles.filterBlockWide} ${styles.filterBarCategory}`}
+          ref={categoryRef}
+        >
           <div
             className={`${styles.filterTrigger} ${
               selectedCatCodes.length > 1 ? styles.filterTriggerDense : ""
@@ -1568,6 +1819,102 @@ export default function CityAdsViewClient({
             </div>
           ) : null}
         </div>
+
+        <div
+          className={`${styles.filterBlock} ${styles.filterBlockWide} ${styles.filterBarListing}`}
+          ref={listingFilterRef}
+        >
+          <div
+            className={`${styles.filterTrigger} ${styles.listingFilterTrigger} ${
+              listingFiltersActive ? styles.filterTriggerListingActive : ""
+            }`}
+            onClick={() => setOpenFilter(openFilter === "listing" ? null : "listing")}
+            role="button"
+            tabIndex={0}
+            aria-expanded={openFilter === "listing"}
+            aria-label={t("city.listingFiltersPh")}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                setOpenFilter(openFilter === "listing" ? null : "listing");
+              }
+            }}
+          >
+            <FilterIconListing className={styles.filterLeadIcon} />
+            <div className={styles.multiValueWrap}>
+              <span className={styles.multiPlaceholder}>
+                {listingFiltersActive
+                  ? t("city.listingFiltersActive")
+                  : t("city.listingFilters")}
+              </span>
+            </div>
+            <span className={styles.filterChevron}>▾</span>
+          </div>
+          {openFilter === "listing" ? (
+            <div className={`${styles.filterMenu} ${styles.filterMenuListing}`}>
+              <div className={styles.listingFilterPriceRow}>
+                <label className={styles.listingFilterPriceField}>
+                  <span className={styles.listingFilterPriceLabel}>{t("city.priceMin")}</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    className={styles.listingFilterInput}
+                    value={priceMinStr}
+                    onChange={(e) => setPriceMinStr(e.target.value)}
+                    dir="ltr"
+                    autoComplete="off"
+                  />
+                </label>
+                <label className={styles.listingFilterPriceField}>
+                  <span className={styles.listingFilterPriceLabel}>{t("city.priceMax")}</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    className={styles.listingFilterInput}
+                    value={priceMaxStr}
+                    onChange={(e) => setPriceMaxStr(e.target.value)}
+                    dir="ltr"
+                    autoComplete="off"
+                  />
+                </label>
+              </div>
+              <label className={styles.filterCheckboxRow}>
+                <input
+                  type="checkbox"
+                  checked={filterFreeOnly}
+                  onChange={(e) => setFilterFreeOnly(e.target.checked)}
+                />
+                <span className={styles.filterCheckboxLabel}>{t("city.filterFreeOnly")}</span>
+              </label>
+              <label className={styles.filterCheckboxRow}>
+                <input
+                  type="checkbox"
+                  checked={filterNewOnly}
+                  onChange={(e) => setFilterNewOnly(e.target.checked)}
+                />
+                <span className={styles.filterCheckboxLabel}>{t("city.filterNewOnly")}</span>
+              </label>
+              <label className={styles.filterCheckboxRow}>
+                <input
+                  type="checkbox"
+                  checked={filterExchangeOnly}
+                  onChange={(e) => setFilterExchangeOnly(e.target.checked)}
+                />
+                <span className={styles.filterCheckboxLabel}>{t("city.filterExchangeOnly")}</span>
+              </label>
+              <label className={styles.filterCheckboxRow}>
+                <input
+                  type="checkbox"
+                  checked={filterNegotiableOnly}
+                  onChange={(e) => setFilterNegotiableOnly(e.target.checked)}
+                />
+                <span className={styles.filterCheckboxLabel}>
+                  {t("city.filterNegotiableOnly")}
+                </span>
+              </label>
+            </div>
+          ) : null}
+        </div>
+
         <div className={styles.filterLogoWrap}>
           <Link href={loc("/")}>
             <Image
@@ -1771,16 +2118,26 @@ export default function CityAdsViewClient({
           </div>
 
           <div ref={cardsSectionRef} className={styles.cards}>
-            {filteredAds.length === 0 ? (
-              <div className={styles.empty}>
-                <div className={styles.emptyTitle}>{t("city.emptyTitle")}</div>
+            {displayedAds.length === 0 ? (
+              <div
+                className={`${styles.empty} ${
+                  aiMatchedIds !== null ? styles.emptyAiSearch : ""
+                }`}
+              >
+                <div className={styles.emptyTitle}>
+                  {aiMatchedIds !== null
+                    ? t("city.aiSearchEmptyTitle")
+                    : t("city.emptyTitle")}
+                </div>
                 <div className={styles.emptyText}>
-                  {t("city.emptyBody")}
+                  {aiMatchedIds !== null
+                    ? t("city.aiSearchNoMatches")
+                    : t("city.emptyBody")}
                 </div>
               </div>
             ) : null}
 
-            {filteredAds.map((ad) => {
+            {displayedAds.map((ad) => {
               const approved = ad.approved === true;
               const paidValid =
                 ad.paidAds === true &&
@@ -1802,6 +2159,21 @@ export default function CityAdsViewClient({
               <article
                 key={ad.id}
                 className={`${styles.card} ${paidValid ? styles.cardPaidValid : valid ? styles.cardValid : ""}`}
+                onMouseEnter={() => {
+                  if (!allowListMapHover) return;
+                  const locPt = ad.location;
+                  if (
+                    locPt &&
+                    typeof locPt.lat === "number" &&
+                    typeof locPt.lon === "number"
+                  ) {
+                    setHoveredListAdId(ad.id);
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (!allowListMapHover) return;
+                  setHoveredListAdId(null);
+                }}
                 onPointerDown={(e) => {
                   if (e.button !== 0) return;
                   clearCardLongPressTimer();
@@ -1821,13 +2193,21 @@ export default function CityAdsViewClient({
                     suppressNextCardClickRef.current = false;
                     return;
                   }
+                  const href = ad.link?.trim();
+                  if (href) {
+                    registerAdOpenedForId(ad.id);
+                    router.push(loc(href));
+                    return;
+                  }
                   setSelectedAdId(ad.id);
                   setMobileMode("map");
                 }}
                 style={
                   selectedAdId === ad.id
                     ? { outline: "2px solid rgba(15, 118, 110, 0.55)" }
-                    : undefined
+                    : allowListMapHover && hoveredListAdId === ad.id
+                      ? { outline: "2px solid rgba(15, 118, 110, 0.32)" }
+                      : undefined
                 }
               >
                 <div className={styles.cardTop}>
@@ -2055,8 +2435,11 @@ export default function CityAdsViewClient({
             center={cityCenter}
             className={styles.map}
             activeAdId={selectedAdId}
+            hoverAdId={hoveredListAdId}
             onAdSelect={setSelectedAdId}
             onAdOpened={registerAdOpenedForId}
+            popupViewLabel={t("city.view")}
+            popupIsRtl={locale === "fa"}
             mapsApiKey={googleMapsApiKey}
           />
           <p
@@ -2067,6 +2450,79 @@ export default function CityAdsViewClient({
           </p>
         </section>
       </div>
+
+      {aiSearchOpen ? (
+        <div
+          className={styles.aiSearchOverlay}
+          role="presentation"
+          onClick={() => {
+            if (!aiBusy) setAiSearchOpen(false);
+          }}
+        >
+          <div
+            className={styles.aiSearchModal}
+            role="dialog"
+            aria-modal="true"
+            aria-busy={aiBusy}
+            aria-labelledby="ai-search-dialog-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="ai-search-dialog-title" className={styles.aiSearchModalTitle}>
+              {t("city.aiSearchModalTitle")}
+            </h2>
+            <p className={styles.aiSearchLead}>{t("city.aiSearchLead")}</p>
+            <textarea
+              className={styles.aiSearchTextarea}
+              value={aiQuery}
+              onChange={(e) => setAiQuery(e.target.value)}
+              placeholder={t("city.aiSearchPlaceholder")}
+              disabled={aiBusy}
+              rows={3}
+              autoFocus
+            />
+            {aiBusy ? (
+              <div className={styles.aiSearchThinking} aria-live="polite">
+                <div className={styles.aiSearchThinkingRow}>
+                  <span className={styles.aiSearchThinkingLabel}>
+                    {t("city.aiSearchThinking")}
+                  </span>
+                  <span className={styles.aiSearchDots} aria-hidden="true">
+                    <span className={styles.aiSearchDot} />
+                    <span className={styles.aiSearchDot} />
+                    <span className={styles.aiSearchDot} />
+                  </span>
+                </div>
+              </div>
+            ) : null}
+            <p className={styles.aiSearchPrivacy}>{t("city.aiSearchPrivacy")}</p>
+            <div className={styles.aiSearchActions}>
+              <button
+                type="button"
+                className={styles.aiSearchBtnSecondary}
+                onClick={() => {
+                  if (!aiBusy) setAiSearchOpen(false);
+                }}
+                disabled={aiBusy}
+              >
+                {t("city.aiSearchCancel")}
+              </button>
+              <button
+                type="button"
+                className={styles.aiSearchBtnPrimary}
+                onClick={() => void runAiSearch()}
+                disabled={aiBusy || !aiQuery.trim()}
+              >
+                {aiBusy ? t("city.aiSearchBusy") : t("city.aiSearchSubmit")}
+              </button>
+            </div>
+            {aiError ? (
+              <p className={styles.aiSearchErr} role="alert">
+                {aiError}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

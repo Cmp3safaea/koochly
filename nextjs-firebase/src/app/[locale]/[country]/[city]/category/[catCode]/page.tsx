@@ -39,6 +39,12 @@ type AdDoc = {
   visits?: unknown;
   subcat?: unknown;
   selectedCategoryTags?: unknown;
+  price?: unknown;
+  isFree?: unknown;
+  isNewItem?: unknown;
+  exchangeable?: unknown;
+  negotiable?: unknown;
+  mainCategory?: unknown;
 };
 
 type SelectOption = { value: string; label: string };
@@ -281,6 +287,17 @@ export default async function CityCategoryLandingPage({
         ? normalizeSubcats(ad.subcat)
         : normalizeSubcats(ad.selectedCategoryTags);
       const review = reviewSummaryFromAdData(ad as unknown as Record<string, unknown>);
+      const priceRaw = toFiniteNumber(ad.price);
+      const mainCat =
+        typeof ad.mainCategory === "string" && ad.mainCategory.trim()
+          ? ad.mainCategory.trim().toLowerCase()
+          : null;
+      const cardPrice =
+        mainCat === "services"
+          ? null
+          : ad.isFree === true
+            ? null
+            : priceRaw;
       return {
         id: ad.id ?? title,
         title,
@@ -296,6 +313,12 @@ export default async function CityCategoryLandingPage({
         subcats,
         createdAtMs: toDateTimeMs(ad.dateTime),
         visits,
+        price: cardPrice,
+        isFree: ad.isFree === true,
+        isNewItem: ad.isNewItem === true,
+        exchangeable: ad.exchangeable === true,
+        negotiable: ad.negotiable === true,
+        mainCategory: mainCat,
         reviewAvg: review.avg,
         reviewCount: review.count,
       } satisfies CityAdCard;

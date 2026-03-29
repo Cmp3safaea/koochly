@@ -25,25 +25,44 @@ function getGoogleMaps(): typeof google.maps | null {
   return w.google?.maps ?? null;
 }
 
-function markerPinSymbol(
-  active: boolean,
+type PinVariant = "idle" | "hover" | "active";
+
+/** Idle = slate gray; hover = warm amber (list hover); active = teal (selected / details). */
+function markerPinSymbolVariant(
+  variant: PinVariant,
   dark: boolean,
   maps: typeof google.maps,
 ): google.maps.Symbol {
-  const fill = active
-    ? dark
-      ? "#2dd4bf"
-      : "#0f766e"
-    : dark
-      ? "#94a3b8"
-      : "#64748b";
+  const strokeColor = dark ? "#0f172a" : "#ffffff";
+  if (variant === "idle") {
+    return {
+      path: PIN_PATH,
+      fillColor: dark ? "#94a3b8" : "#64748b",
+      fillOpacity: 1,
+      strokeColor,
+      strokeWeight: 1.5,
+      scale: 0.74,
+      anchor: new maps.Point(24, 51),
+    };
+  }
+  if (variant === "hover") {
+    return {
+      path: PIN_PATH,
+      fillColor: dark ? "#fbbf24" : "#d97706",
+      fillOpacity: 1,
+      strokeColor,
+      strokeWeight: 2,
+      scale: 0.88,
+      anchor: new maps.Point(24, 51),
+    };
+  }
   return {
     path: PIN_PATH,
-    fillColor: fill,
+    fillColor: dark ? "#2dd4bf" : "#0f766e",
     fillOpacity: 1,
-    strokeColor: dark ? "#0f172a" : "#ffffff",
-    strokeWeight: active ? 2 : 1.5,
-    scale: active ? 0.92 : 0.74,
+    strokeColor,
+    strokeWeight: 2,
+    scale: 0.92,
     anchor: new maps.Point(24, 51),
   };
 }
@@ -63,13 +82,40 @@ function useMapThemeDark() {
   return useSyncExternalStore(subscribeDataTheme, snapshotIsDark, () => false);
 }
 
+const COMPACT_MAP_POPUP_MQ = "(max-width: 640px)";
+
+function subscribeCompactMapPopup(cb: () => void) {
+  if (typeof window === "undefined") return () => {};
+  const mq = window.matchMedia(COMPACT_MAP_POPUP_MQ);
+  const handler = () => cb();
+  mq.addEventListener("change", handler);
+  return () => mq.removeEventListener("change", handler);
+}
+
+function snapshotCompactMapPopup() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia(COMPACT_MAP_POPUP_MQ).matches;
+}
+
+/** Narrow viewports: smaller marker InfoWindow (image + type). SSR default false for hydration. */
+function useCompactMapPopup() {
+  return useSyncExternalStore(
+    subscribeCompactMapPopup,
+    snapshotCompactMapPopup,
+    () => false,
+  );
+}
+
 export default function GoogleMapView({
   points,
   center,
   activeAdId,
+  hoverAdId,
   showResetButton = true,
   onAdSelect,
   onAdOpened,
+  popupViewLabel,
+  popupIsRtl = true,
   className,
   style,
   mapsApiKey: mapsApiKeyProp,
@@ -77,6 +123,7 @@ export default function GoogleMapView({
   points: Array<{
     id: string;
     title: string;
+    category?: string | null;
     link: string | null;
     image: string | null;
     lat: number;
@@ -84,10 +131,15 @@ export default function GoogleMapView({
   }>;
   center?: { lat: number; lon: number } | null;
   activeAdId?: string | null;
+  /** Desktop list hover: highlight the matching pin without changing selection. */
+  hoverAdId?: string | null;
   showResetButton?: boolean;
   onAdSelect?: (id: string | null) => void;
   /** Visit recording + optimistic bumps when opening the ad detail page from a pin. */
   onAdOpened?: (id: string) => void;
+  /** Label for the detail CTA inside the marker popup (i18n). */
+  popupViewLabel: string;
+  popupIsRtl?: boolean;
   className?: string;
   style?: CSSProperties;
   mapsApiKey?: string;
@@ -99,6 +151,7 @@ export default function GoogleMapView({
       process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ||
       "") || "";
   const mapDark = useMapThemeDark();
+  const compactPopup = useCompactMapPopup();
   const mapStyles = mapDark ? MAP_STYLES_DARK : MAP_STYLES_LIGHT;
   const mapBackgroundColor = mapDark ? "#0f172a" : "#e8ecf1";
 
@@ -252,14 +305,21 @@ export default function GoogleMapView({
     if (!isLoaded) return null;
     const maps = getGoogleMaps();
     if (!maps) return null;
-    return markerPinSymbol(false, mapDark, maps);
+    return markerPinSymbolVariant("idle", mapDark, maps);
+  }, [isLoaded, mapDark]);
+
+  const pinIconHover = useMemo(() => {
+    if (!isLoaded) return null;
+    const maps = getGoogleMaps();
+    if (!maps) return null;
+    return markerPinSymbolVariant("hover", mapDark, maps);
   }, [isLoaded, mapDark]);
 
   const pinIconActive = useMemo(() => {
     if (!isLoaded) return null;
     const maps = getGoogleMaps();
     if (!maps) return null;
-    return markerPinSymbol(true, mapDark, maps);
+    return markerPinSymbolVariant("active", mapDark, maps);
   }, [isLoaded, mapDark]);
 
   if (loadError) {
@@ -337,22 +397,28 @@ export default function GoogleMapView({
         }}
       >
         {points.map((p) => {
-          const active = p.id === activeAdId;
+          const variant: PinVariant =
+            p.id === activeAdId
+              ? "active"
+              : p.id === hoverAdId
+                ? "hover"
+                : "idle";
+          const icon =
+            variant === "active"
+              ? pinIconActive
+              : variant === "hover"
+                ? pinIconHover
+                : pinIconIdle;
+          const z =
+            p.id === hoverAdId ? 1002 : p.id === activeAdId ? 1000 : 1;
           return (
             <Marker
               key={p.id}
               position={{ lat: p.lat, lng: p.lon }}
               title={p.title}
-              icon={(active ? pinIconActive : pinIconIdle) ?? undefined}
-              zIndex={active ? 1000 : 1}
+              icon={icon ?? undefined}
+              zIndex={z}
               onClick={() => {
-                const href = p.link?.trim();
-                if (href) {
-                  onAdOpened?.(p.id);
-                  router.push(loc(href));
-                  setInfoWindowId(null);
-                  return;
-                }
                 onAdSelect?.(p.id);
                 setInfoWindowId(p.id);
               }}
@@ -361,25 +427,111 @@ export default function GoogleMapView({
         })}
         {infoWindowPoint ? (
           <InfoWindow
+            key={infoWindowPoint.id}
             position={{ lat: infoWindowPoint.lat, lng: infoWindowPoint.lon }}
             onCloseClick={() => setInfoWindowId(null)}
             options={{
-              pixelOffset: mapsApi ? new mapsApi.Size(0, -40) : undefined,
+              pixelOffset: mapsApi
+                ? new mapsApi.Size(0, compactPopup ? -36 : -40)
+                : undefined,
             }}
           >
             <div
               style={{
-                direction: "rtl",
-                textAlign: "right",
-                maxWidth: 220,
-                padding: "2px 2px 4px",
-                fontSize: 14,
-                fontWeight: 700,
-                lineHeight: 1.35,
-                color: "var(--text-strong, #0f172a)",
+                direction: popupIsRtl ? "rtl" : "ltr",
+                textAlign: popupIsRtl ? "right" : "left",
+                maxWidth: compactPopup ? 188 : 240,
+                padding: compactPopup ? "2px 0 4px" : "4px 2px 6px",
+                fontFamily: "var(--font-app)",
+                fontSize: "inherit",
+                lineHeight: 1.5,
+                color: "var(--text-strong)",
+                WebkitFontSmoothing: "antialiased",
+                MozOsxFontSmoothing: "grayscale",
               }}
             >
-              {infoWindowPoint.title}
+              {infoWindowPoint.image ? (
+                <img
+                  src={infoWindowPoint.image}
+                  alt=""
+                  width={compactPopup ? 180 : 220}
+                  height={compactPopup ? 68 : 100}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    maxWidth: compactPopup ? 188 : 220,
+                    height: compactPopup ? 68 : 100,
+                    objectFit: "cover",
+                    borderRadius: compactPopup ? 10 : 12,
+                    marginBottom: compactPopup ? 6 : 8,
+                  }}
+                  loading="lazy"
+                />
+              ) : null}
+              <div
+                style={{
+                  margin: 0,
+                  fontSize: compactPopup ? "0.82rem" : "0.94rem",
+                  fontWeight: 900,
+                  lineHeight: 1.32,
+                  color: "var(--text-strong)",
+                  wordBreak: "break-word",
+                  marginBottom:
+                    infoWindowPoint.category?.trim() || infoWindowPoint.link?.trim()
+                      ? compactPopup
+                        ? 4
+                        : 6
+                      : 0,
+                }}
+              >
+                {infoWindowPoint.title}
+              </div>
+              {infoWindowPoint.category?.trim() ? (
+                <div
+                  style={{
+                    margin: 0,
+                    marginTop: 2,
+                    padding: 0,
+                    fontSize: compactPopup ? "0.65rem" : "0.72rem",
+                    fontWeight: 600,
+                    lineHeight: 1.4,
+                    color: "var(--text-muted)",
+                    letterSpacing: "0.01em",
+                    marginBottom: infoWindowPoint.link?.trim()
+                      ? compactPopup
+                        ? 6
+                        : 8
+                      : 0,
+                  }}
+                >
+                  {infoWindowPoint.category.trim()}
+                </div>
+              ) : null}
+              {infoWindowPoint.link?.trim() ? (
+                <button
+                  type="button"
+                  style={{
+                    width: "100%",
+                    margin: 0,
+                    padding: compactPopup ? "6px 8px" : "8px 10px",
+                    borderRadius: compactPopup ? 8 : 10,
+                    border: "1px solid var(--accent-border-mid)",
+                    background: "var(--accent-soft-10)",
+                    color: "var(--accent)",
+                    fontWeight: 800,
+                    fontSize: compactPopup ? "0.78rem" : "0.875rem",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                  onClick={() => {
+                    onAdOpened?.(infoWindowPoint.id);
+                    router.push(loc(infoWindowPoint.link!.trim()));
+                    setInfoWindowId(null);
+                  }}
+                >
+                  {popupViewLabel}
+                </button>
+              ) : null}
             </div>
           </InfoWindow>
         ) : null}

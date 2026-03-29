@@ -53,6 +53,9 @@ Build/push the image to a registry, then deploy with:
 - a service account that can access Firestore (recommended), or
 - set `FIREBASE_SERVICE_ACCOUNT_KEY` as an environment variable/secret
 - ensure the container listens on `PORT` (this image uses `8080`)
+- **`OPENAI_API_KEY`** (secret): required for the logged-in AI listing search (`POST /api/ai/search-ads`). Omit it only if you disable that feature; without it the API returns 503. Optional **`OPENAI_MODEL`** (default `gpt-4o-mini`).
+
+The Docker image does not embed API keys; set `OPENAI_API_KEY` on the Cloud Run service (or your host’s environment), not as a `docker build` arg.
 
 ## SEO operations
 

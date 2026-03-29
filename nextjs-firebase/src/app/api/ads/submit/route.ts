@@ -24,6 +24,18 @@ function normalizeExternalUrl(raw: string): string {
   return `https://${t}`;
 }
 
+function parsePriceFromBody(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number" && Number.isFinite(value) && value >= 0) return value;
+  if (typeof value === "string") {
+    const t = value.trim().replace(/[,\s\u066C]/g, "");
+    if (!t) return null;
+    const n = Number(t);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  }
+  return null;
+}
+
 function stripDataUrlBase64(s: string): string {
   return s.replace(/^data:[^;]+;base64,/i, "").trim();
 }
@@ -107,6 +119,35 @@ export async function POST(req: Request) {
     typeof b.lat === "number" && Number.isFinite(b.lat) ? b.lat : null;
   const lon =
     typeof b.lon === "number" && Number.isFinite(b.lon) ? b.lon : null;
+
+  const mainCategoryRaw =
+    typeof b.mainCategory === "string" ? b.mainCategory.trim().toLowerCase() : "";
+  if (mainCategoryRaw !== "goods" && mainCategoryRaw !== "services") {
+    return NextResponse.json(
+      { error: "نوع آگهی باید کالا یا خدمات باشد" },
+      { status: 400 },
+    );
+  }
+  const mainCategory = mainCategoryRaw as "goods" | "services";
+  const services = typeof b.services === "string" ? b.services.trim() : "";
+
+  let isFree = b.isFree === true;
+  let isNewItem = b.isNewItem === true;
+  let exchangeable = b.exchangeable === true;
+  let negotiable = b.negotiable === true;
+
+  let price: number | null;
+  if (mainCategory === "services") {
+    isFree = false;
+    isNewItem = false;
+    exchangeable = false;
+    negotiable = false;
+    price = null;
+  } else if (isFree) {
+    price = null;
+  } else {
+    price = parsePriceFromBody(b.price);
+  }
 
   if (!idToken || !cityId || !departmentId || !catCode || title.length < 2) {
     return NextResponse.json(
@@ -261,6 +302,13 @@ export async function POST(req: Request) {
     instorgam: instagram || "N/A",
     location,
     phone: phone || "",
+    mainCategory,
+    services: services || "",
+    price,
+    isFree,
+    isNewItem,
+    exchangeable,
+    negotiable,
     seq,
     subcat: selectedCategoryTags,
     selectedCategoryTags,

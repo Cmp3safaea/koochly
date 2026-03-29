@@ -41,6 +41,7 @@ type UserProfileDefaults = {
 
 const MAX_AD_IMAGES = 4;
 const MAX_SUBCATEGORY_TAGS = 2;
+type MainCategory = "goods" | "services";
 const MAX_IMAGE_FILE_BYTES = 100 * 1024;
 const ACCEPT_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
@@ -114,6 +115,13 @@ export default function AddAdClient({
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
   const [instagram, setInstagram] = useState("");
+  const [mainCategory, setMainCategory] = useState<MainCategory | "">("");
+  const [servicesDescription, setServicesDescription] = useState("");
+  const [priceStr, setPriceStr] = useState("");
+  const [isNewItem, setIsNewItem] = useState(false);
+  const [exchangeable, setExchangeable] = useState(false);
+  const [isFree, setIsFree] = useState(false);
+  const [negotiable, setNegotiable] = useState(false);
   const [latStr, setLatStr] = useState("");
   const [lonStr, setLonStr] = useState("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -126,6 +134,19 @@ export default function AddAdClient({
       urls.forEach((u) => URL.revokeObjectURL(u));
     };
   }, [imageFiles]);
+
+  useEffect(() => {
+    if (mainCategory === "services") {
+      setPriceStr("");
+      setIsNewItem(false);
+      setExchangeable(false);
+      setIsFree(false);
+      setNegotiable(false);
+    }
+    if (mainCategory === "goods") {
+      setServicesDescription("");
+    }
+  }, [mainCategory]);
 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -314,6 +335,13 @@ export default function AddAdClient({
     return Number.isFinite(n) ? n : null;
   };
 
+  const parsePriceNumber = (s: string): number | null => {
+    const t = s.trim().replace(/[,\s\u066C]/g, "");
+    if (!t) return null;
+    const n = Number(t);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  };
+
   const submit = async () => {
     setErr(null);
     if (!configured) return;
@@ -364,6 +392,13 @@ export default function AddAdClient({
         });
       }
 
+      if (mainCategory !== "goods" && mainCategory !== "services") {
+        setErr(t("addAd.errFill"));
+        setBusy(false);
+        return;
+      }
+
+      const isGoods = mainCategory === "goods";
       const idToken = await auth.currentUser.getIdToken();
       const res = await fetch("/api/ads/submit", {
         method: "POST",
@@ -384,6 +419,23 @@ export default function AddAdClient({
           lon,
           selectedTags,
           images: imagesPayload.length ? imagesPayload : undefined,
+          mainCategory,
+          services: servicesDescription.trim(),
+          ...(isGoods
+            ? {
+                price: isFree ? null : parsePriceNumber(priceStr),
+                isNewItem,
+                exchangeable,
+                isFree,
+                negotiable,
+              }
+            : {
+                price: null,
+                isNewItem: false,
+                exchangeable: false,
+                isFree: false,
+                negotiable: false,
+              }),
         }),
       });
       const data = (await res.json().catch(() => ({}))) as {
@@ -404,6 +456,13 @@ export default function AddAdClient({
         setPhone("");
         setWebsite("");
         setInstagram("");
+        setMainCategory("");
+        setServicesDescription("");
+        setPriceStr("");
+        setIsNewItem(false);
+        setExchangeable(false);
+        setIsFree(false);
+        setNegotiable(false);
         setLatStr("");
         setLonStr("");
         setSelectedTags([]);
@@ -417,7 +476,9 @@ export default function AddAdClient({
     }
   };
 
-  const canProceedStep1 = Boolean(cityId && departmentId && catCode && title.trim().length >= 2);
+  const canProceedStep1 = Boolean(
+    cityId && departmentId && catCode && title.trim().length >= 2 && mainCategory !== "",
+  );
   const canProceedStep2 = true;
   const canProceedStep3 = (() => {
     const lat = parseCoord(latStr);
@@ -635,6 +696,38 @@ export default function AddAdClient({
                 ) : null}
 
                 <div className={`${styles.field} ${styles.fieldFull}`}>
+                  <span className={styles.label} id="ad-main-cat-label">
+                    {t("addAd.mainCategory")}
+                  </span>
+                  <div
+                    className={styles.mainCatOptions}
+                    role="radiogroup"
+                    aria-labelledby="ad-main-cat-label"
+                  >
+                    <label className={styles.mainCatOption}>
+                      <input
+                        type="radio"
+                        name="ad-main-category"
+                        value="goods"
+                        checked={mainCategory === "goods"}
+                        onChange={() => setMainCategory("goods")}
+                      />
+                      {t("addAd.mainCategoryGoods")}
+                    </label>
+                    <label className={styles.mainCatOption}>
+                      <input
+                        type="radio"
+                        name="ad-main-category"
+                        value="services"
+                        checked={mainCategory === "services"}
+                        onChange={() => setMainCategory("services")}
+                      />
+                      {t("addAd.mainCategoryServices")}
+                    </label>
+                  </div>
+                </div>
+
+                <div className={`${styles.field} ${styles.fieldFull}`}>
                   <label className={styles.label} htmlFor="ad-title">
                     {t("addAd.adTitle")}
                   </label>
@@ -652,6 +745,111 @@ export default function AddAdClient({
 
                 {step === 2 ? (
                   <>
+                    {mainCategory === "goods" ? (
+                      <>
+                        {!isFree ? (
+                          <div className={`${styles.field} ${styles.fieldFull}`}>
+                            <label className={styles.label} htmlFor="ad-price">
+                              {t("addAd.price")}{" "}
+                              <span className={styles.optional}>({t("addAd.optional")})</span>
+                            </label>
+                            <input
+                              id="ad-price"
+                              className={styles.input}
+                              value={priceStr}
+                              onChange={(e) => setPriceStr(e.target.value)}
+                              placeholder={t("addAd.pricePh")}
+                              inputMode="decimal"
+                              dir="ltr"
+                              autoComplete="off"
+                            />
+                          </div>
+                        ) : null}
+
+                        <div className={styles.toggleRow}>
+                          <div className={styles.toggleCell}>
+                            <span className={styles.toggleCellLabel}>{t("addAd.toggleNewItem")}</span>
+                            <label className={styles.switch} htmlFor="ad-toggle-new">
+                              <input
+                                id="ad-toggle-new"
+                                type="checkbox"
+                                className={styles.switchInput}
+                                checked={isNewItem}
+                                onChange={(e) => setIsNewItem(e.target.checked)}
+                              />
+                              <span className={styles.switchTrack} aria-hidden />
+                              <span className={styles.switchKnob} aria-hidden />
+                            </label>
+                          </div>
+                          <div className={styles.toggleCell}>
+                            <span className={styles.toggleCellLabel}>
+                              {t("addAd.toggleExchangeable")}
+                            </span>
+                            <label className={styles.switch} htmlFor="ad-toggle-exchange">
+                              <input
+                                id="ad-toggle-exchange"
+                                type="checkbox"
+                                className={styles.switchInput}
+                                checked={exchangeable}
+                                onChange={(e) => setExchangeable(e.target.checked)}
+                              />
+                              <span className={styles.switchTrack} aria-hidden />
+                              <span className={styles.switchKnob} aria-hidden />
+                            </label>
+                          </div>
+                          <div className={styles.toggleCell}>
+                            <span className={styles.toggleCellLabel}>{t("addAd.toggleFree")}</span>
+                            <label className={styles.switch} htmlFor="ad-toggle-free">
+                              <input
+                                id="ad-toggle-free"
+                                type="checkbox"
+                                className={styles.switchInput}
+                                checked={isFree}
+                                onChange={(e) => {
+                                  const on = e.target.checked;
+                                  setIsFree(on);
+                                  if (on) setPriceStr("");
+                                }}
+                              />
+                              <span className={styles.switchTrack} aria-hidden />
+                              <span className={styles.switchKnob} aria-hidden />
+                            </label>
+                          </div>
+                          <div className={styles.toggleCell}>
+                            <span className={styles.toggleCellLabel}>
+                              {t("addAd.toggleNegotiable")}
+                            </span>
+                            <label className={styles.switch} htmlFor="ad-toggle-negotiable">
+                              <input
+                                id="ad-toggle-negotiable"
+                                type="checkbox"
+                                className={styles.switchInput}
+                                checked={negotiable}
+                                onChange={(e) => setNegotiable(e.target.checked)}
+                              />
+                              <span className={styles.switchTrack} aria-hidden />
+                              <span className={styles.switchKnob} aria-hidden />
+                            </label>
+                          </div>
+                        </div>
+                      </>
+                    ) : mainCategory === "services" ? (
+                      <div className={`${styles.field} ${styles.fieldFull}`}>
+                        <label className={styles.label} htmlFor="ad-services">
+                          {t("addAd.services")}{" "}
+                          <span className={styles.optional}>({t("addAd.optional")})</span>
+                        </label>
+                        <textarea
+                          id="ad-services"
+                          className={styles.textarea}
+                          value={servicesDescription}
+                          onChange={(e) => setServicesDescription(e.target.value)}
+                          placeholder={t("addAd.servicesPh")}
+                          dir="auto"
+                        />
+                      </div>
+                    ) : null}
+
                     <div className={styles.field}>
                   <label className={styles.label} htmlFor="ad-eng">
                     {t("addAd.engName")}{" "}

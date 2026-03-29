@@ -64,14 +64,19 @@
   overflow: visible;
 }
 
-/* Wide toolbar: avoid clipping when the row is wider than the viewport (split view, small landscape). */
+/* Wide toolbar: do not use overflow-x: auto here — it clips absolutely positioned filter menus
+   (dept / category / listing) in most browsers. Prefer page-level scroll if the row overflows. */
 @media (min-width: 901px) {
   .filterBar {
-    overflow-x: auto;
-    overflow-y: visible;
+    overflow: visible;
     flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
+  }
+
+  /* Open dropdown stacks above neighbors (logo strip, other triggers) */
+  .filterBarDept:has(.filterMenu),
+  .filterBarCategory:has(.filterMenu),
+  .filterBarListing:has(.filterMenuListing) {
+    z-index: 60;
   }
 }
 
@@ -212,6 +217,25 @@
   flex: 1 1 200px;
   max-width: min(320px, 38vw);
   min-width: 0;
+}
+
+/* Price / listing attributes filter: same flex slot as dept/cat; label truncates on narrow toolbars */
+.filterBarListing {
+  flex: 1 1 160px;
+  min-width: 0;
+  max-width: min(320px, 38vw);
+}
+
+.listingFilterTrigger .multiValueWrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.listingFilterTrigger .multiPlaceholder {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Department + category: one compact row, same height as search + sort icons */
@@ -714,6 +738,59 @@
   max-height: 260px;
   overflow: auto;
   padding: 6px;
+}
+
+.filterMenuListing {
+  max-height: min(420px, 72vh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 10px;
+  min-width: min(100%, 300px);
+  z-index: 45;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filterBarListing .filterMenuListing {
+  left: 0;
+  right: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.filterTriggerListingActive {
+  border-color: var(--accent-border-strong);
+  background: var(--accent-soft-08);
+}
+
+.listingFilterPriceRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.listingFilterPriceField {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.listingFilterPriceLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.listingFilterInput {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.88rem;
+  background: var(--surface);
+  color: var(--text-strong);
 }
 
 .filterOption {
@@ -1322,6 +1399,12 @@
   color: var(--text-muted);
 }
 
+.emptyAiSearch {
+  border-radius: 14px;
+  border: 1px dashed var(--accent-border-mid);
+  background: var(--accent-soft-08);
+}
+
 .mapCol {
   position: sticky;
   top: 16px;
@@ -1828,18 +1911,25 @@
     flex: 0 0 auto;
   }
 
-  .filterBar > .filterBlockWide:nth-child(6) {
-    order: 6;
+  /* Dept → category → price/attributes (last), independent of optional city pin row */
+  .filterBarDept,
+  .filterBarCategory,
+  .filterBarListing {
     flex: 1 1 100%;
     min-width: 0;
     max-width: none;
   }
 
-  .filterBar > .filterBlockWide:nth-child(7) {
+  .filterBarDept {
+    order: 6;
+  }
+
+  .filterBarCategory {
     order: 7;
-    flex: 1 1 100%;
-    min-width: 0;
-    max-width: none;
+  }
+
+  .filterBarListing {
+    order: 8;
   }
 
   .filterBlock {
@@ -2073,4 +2163,179 @@
 /* Letter fallback sits on light tile in dark mode — use deep teal for contrast */
 :global(html[data-theme="dark"]) .deptQuickFallback {
   color: #0f766e;
+}
+
+.aiSearchWrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.aiSearchOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+}
+
+.aiSearchModal {
+  margin-top: 8vh;
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface);
+  border: 1px solid var(--border-95);
+  border-radius: 14px;
+  box-shadow: 0 22px 48px var(--shadow-dropdown);
+  padding: 20px 20px 18px;
+}
+
+.aiSearchModalTitle {
+  margin: 0 0 12px;
+  font-size: 1.15rem;
+  font-weight: 650;
+  color: var(--text-ui);
+}
+
+.aiSearchTextarea {
+  width: 100%;
+  min-height: 100px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--border-input);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--text-ui);
+  background: var(--surface);
+  resize: vertical;
+}
+
+.aiSearchTextarea:focus {
+  outline: none;
+  border-color: var(--accent-border-mid);
+  box-shadow: 0 0 0 3px var(--accent-soft-12);
+}
+
+.aiSearchPrivacy {
+  margin: 8px 0 10px;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  color: var(--text-slate-600);
+}
+
+.aiSearchActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.aiSearchBtnSecondary,
+.aiSearchBtnPrimary {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  border: 1px solid var(--border-input);
+  background: var(--surface);
+  color: var(--text-ui);
+}
+
+.aiSearchBtnSecondary:hover:not(:disabled) {
+  border-color: var(--accent-border-mid);
+  background: var(--accent-soft-08);
+}
+
+.aiSearchBtnPrimary {
+  border-color: var(--accent-border-mid);
+  background: var(--accent-soft-12);
+  font-weight: 600;
+}
+
+.aiSearchBtnPrimary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.aiSearchBtnSecondary:disabled,
+.aiSearchBtnPrimary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.aiSearchErr {
+  margin: 10px 0 0;
+  font-size: 0.76rem;
+  color: #b91c1c;
+}
+
+:global(html[data-theme="dark"]) .aiSearchErr {
+  color: #fca5a5;
+}
+
+.aiSearchThinking {
+  margin: 10px 0 8px;
+  padding: 11px 12px;
+  border-radius: 10px;
+  background: var(--accent-soft-08);
+  border: 1px solid var(--border-faint);
+}
+
+.aiSearchThinkingRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 22px;
+}
+
+.aiSearchThinkingLabel {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-ui);
+  letter-spacing: 0.01em;
+}
+
+.aiSearchDots {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.aiSearchDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.35;
+  animation: aiSearchDotPulse 1.1s ease-in-out infinite;
+}
+
+.aiSearchDot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.aiSearchDot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes aiSearchDotPulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aiSearchDot {
+    animation: none;
+    opacity: 0.75;
+  }
 }
