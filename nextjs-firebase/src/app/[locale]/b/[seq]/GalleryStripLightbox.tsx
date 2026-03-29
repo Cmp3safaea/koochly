@@ -35,6 +35,15 @@ export default function GalleryStripLightbox({ images, title }: Props) {
 
   useEffect(() => {
     if (openIndex === null) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [openIndex]);
+
+  useEffect(() => {
+    if (openIndex === null) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpenIndex(null);
       if (e.key === "ArrowRight") {

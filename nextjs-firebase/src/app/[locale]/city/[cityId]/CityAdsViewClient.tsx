@@ -418,7 +418,7 @@ function FilterIconCategory({ className }: { className?: string }) {
   );
 }
 
-function FilterIconListing({ className }: { className?: string }) {
+function FilterIconPanel({ className }: { className?: string }) {
   return (
     <svg
       className={className}
@@ -430,32 +430,24 @@ function FilterIconListing({ className }: { className?: string }) {
       strokeLinejoin="round"
       aria-hidden
     >
-      <path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 10h4M18 8h4" />
+      <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
     </svg>
   );
 }
 
-function CityPinIcon({ className }: { className?: string }) {
+function ListingApplyIcon({ className }: { className?: string }) {
   return (
     <svg
       className={className}
       viewBox="0 0 24 24"
       fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden
     >
-      <path
-        d="M8.25 20c2.72-2.26 4.4-4.44 4.4-6.8a4.4 4.4 0 1 0-8.8 0c0 2.36 1.68 4.54 4.4 6.8Z"
-        fill="currentColor"
-        opacity="0.9"
-      />
-      <circle cx="8.25" cy="13.2" r="1.45" fill="white" />
-      <path
-        d="M13.2 8.2h6.2m0 0-1.9-1.9m1.9 1.9-1.9 1.9M19.4 15.8h-6.2m0 0 1.9-1.9m-1.9 1.9 1.9 1.9"
-        stroke="currentColor"
-        strokeWidth="1.9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <path d="M20 6 9 17l-5-5" />
     </svg>
   );
 }
@@ -667,8 +659,14 @@ export default function CityAdsViewClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [listSortKey, setListSortKey] = useState<"date" | "visits">("date");
   const [listSortDir, setListSortDir] = useState<"desc" | "asc">("desc");
-  const [openFilter, setOpenFilter] = useState<null | "directory" | "category" | "listing">(null);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [openFilter, setOpenFilter] = useState<null | "directory" | "category">(null);
+  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
+  const [draftDepartmentIds, setDraftDepartmentIds] = useState<string[]>(() =>
+    initialDeptList(initialDepartmentId),
+  );
+  const [draftCatCodes, setDraftCatCodes] = useState<string[]>(() =>
+    initialCatList(initialCatCode),
+  );
   const [revealedPhones, setRevealedPhones] = useState<Record<string, boolean>>({});
   const [authLoading, setAuthLoading] = useState(true);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -692,6 +690,13 @@ export default function CityAdsViewClient({
   const [filterNewOnly, setFilterNewOnly] = useState(false);
   const [filterExchangeOnly, setFilterExchangeOnly] = useState(false);
   const [filterNegotiableOnly, setFilterNegotiableOnly] = useState(false);
+  /** Draft values for price/item listing filters (applied only after user taps Apply). */
+  const [listingDraftMinStr, setListingDraftMinStr] = useState("");
+  const [listingDraftMaxStr, setListingDraftMaxStr] = useState("");
+  const [listingDraftFreeOnly, setListingDraftFreeOnly] = useState(false);
+  const [listingDraftNewOnly, setListingDraftNewOnly] = useState(false);
+  const [listingDraftExchangeOnly, setListingDraftExchangeOnly] = useState(false);
+  const [listingDraftNegotiableOnly, setListingDraftNegotiableOnly] = useState(false);
   const [priorityPool, setPriorityPool] = useState<PriorityApiAd[]>([]);
   const [aiSearchOpen, setAiSearchOpen] = useState(false);
   const [aiQuery, setAiQuery] = useState("");
@@ -701,10 +706,11 @@ export default function CityAdsViewClient({
   const [aiError, setAiError] = useState<string | null>(null);
   const directoryRef = useRef<HTMLDivElement | null>(null);
   const categoryRef = useRef<HTMLDivElement | null>(null);
-  const listingFilterRef = useRef<HTMLDivElement | null>(null);
+  const advancedPanelRef = useRef<HTMLDivElement | null>(null);
+  const advancedFiltersToggleRef = useRef<HTMLButtonElement | null>(null);
+  const advancedPanelEverOpenedRef = useRef(false);
   const cityRef = useRef<HTMLDivElement | null>(null);
   const priorityStripRef = useRef<HTMLDivElement | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
   const cardLongPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suppressNextCardClickRef = useRef(false);
   const prevPathnameRef = useRef<string | null>(null);
@@ -753,6 +759,100 @@ export default function CityAdsViewClient({
     if (prev === filterScrollSig) return;
     cardsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [filterScrollSig]);
+
+  useEffect(() => {
+    if (advancedFiltersOpen) {
+      if (!advancedPanelEverOpenedRef.current) {
+        advancedPanelEverOpenedRef.current = true;
+        setDraftDepartmentIds([...selectedDepartmentIds]);
+        setDraftCatCodes([...selectedCatCodes]);
+        setListingDraftMinStr(priceMinStr);
+        setListingDraftMaxStr(priceMaxStr);
+        setListingDraftFreeOnly(filterFreeOnly);
+        setListingDraftNewOnly(filterNewOnly);
+        setListingDraftExchangeOnly(filterExchangeOnly);
+        setListingDraftNegotiableOnly(filterNegotiableOnly);
+      }
+    } else {
+      advancedPanelEverOpenedRef.current = false;
+    }
+  }, [
+    advancedFiltersOpen,
+    selectedDepartmentIds,
+    selectedCatCodes,
+    priceMinStr,
+    priceMaxStr,
+    filterFreeOnly,
+    filterNewOnly,
+    filterExchangeOnly,
+    filterNegotiableOnly,
+  ]);
+
+  const listingDraftDirty = useMemo(
+    () =>
+      listingDraftMinStr !== priceMinStr ||
+      listingDraftMaxStr !== priceMaxStr ||
+      listingDraftFreeOnly !== filterFreeOnly ||
+      listingDraftNewOnly !== filterNewOnly ||
+      listingDraftExchangeOnly !== filterExchangeOnly ||
+      listingDraftNegotiableOnly !== filterNegotiableOnly,
+    [
+      listingDraftMinStr,
+      listingDraftMaxStr,
+      listingDraftFreeOnly,
+      listingDraftNewOnly,
+      listingDraftExchangeOnly,
+      listingDraftNegotiableOnly,
+      priceMinStr,
+      priceMaxStr,
+      filterFreeOnly,
+      filterNewOnly,
+      filterExchangeOnly,
+      filterNegotiableOnly,
+    ],
+  );
+
+  const selectionSig = useCallback(
+    (ids: string[]) => [...ids].sort().join("\0"),
+    [],
+  );
+
+  const deptCatDraftDirty = useMemo(
+    () =>
+      selectionSig(draftDepartmentIds) !== selectionSig(selectedDepartmentIds) ||
+      selectionSig(draftCatCodes) !== selectionSig(selectedCatCodes),
+    [
+      draftCatCodes,
+      draftDepartmentIds,
+      selectedCatCodes,
+      selectedDepartmentIds,
+      selectionSig,
+    ],
+  );
+
+  const advancedFiltersDirty = deptCatDraftDirty || listingDraftDirty;
+
+  const applyAdvancedFilters = useCallback(() => {
+    setSelectedDepartmentIds([...draftDepartmentIds]);
+    setSelectedCatCodes([...draftCatCodes]);
+    setPriceMinStr(listingDraftMinStr);
+    setPriceMaxStr(listingDraftMaxStr);
+    setFilterFreeOnly(listingDraftFreeOnly);
+    setFilterNewOnly(listingDraftNewOnly);
+    setFilterExchangeOnly(listingDraftExchangeOnly);
+    setFilterNegotiableOnly(listingDraftNegotiableOnly);
+    setOpenFilter(null);
+    setAdvancedFiltersOpen(false);
+  }, [
+    draftDepartmentIds,
+    draftCatCodes,
+    listingDraftMinStr,
+    listingDraftMaxStr,
+    listingDraftFreeOnly,
+    listingDraftNewOnly,
+    listingDraftExchangeOnly,
+    listingDraftNegotiableOnly,
+  ]);
 
   useEffect(() => {
     const prev = prevSortScrollSigRef.current;
@@ -878,7 +978,6 @@ export default function CityAdsViewClient({
       }
       const provider = getGoogleProvider();
       await signInWithPopup(auth, provider);
-      setMenuOpen(false);
     } catch (e) {
       console.error(e);
       setAuthLoading(false);
@@ -895,7 +994,6 @@ export default function CityAdsViewClient({
         return;
       }
       await signOut(auth);
-      setMenuOpen(false);
     } catch (e) {
       console.error(e);
       setAuthLoading(false);
@@ -1036,11 +1134,35 @@ export default function CityAdsViewClient({
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [ads, selectedDepartmentIds, categoryLabelMap]);
 
+  const visibleCategoryOptionsForDraft = useMemo(() => {
+    const sourceAds =
+      draftDepartmentIds.length > 0
+        ? ads.filter((a) => a.departmentId && draftDepartmentIds.includes(a.departmentId))
+        : ads;
+    const codes = Array.from(
+      new Set(sourceAds.map((a) => a.catCode).filter(Boolean) as string[]),
+    );
+    return codes
+      .map((code) => ({
+        value: code,
+        label: categoryLabelMap.get(code) ?? code,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [ads, draftDepartmentIds, categoryLabelMap]);
+
   const filteredCategoryOptions = useMemo(() => {
     const q = categoryQuery.trim().toLowerCase();
     if (!q) return visibleCategoryOptions;
     return visibleCategoryOptions.filter((opt) => opt.label.toLowerCase().includes(q));
   }, [visibleCategoryOptions, categoryQuery]);
+
+  const filteredCategoryOptionsForDraft = useMemo(() => {
+    const q = categoryQuery.trim().toLowerCase();
+    if (!q) return visibleCategoryOptionsForDraft;
+    return visibleCategoryOptionsForDraft.filter((opt) =>
+      opt.label.toLowerCase().includes(q),
+    );
+  }, [visibleCategoryOptionsForDraft, categoryQuery]);
 
   useEffect(() => {
     const allowed = new Set(visibleCategoryOptions.map((opt) => opt.value));
@@ -1048,8 +1170,20 @@ export default function CityAdsViewClient({
   }, [visibleCategoryOptions]);
 
   useEffect(() => {
-    setSelectedDepartmentIds(initialDeptList(initialDepartmentId));
-    setSelectedCatCodes(initialCatList(initialCatCode));
+    if (!advancedFiltersOpen) return;
+    const allowed = new Set(visibleCategoryOptionsForDraft.map((opt) => opt.value));
+    setDraftCatCodes((prev) => prev.filter((code) => allowed.has(code)));
+  }, [advancedFiltersOpen, visibleCategoryOptionsForDraft]);
+
+  useEffect(() => {
+    const nextDept = initialDeptList(initialDepartmentId);
+    const nextCat = initialCatList(initialCatCode);
+    setSelectedDepartmentIds(nextDept);
+    setSelectedCatCodes(nextCat);
+    setDraftDepartmentIds(nextDept);
+    setDraftCatCodes(nextCat);
+    setAdvancedFiltersOpen(false);
+    setOpenFilter(null);
   }, [pathname, initialDepartmentId, initialCatCode]);
 
   useEffect(() => {
@@ -1067,12 +1201,12 @@ export default function CityAdsViewClient({
       if (!target) return;
       if (directoryRef.current?.contains(target)) return;
       if (categoryRef.current?.contains(target)) return;
-      if (listingFilterRef.current?.contains(target)) return;
+      if (advancedPanelRef.current?.contains(target)) return;
+      if (advancedFiltersToggleRef.current?.contains(target)) return;
       if (cityRef.current?.contains(target)) return;
-      if (menuRef.current?.contains(target)) return;
       setOpenFilter(null);
-      setMenuOpen(false);
       setCityPickerOpen(false);
+      setAdvancedFiltersOpen(false);
     };
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
@@ -1313,20 +1447,29 @@ export default function CityAdsViewClient({
       ? t("city.introPrefix", { city: introCityName, country: introCountryLabel })
       : t("city.introPrefixNoCountry", { city: introCityName });
   const fmtN = (n: number) => (locale === "fa" ? toPersianDigits(n) : String(n));
-  const selectedDirectorySummary =
-    selectedDepartmentIds.length === 0
+
+  const draftDirectorySummary =
+    draftDepartmentIds.length === 0
       ? t("city.allDepartments")
-      : selectedDepartmentIds.length === 1
-        ? (visibleDirectoryOptions.find((d) => d.value === selectedDepartmentIds[0])?.label ??
+      : draftDepartmentIds.length === 1
+        ? (visibleDirectoryOptions.find((d) => d.value === draftDepartmentIds[0])?.label ??
           t("city.nDepartmentsSelected", { n: fmtN(1) }))
-        : t("city.nDepartmentsSelected", { n: fmtN(selectedDepartmentIds.length) });
-  const selectedCategorySummary =
-    selectedCatCodes.length === 0
+        : t("city.nDepartmentsSelected", { n: fmtN(draftDepartmentIds.length) });
+  const draftCategorySummary =
+    draftCatCodes.length === 0
       ? t("city.allCategories")
-      : selectedCatCodes.length === 1
-        ? (visibleCategoryOptions.find((c) => c.value === selectedCatCodes[0])?.label ??
+      : draftCatCodes.length === 1
+        ? (visibleCategoryOptionsForDraft.find((c) => c.value === draftCatCodes[0])?.label ??
           t("city.oneCategorySelected"))
-        : t("city.nCategoriesSelected", { n: fmtN(selectedCatCodes.length) });
+        : t("city.nCategoriesSelected", { n: fmtN(draftCatCodes.length) });
+
+  const listingFiltersDraftActive =
+    listingDraftMinStr.trim() !== "" ||
+    listingDraftMaxStr.trim() !== "" ||
+    listingDraftFreeOnly ||
+    listingDraftNewOnly ||
+    listingDraftExchangeOnly ||
+    listingDraftNegotiableOnly;
 
   const listingFiltersActive =
     priceMinStr.trim() !== "" ||
@@ -1335,6 +1478,11 @@ export default function CityAdsViewClient({
     filterNewOnly ||
     filterExchangeOnly ||
     filterNegotiableOnly;
+
+  const advancedFiltersAppliedBadge =
+    selectedDepartmentIds.length > 0 ||
+    selectedCatCodes.length > 0 ||
+    listingFiltersActive;
 
   const hasActiveFilters =
     selectedDepartmentIds.length > 0 ||
@@ -1382,58 +1530,28 @@ export default function CityAdsViewClient({
           </span>
         </button>
       </div>
-      <div className={styles.filterBar}>
-        <div className={styles.filterBlockCompact} ref={menuRef}>
-          <button
-            type="button"
-            className={styles.menuIconBtn}
-            aria-label={t("city.menuAria")}
-            title={t("city.menuTitle")}
-            onClick={() => setMenuOpen((prev) => !prev)}
-          >
-            <span className={styles.menuIcon} aria-hidden="true">
-              ☰
-            </span>
-          </button>
-          {menuOpen ? (
-            <div className={styles.menuDropdown}>
-              <Link
-                href={loc("/")}
-                className={styles.menuItem}
-                prefetch={false}
-                onClick={() => setMenuOpen(false)}
-              >
-                {t("city.changeCity")}
-              </Link>
-              <Link
-                href={loc("/#about")}
-                className={styles.menuItem}
-                prefetch={false}
-                onClick={() => setMenuOpen(false)}
-              >
-                {t("city.about")}
-              </Link>
-              <Link
-                href={loc("/#help")}
-                className={styles.menuItem}
-                prefetch={false}
-                onClick={() => setMenuOpen(false)}
-              >
-                {t("city.help")}
-              </Link>
-            </div>
-          ) : null}
-        </div>
+      <div className={styles.filterBarShell}>
+        <div
+          className={`${styles.filterBar} ${
+            cityOptions && cityOptions.length > 0 ? styles.filterBarHasCityPicker : ""
+          }`}
+        >
         {cityOptions && cityOptions.length > 0 ? (
-          <div className={`${styles.filterBlock} ${styles.filterBlockCity}`} ref={cityRef}>
+          <div
+            className={`${styles.filterBlockCompact} ${styles.filterBlockCity} ${styles.filterBarCityPicker}`}
+            ref={cityRef}
+          >
             <button
               type="button"
-              className={styles.cityQuickBtn}
+              className={styles.menuIconBtn}
               aria-label={t("city.changeCity")}
               aria-expanded={cityPickerOpen}
+              title={t("city.changeCity")}
               onClick={() => setCityPickerOpen((v) => !v)}
             >
-              <CityPinIcon className={styles.cityQuickIcon} />
+              <span className={styles.menuIcon} aria-hidden="true">
+                ☰
+              </span>
             </button>
             {cityPickerOpen ? (
               <div className={styles.cityQuickMenu}>
@@ -1458,40 +1576,26 @@ export default function CityAdsViewClient({
             ) : null}
           </div>
         ) : null}
-        <div className={styles.filterBlockCompact}>
+        <div className={`${styles.filterBlockCompact} ${styles.filterBarToggleSlot}`}>
           <button
+            ref={advancedFiltersToggleRef}
             type="button"
-            className={styles.clearFiltersBtn}
-            onClick={() => {
-              setSelectedDepartmentIds([]);
-              setSelectedCatCodes([]);
-              setSearchQuery("");
-              setListSortKey("date");
-              setListSortDir("desc");
-              setDirectoryQuery("");
-              setCategoryQuery("");
-              setOpenFilter(null);
-              setPriceMinStr("");
-              setPriceMaxStr("");
-              setFilterFreeOnly(false);
-              setFilterNewOnly(false);
-              setFilterExchangeOnly(false);
-              setFilterNegotiableOnly(false);
-              setAiMatchedIds(null);
-              setAiQuery("");
-              setAiError(null);
-            }}
-            disabled={!hasActiveFilters}
-            aria-label={t("city.clearFiltersAria")}
-            title={t("city.clearFiltersTitle")}
+            className={`${styles.sortIconBtn} ${styles.filterPanelToggleBtn} ${
+              advancedFiltersOpen ? styles.sortIconBtnActive : ""
+            }`}
+            aria-expanded={advancedFiltersOpen}
+            aria-label={t("city.advancedFiltersToggleAria")}
+            title={t("city.advancedFiltersToggleTitle")}
+            onClick={() => setAdvancedFiltersOpen((v) => !v)}
           >
-            <span className={styles.clearFiltersIcon} aria-hidden="true">
-              ↺
-            </span>
+            <FilterIconPanel className={styles.sortDateGlyph} />
+            {advancedFiltersAppliedBadge ? (
+              <span className={styles.filterPanelToggleDot} aria-hidden />
+            ) : null}
           </button>
         </div>
 
-        <div className={`${styles.filterBlock} ${styles.filterBlockSearch}`}>
+        <div className={`${styles.filterBlock} ${styles.filterBlockSearch} ${styles.filterBarSearchSlot}`}>
           <div className={`${styles.filterTrigger} ${styles.searchTrigger}`}>
             <FilterIconSearch className={styles.filterLeadIcon} />
             <div className={styles.multiValueWrap}>
@@ -1506,7 +1610,7 @@ export default function CityAdsViewClient({
         </div>
 
         {authConfigured && userEmail ? (
-          <div className={`${styles.filterBlockCompact} ${styles.aiSearchWrap}`}>
+          <div className={`${styles.filterBlockCompact} ${styles.aiSearchWrap} ${styles.filterBarAiSlot}`}>
             <button
               type="button"
               className={`${styles.sortIconBtn} ${
@@ -1540,7 +1644,7 @@ export default function CityAdsViewClient({
           </div>
         ) : null}
 
-        <div className={`${styles.filterBlockCompact} ${styles.sortBtnGroup}`}>
+        <div className={`${styles.filterBlockCompact} ${styles.sortBtnGroup} ${styles.filterBarSortSlot}`}>
           <button
             type="button"
             className={`${styles.sortIconBtn} ${
@@ -1609,312 +1713,6 @@ export default function CityAdsViewClient({
           </button>
         </div>
 
-        <div
-          className={`${styles.filterBlock} ${styles.filterBlockWide} ${styles.filterBarDept}`}
-          ref={directoryRef}
-        >
-          <div
-            className={`${styles.filterTrigger} ${
-              selectedDepartmentIds.length > 1 ? styles.filterTriggerDense : ""
-            }`}
-            onClick={() => setOpenFilter("directory")}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") setOpenFilter("directory");
-            }}
-          >
-            <FilterIconDept className={styles.filterLeadIcon} />
-            <div className={styles.multiValueWrap}>
-              {selectedDepartmentIds.length === 0 ? (
-                <span className={styles.multiPlaceholder}>{selectedDirectorySummary}</span>
-              ) : (
-                selectedDepartmentIds.map((id) => {
-                  const label = visibleDirectoryOptions.find((o) => o.value === id)?.label ?? id;
-                  return (
-                    <span key={id} className={styles.multiChip}>
-                      {label}
-                      <button
-                        type="button"
-                        className={styles.multiChipRemove}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedDepartmentIds((prev) => prev.filter((v) => v !== id));
-                        }}
-                        aria-label={`Remove ${label}`}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  );
-                })
-              )}
-              <input
-                value={directoryQuery}
-                onChange={(e) => {
-                  setDirectoryQuery(e.target.value);
-                  setOpenFilter("directory");
-                }}
-                onFocus={() => setOpenFilter("directory")}
-                className={styles.multiInput}
-                placeholder={selectedDepartmentIds.length === 0 ? t("city.deptSearchPh") : ""}
-              />
-            </div>
-            <div className={styles.multiActions}>
-              {selectedDepartmentIds.length > 0 ? (
-                <button
-                  type="button"
-                  className={styles.clearBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedDepartmentIds([]);
-                  }}
-                  aria-label={t("city.clearAllDeptsAria")}
-                >
-                  ×
-                </button>
-              ) : null}
-              <span className={styles.filterChevron}>▾</span>
-            </div>
-          </div>
-          {openFilter === "directory" ? (
-            <div className={styles.filterMenu}>
-              {filteredDirectoryOptions.length === 0 ? (
-                <div className={styles.filterEmpty}>{t("city.noDeptFound")}</div>
-              ) : null}
-              {filteredDirectoryOptions.map((opt) => {
-                const checked = selectedDepartmentIds.includes(opt.value);
-                const thumb = deptImageById.get(opt.value) ?? null;
-                return (
-                  <label key={opt.value} className={styles.filterCheckboxRow}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      disabled={
-                        !checked && selectedDepartmentIds.length >= MAX_MULTI_SELECTION
-                      }
-                      onChange={() =>
-                        setSelectedDepartmentIds((prev) =>
-                          checked
-                            ? prev.filter((v) => v !== opt.value)
-                            : prev.length >= MAX_MULTI_SELECTION
-                              ? prev
-                              : [...prev, opt.value],
-                        )
-                      }
-                    />
-                    {thumb ? (
-                      <span className={styles.filterRowThumb}>
-                        <img src={thumb} alt="" loading="lazy" decoding="async" />
-                      </span>
-                    ) : (
-                      <span className={styles.filterRowThumbFallback} aria-hidden>
-                        <FilterIconDept className={styles.filterRowThumbIcon} />
-                      </span>
-                    )}
-                    <span className={styles.filterCheckboxLabel}>{opt.label}</span>
-                  </label>
-                );
-              })}
-            </div>
-          ) : null}
-        </div>
-
-        <div
-          className={`${styles.filterBlock} ${styles.filterBlockWide} ${styles.filterBarCategory}`}
-          ref={categoryRef}
-        >
-          <div
-            className={`${styles.filterTrigger} ${
-              selectedCatCodes.length > 1 ? styles.filterTriggerDense : ""
-            }`}
-            onClick={() => setOpenFilter("category")}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") setOpenFilter("category");
-            }}
-          >
-            <FilterIconCategory className={styles.filterLeadIcon} />
-            <div className={styles.multiValueWrap}>
-              {selectedCatCodes.length === 0 ? (
-                <span className={styles.multiPlaceholder}>{selectedCategorySummary}</span>
-              ) : (
-                selectedCatCodes.map((code) => {
-                  const label =
-                    visibleCategoryOptions.find((o) => o.value === code)?.label ?? code;
-                  return (
-                    <span key={code} className={styles.multiChip}>
-                      {label}
-                      <button
-                        type="button"
-                        className={styles.multiChipRemove}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedCatCodes((prev) => prev.filter((v) => v !== code));
-                        }}
-                        aria-label={`Remove ${label}`}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  );
-                })
-              )}
-              <input
-                value={categoryQuery}
-                onChange={(e) => {
-                  setCategoryQuery(e.target.value);
-                  setOpenFilter("category");
-                }}
-                onFocus={() => setOpenFilter("category")}
-                className={styles.multiInput}
-                placeholder={selectedCatCodes.length === 0 ? t("city.catSearchPh") : ""}
-              />
-            </div>
-            <div className={styles.multiActions}>
-              {selectedCatCodes.length > 0 ? (
-                <button
-                  type="button"
-                  className={styles.clearBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedCatCodes([]);
-                  }}
-                  aria-label={t("city.clearAllCatsAria")}
-                >
-                  ×
-                </button>
-              ) : null}
-              <span className={styles.filterChevron}>▾</span>
-            </div>
-          </div>
-          {openFilter === "category" ? (
-            <div className={styles.filterMenu}>
-              {filteredCategoryOptions.length === 0 ? (
-                <div className={styles.filterEmpty}>{t("city.noCatFound")}</div>
-              ) : null}
-              {filteredCategoryOptions.map((opt) => {
-                const checked = selectedCatCodes.includes(opt.value);
-                return (
-                  <label key={opt.value} className={styles.filterCheckboxRow}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      disabled={!checked && selectedCatCodes.length >= MAX_MULTI_SELECTION}
-                      onChange={() =>
-                        setSelectedCatCodes((prev) =>
-                          checked
-                            ? prev.filter((v) => v !== opt.value)
-                            : prev.length >= MAX_MULTI_SELECTION
-                              ? prev
-                              : [...prev, opt.value],
-                        )
-                      }
-                    />
-                    <span className={styles.filterCheckboxLabel}>{opt.label}</span>
-                  </label>
-                );
-              })}
-            </div>
-          ) : null}
-        </div>
-
-        <div
-          className={`${styles.filterBlock} ${styles.filterBlockWide} ${styles.filterBarListing}`}
-          ref={listingFilterRef}
-        >
-          <div
-            className={`${styles.filterTrigger} ${styles.listingFilterTrigger} ${
-              listingFiltersActive ? styles.filterTriggerListingActive : ""
-            }`}
-            onClick={() => setOpenFilter(openFilter === "listing" ? null : "listing")}
-            role="button"
-            tabIndex={0}
-            aria-expanded={openFilter === "listing"}
-            aria-label={t("city.listingFiltersPh")}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                setOpenFilter(openFilter === "listing" ? null : "listing");
-              }
-            }}
-          >
-            <FilterIconListing className={styles.filterLeadIcon} />
-            <div className={styles.multiValueWrap}>
-              <span className={styles.multiPlaceholder}>
-                {listingFiltersActive
-                  ? t("city.listingFiltersActive")
-                  : t("city.listingFilters")}
-              </span>
-            </div>
-            <span className={styles.filterChevron}>▾</span>
-          </div>
-          {openFilter === "listing" ? (
-            <div className={`${styles.filterMenu} ${styles.filterMenuListing}`}>
-              <div className={styles.listingFilterPriceRow}>
-                <label className={styles.listingFilterPriceField}>
-                  <span className={styles.listingFilterPriceLabel}>{t("city.priceMin")}</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    className={styles.listingFilterInput}
-                    value={priceMinStr}
-                    onChange={(e) => setPriceMinStr(e.target.value)}
-                    dir="ltr"
-                    autoComplete="off"
-                  />
-                </label>
-                <label className={styles.listingFilterPriceField}>
-                  <span className={styles.listingFilterPriceLabel}>{t("city.priceMax")}</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    className={styles.listingFilterInput}
-                    value={priceMaxStr}
-                    onChange={(e) => setPriceMaxStr(e.target.value)}
-                    dir="ltr"
-                    autoComplete="off"
-                  />
-                </label>
-              </div>
-              <label className={styles.filterCheckboxRow}>
-                <input
-                  type="checkbox"
-                  checked={filterFreeOnly}
-                  onChange={(e) => setFilterFreeOnly(e.target.checked)}
-                />
-                <span className={styles.filterCheckboxLabel}>{t("city.filterFreeOnly")}</span>
-              </label>
-              <label className={styles.filterCheckboxRow}>
-                <input
-                  type="checkbox"
-                  checked={filterNewOnly}
-                  onChange={(e) => setFilterNewOnly(e.target.checked)}
-                />
-                <span className={styles.filterCheckboxLabel}>{t("city.filterNewOnly")}</span>
-              </label>
-              <label className={styles.filterCheckboxRow}>
-                <input
-                  type="checkbox"
-                  checked={filterExchangeOnly}
-                  onChange={(e) => setFilterExchangeOnly(e.target.checked)}
-                />
-                <span className={styles.filterCheckboxLabel}>{t("city.filterExchangeOnly")}</span>
-              </label>
-              <label className={styles.filterCheckboxRow}>
-                <input
-                  type="checkbox"
-                  checked={filterNegotiableOnly}
-                  onChange={(e) => setFilterNegotiableOnly(e.target.checked)}
-                />
-                <span className={styles.filterCheckboxLabel}>
-                  {t("city.filterNegotiableOnly")}
-                </span>
-              </label>
-            </div>
-          ) : null}
-        </div>
-
         <div className={styles.filterLogoWrap}>
           <Link href={loc("/")}>
             <Image
@@ -1929,6 +1727,371 @@ export default function CityAdsViewClient({
             {`${t("city.brand")} · ${introCityName}`}
           </span>
         </div>
+
+        <div className={`${styles.filterBlockCompact} ${styles.filterBarClearSlot}`}>
+          <button
+            type="button"
+            className={styles.clearFiltersBtn}
+            onClick={() => {
+              setSelectedDepartmentIds([]);
+              setSelectedCatCodes([]);
+              setSearchQuery("");
+              setListSortKey("date");
+              setListSortDir("desc");
+              setDirectoryQuery("");
+              setCategoryQuery("");
+              setOpenFilter(null);
+              setPriceMinStr("");
+              setPriceMaxStr("");
+              setFilterFreeOnly(false);
+              setFilterNewOnly(false);
+              setFilterExchangeOnly(false);
+              setFilterNegotiableOnly(false);
+              setListingDraftMinStr("");
+              setListingDraftMaxStr("");
+              setListingDraftFreeOnly(false);
+              setListingDraftNewOnly(false);
+              setListingDraftExchangeOnly(false);
+              setListingDraftNegotiableOnly(false);
+              setDraftDepartmentIds([]);
+              setDraftCatCodes([]);
+              setAdvancedFiltersOpen(false);
+              setAiMatchedIds(null);
+              setAiQuery("");
+              setAiError(null);
+            }}
+            disabled={!hasActiveFilters}
+            aria-label={t("city.clearFiltersAria")}
+            title={t("city.clearFiltersTitle")}
+          >
+            <span className={styles.clearFiltersIcon} aria-hidden="true">
+              ↺
+            </span>
+          </button>
+        </div>
+        </div>
+
+        {advancedFiltersOpen ? (
+          <div ref={advancedPanelRef} className={styles.advancedFiltersPanel}>
+            <div className={styles.advancedFiltersGrid}>
+              <div className={styles.advancedFiltersField}>
+                <div className={styles.advancedFiltersSectionLabel}>
+                  {t("city.advancedFiltersSectionDept")}
+                </div>
+                <div
+                  className={`${styles.filterBlock} ${styles.filterBlockWide} ${styles.advancedFiltersDept}`}
+                  ref={directoryRef}
+                >
+                  <div
+                    className={`${styles.filterTrigger} ${
+                      draftDepartmentIds.length > 1 ? styles.filterTriggerDense : ""
+                    }`}
+                    onClick={() => setOpenFilter("directory")}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") setOpenFilter("directory");
+                    }}
+                  >
+                    <FilterIconDept className={styles.filterLeadIcon} />
+                    <div className={styles.multiValueWrap}>
+                      {draftDepartmentIds.length === 0 ? (
+                        <span className={styles.multiPlaceholder}>{draftDirectorySummary}</span>
+                      ) : (
+                        draftDepartmentIds.map((id) => {
+                          const label =
+                            visibleDirectoryOptions.find((o) => o.value === id)?.label ?? id;
+                          return (
+                            <span key={id} className={styles.multiChip}>
+                              {label}
+                              <button
+                                type="button"
+                                className={styles.multiChipRemove}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDraftDepartmentIds((prev) => prev.filter((v) => v !== id));
+                                }}
+                                aria-label={`Remove ${label}`}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          );
+                        })
+                      )}
+                      <input
+                        value={directoryQuery}
+                        onChange={(e) => {
+                          setDirectoryQuery(e.target.value);
+                          setOpenFilter("directory");
+                        }}
+                        onFocus={() => setOpenFilter("directory")}
+                        className={styles.multiInput}
+                        placeholder={
+                          draftDepartmentIds.length === 0 ? t("city.deptSearchPh") : ""
+                        }
+                      />
+                    </div>
+                    <div className={styles.multiActions}>
+                      {draftDepartmentIds.length > 0 ? (
+                        <button
+                          type="button"
+                          className={styles.clearBtn}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDraftDepartmentIds([]);
+                          }}
+                          aria-label={t("city.clearAllDeptsAria")}
+                        >
+                          ×
+                        </button>
+                      ) : null}
+                      <span className={styles.filterChevron}>▾</span>
+                    </div>
+                  </div>
+                  {openFilter === "directory" ? (
+                    <div className={styles.filterMenu}>
+                      {filteredDirectoryOptions.length === 0 ? (
+                        <div className={styles.filterEmpty}>{t("city.noDeptFound")}</div>
+                      ) : null}
+                      {filteredDirectoryOptions.map((opt) => {
+                        const checked = draftDepartmentIds.includes(opt.value);
+                        const thumb = deptImageById.get(opt.value) ?? null;
+                        return (
+                          <label key={opt.value} className={styles.filterCheckboxRow}>
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              disabled={
+                                !checked && draftDepartmentIds.length >= MAX_MULTI_SELECTION
+                              }
+                              onChange={() =>
+                                setDraftDepartmentIds((prev) =>
+                                  checked
+                                    ? prev.filter((v) => v !== opt.value)
+                                    : prev.length >= MAX_MULTI_SELECTION
+                                      ? prev
+                                      : [...prev, opt.value],
+                                )
+                              }
+                            />
+                            {thumb ? (
+                              <span className={styles.filterRowThumb}>
+                                <img src={thumb} alt="" loading="lazy" decoding="async" />
+                              </span>
+                            ) : (
+                              <span className={styles.filterRowThumbFallback} aria-hidden>
+                                <FilterIconDept className={styles.filterRowThumbIcon} />
+                              </span>
+                            )}
+                            <span className={styles.filterCheckboxLabel}>{opt.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className={styles.advancedFiltersField}>
+                <div className={styles.advancedFiltersSectionLabel}>
+                  {t("city.advancedFiltersSectionCat")}
+                </div>
+                <div
+                  className={`${styles.filterBlock} ${styles.filterBlockWide} ${styles.advancedFiltersCategory}`}
+                  ref={categoryRef}
+                >
+                  <div
+                    className={`${styles.filterTrigger} ${
+                      draftCatCodes.length > 1 ? styles.filterTriggerDense : ""
+                    }`}
+                    onClick={() => setOpenFilter("category")}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") setOpenFilter("category");
+                    }}
+                  >
+                    <FilterIconCategory className={styles.filterLeadIcon} />
+                    <div className={styles.multiValueWrap}>
+                      {draftCatCodes.length === 0 ? (
+                        <span className={styles.multiPlaceholder}>{draftCategorySummary}</span>
+                      ) : (
+                        draftCatCodes.map((code) => {
+                          const label =
+                            visibleCategoryOptionsForDraft.find((opt) => opt.value === code)
+                              ?.label ?? code;
+                          return (
+                            <span key={code} className={styles.multiChip}>
+                              {label}
+                              <button
+                                type="button"
+                                className={styles.multiChipRemove}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDraftCatCodes((prev) => prev.filter((v) => v !== code));
+                                }}
+                                aria-label={`Remove ${label}`}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          );
+                        })
+                      )}
+                      <input
+                        value={categoryQuery}
+                        onChange={(e) => {
+                          setCategoryQuery(e.target.value);
+                          setOpenFilter("category");
+                        }}
+                        onFocus={() => setOpenFilter("category")}
+                        className={styles.multiInput}
+                        placeholder={draftCatCodes.length === 0 ? t("city.catSearchPh") : ""}
+                      />
+                    </div>
+                    <div className={styles.multiActions}>
+                      {draftCatCodes.length > 0 ? (
+                        <button
+                          type="button"
+                          className={styles.clearBtn}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDraftCatCodes([]);
+                          }}
+                          aria-label={t("city.clearAllCatsAria")}
+                        >
+                          ×
+                        </button>
+                      ) : null}
+                      <span className={styles.filterChevron}>▾</span>
+                    </div>
+                  </div>
+                  {openFilter === "category" ? (
+                    <div className={styles.filterMenu}>
+                      {filteredCategoryOptionsForDraft.length === 0 ? (
+                        <div className={styles.filterEmpty}>{t("city.noCatFound")}</div>
+                      ) : null}
+                      {filteredCategoryOptionsForDraft.map((opt) => {
+                        const checked = draftCatCodes.includes(opt.value);
+                        return (
+                          <label key={opt.value} className={styles.filterCheckboxRow}>
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              disabled={
+                                !checked && draftCatCodes.length >= MAX_MULTI_SELECTION
+                              }
+                              onChange={() =>
+                                setDraftCatCodes((prev) =>
+                                  checked
+                                    ? prev.filter((v) => v !== opt.value)
+                                    : prev.length >= MAX_MULTI_SELECTION
+                                      ? prev
+                                      : [...prev, opt.value],
+                                )
+                              }
+                            />
+                            <span className={styles.filterCheckboxLabel}>{opt.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
+              <div
+                className={`${styles.advancedFiltersField} ${styles.advancedFiltersListingSlot}`}
+              >
+                <div className={styles.advancedFiltersSectionLabel}>
+                  {t("city.advancedFiltersSectionListing")}
+                </div>
+                <div
+                  className={`${styles.advancedFiltersListingCard} ${
+                    listingFiltersDraftActive ? styles.advancedFiltersListingCardActive : ""
+                  }`}
+                >
+                  <div className={styles.listingFilterPriceRow}>
+                    <label className={styles.listingFilterPriceField}>
+                      <span className={styles.listingFilterPriceLabel}>{t("city.priceMin")}</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        className={styles.listingFilterInput}
+                        value={listingDraftMinStr}
+                        onChange={(e) => setListingDraftMinStr(e.target.value)}
+                        dir="ltr"
+                        autoComplete="off"
+                      />
+                    </label>
+                    <label className={styles.listingFilterPriceField}>
+                      <span className={styles.listingFilterPriceLabel}>{t("city.priceMax")}</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        className={styles.listingFilterInput}
+                        value={listingDraftMaxStr}
+                        onChange={(e) => setListingDraftMaxStr(e.target.value)}
+                        dir="ltr"
+                        autoComplete="off"
+                      />
+                    </label>
+                  </div>
+                  <label className={styles.filterCheckboxRow}>
+                    <input
+                      type="checkbox"
+                      checked={listingDraftFreeOnly}
+                      onChange={(e) => setListingDraftFreeOnly(e.target.checked)}
+                    />
+                    <span className={styles.filterCheckboxLabel}>{t("city.filterFreeOnly")}</span>
+                  </label>
+                  <label className={styles.filterCheckboxRow}>
+                    <input
+                      type="checkbox"
+                      checked={listingDraftNewOnly}
+                      onChange={(e) => setListingDraftNewOnly(e.target.checked)}
+                    />
+                    <span className={styles.filterCheckboxLabel}>{t("city.filterNewOnly")}</span>
+                  </label>
+                  <label className={styles.filterCheckboxRow}>
+                    <input
+                      type="checkbox"
+                      checked={listingDraftExchangeOnly}
+                      onChange={(e) => setListingDraftExchangeOnly(e.target.checked)}
+                    />
+                    <span className={styles.filterCheckboxLabel}>
+                      {t("city.filterExchangeOnly")}
+                    </span>
+                  </label>
+                  <label className={styles.filterCheckboxRow}>
+                    <input
+                      type="checkbox"
+                      checked={listingDraftNegotiableOnly}
+                      onChange={(e) => setListingDraftNegotiableOnly(e.target.checked)}
+                    />
+                    <span className={styles.filterCheckboxLabel}>
+                      {t("city.filterNegotiableOnly")}
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.advancedFiltersFooter}>
+              <button
+                type="button"
+                className={styles.advancedFiltersApplyBtn}
+                disabled={!advancedFiltersDirty}
+                onClick={() => applyAdvancedFilters()}
+                aria-label={t("city.advancedFiltersApplyAria")}
+              >
+                <ListingApplyIcon className={styles.listingFilterApplyGlyph} />
+                <span>{t("city.advancedFiltersApply")}</span>
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {priorityStrip.length > 0 ? (
@@ -2034,9 +2197,17 @@ export default function CityAdsViewClient({
                 onClick={() => {
                   if (active) {
                     setSelectedDepartmentIds([]);
+                    if (advancedFiltersOpen) {
+                      setDraftDepartmentIds([]);
+                      setDraftCatCodes([]);
+                    }
                   } else {
                     setSelectedDepartmentIds([d.id]);
                     setSelectedCatCodes([]);
+                    if (advancedFiltersOpen) {
+                      setDraftDepartmentIds([d.id]);
+                      setDraftCatCodes([]);
+                    }
                   }
                   setDirectoryQuery("");
                   setCategoryQuery("");
@@ -2523,6 +2694,12 @@ export default function CityAdsViewClient({
           </div>
         </div>
       ) : null}
+
+      <footer className={styles.cityPageFooter}>
+        <Link href={loc("/help")} className={styles.cityPageFooterHelp}>
+          {t("city.helpFooterLink")}
+        </Link>
+      </footer>
     </div>
   );
 }

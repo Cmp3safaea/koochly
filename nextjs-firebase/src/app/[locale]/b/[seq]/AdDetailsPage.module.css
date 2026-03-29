@@ -287,6 +287,12 @@
 .lightbox {
   position: fixed;
   inset: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  overscroll-behavior: contain;
   background: rgba(10, 14, 22, 0.88);
   z-index: 1200;
   display: flex;
@@ -295,13 +301,30 @@
   padding: 20px;
 }
 
+@supports (height: 100svh) {
+  .lightbox {
+    height: 100svh;
+    max-height: 100dvh;
+  }
+}
+
 .lightboxImg {
+  box-sizing: border-box;
   max-width: min(100%, 920px);
   max-height: min(86vh, 760px);
+  width: auto;
+  height: auto;
+  min-height: 0;
   border-radius: 14px;
   object-fit: contain;
   border: 1px solid var(--border-gallery);
   background: #000;
+}
+
+@supports (height: 100svh) {
+  .lightboxImg {
+    max-height: min(86svh, 86dvh, 760px);
+  }
 }
 
 .lightboxClose,
@@ -506,6 +529,37 @@
 
   .sameCategoryLabel {
     font-size: 0.84rem;
+  }
+
+  .lightbox {
+    padding: 12px;
+    align-items: center;
+    /* Tighter than 100vh on phones: use small viewport when available. */
+    height: 100vh;
+    max-height: 100vh;
+  }
+
+  @supports (height: 100svh) {
+    .lightbox {
+      height: 100svh;
+      max-height: 100dvh;
+    }
+  }
+
+  .lightboxImg {
+    max-height: min(72vh, calc(100vh - 96px));
+    max-width: 100%;
+  }
+
+  @supports (height: 100svh) {
+    .lightboxImg {
+      max-height: min(
+        72svh,
+        72dvh,
+        calc(100svh - 96px),
+        calc(100dvh - 96px)
+      );
+    }
   }
 
   .lightboxClose,

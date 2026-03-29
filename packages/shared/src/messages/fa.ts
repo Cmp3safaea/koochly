@@ -58,6 +58,13 @@ const fa = {
     help: "راهنما",
     clearFiltersAria: "پاک کردن فیلترها",
     clearFiltersTitle: "پاک کردن فیلترها",
+    advancedFiltersToggleAria: "فیلترهای بیشتر: دپارتمان، دسته، قیمت",
+    advancedFiltersToggleTitle: "نمایش یا پنهان کردن فیلتر دپارتمان، دسته و قیمت",
+    advancedFiltersApply: "اعمال فیلترها",
+    advancedFiltersApplyAria: "اعمال فیلتر دپارتمان، دسته و قیمت روی فهرست",
+    advancedFiltersSectionDept: "دپارتمان",
+    advancedFiltersSectionCat: "دسته‌بندی",
+    advancedFiltersSectionListing: "قیمت و گزینه‌ها",
     searchPlaceholder: "جستجو عنوان یا دسته‌بندی...",
     sortDateNewOld: "مرتب‌سازی تاریخ: جدید به قدیم",
     sortDateOldNew: "مرتب‌سازی تاریخ: قدیم به جدید",
@@ -78,6 +85,8 @@ const fa = {
     listingFilters: "قیمت و ویژگی کالا",
     listingFiltersPh: "محدوده قیمت و گزینه‌ها…",
     listingFiltersActive: "فیلتر قیمت/ویژگی فعال است",
+    listingFiltersApply: "اعمال",
+    listingFiltersApplyAria: "اعمال فیلتر قیمت و ویژگی روی فهرست آگهی‌ها",
     priceMin: "حداقل قیمت",
     priceMax: "حداکثر قیمت",
     filterFreeOnly: "فقط مجانی",
@@ -149,6 +158,57 @@ const fa = {
     aiSearchErrConfig: "جستجوی هوش مصنوعی موقتاً در دسترس نیست.",
     aiSearchErrService: "جستجو کامل نشد. بعداً دوباره امتحان کنید.",
     aiSearchErrGeneric: "خطایی رخ داد. دوباره تلاش کنید.",
+    helpPageButtonAria: "راهنمای این صفحه",
+    helpPageButtonTitle: "مرور سریع: هر بخش این صفحه چه می‌کند",
+    helpPageTitle: "صفحه شهر: هر بخش چه کار می‌کند",
+    helpPageIntro:
+      "خلاصه بخش‌های اصلی است؛ هر وقت با دکمه «؟» باز کنید.",
+    helpPageClose: "متوجه شدم",
+    helpPageBackHome: "← خانه",
+    helpFooterLink: "راهنمای این صفحه",
+    helpPageDismiss: "بستن راهنما",
+    helpTourMenuTitle: "شهر و راهنما",
+    helpTourMenuText:
+      "اولین آیکون همبرگری (☰) وقتی چند شهر دارید، فهرست تعویض شهر را باز می‌کند. دکمه «؟» راهنمای همین صفحه را نشان می‌دهد. با نوشته/لوگوی کوچلی به خانه بروید. «درباره» و «راهنمای کلی» سایت روی صفحه اصلی هستند.",
+    helpTourListMapTitle: "لیست و نقشه (موبایل)",
+    helpTourListMapText:
+      "در موبایل با این دو تب بین فهرست اسکرول‌خور آگهی‌ها و نقشه سنجاقها جابه‌جا شوید.",
+    helpTourResetTitle: "بازنشانی فیلترها",
+    helpTourResetText:
+      "پیکان دایره‌ای همه فیلترها را پاک می‌کند: دپارتمان، دسته، جستجوی متنی، قیمت و گزینه‌های کالا، ترتیب مرتب‌سازی و جستجوی هوشمند - وقتی فعال باشند.",
+    helpTourKeywordTitle: "جستجوی کلمه‌ای",
+    helpTourKeywordText:
+      "آگهی‌ها را بر اساس کلمات در عنوان یا دسته محدود می‌کند؛ جدا از جستجوی چت هوشمند است.",
+    helpTourDeptTitle: "دپارتمان‌ها",
+    helpTourDeptText:
+      "یک یا چند حوزه کاری را انتخاب کنید (با تصویر در صورت وجود). فقط آگهی‌های همین شهر نمایش داده می‌شود.",
+    helpTourCatTitle: "دسته‌بندی‌ها",
+    helpTourCatText:
+      "نوع آگهی را محدود کنید. داخل فیلد تایپ کنید تا فهرست دسته‌ها فیلتر شود. دپارتمان و دسته را با هم می‌توان ترکیب کرد.",
+    helpTourPriceTitle: "قیمت و ویژگی کالا",
+    helpTourPriceText:
+      "حداقل یا حداکثر قیمت بگذارید، یا گزینه‌های رایگان، نو، تعویضی یا قابل مذاکره را روشن کنید. با دکمه اعمال (تیک) فهرست به‌روز می‌شود؛ بستن پنل بدون اعمال، فیلتر قبلی را نگه می‌دارد.",
+    helpTourSortTitle: "مرتب‌سازی",
+    helpTourSortText:
+      "بر اساس تاریخ ثبت (با کلیک دوباره برعکس شود) یا بر اساس تعداد بازدید مرتب کنید.",
+    helpTourAiTitle: "جستجوی هوشمند (با ورود)",
+    helpTourAiText:
+      "دکمه ستاره/جستجو چت باز می‌کند: سؤال شما برای رتبه‌بندی معنایی آگهی‌های همین صفحه به هوش مصنوعی فرستاده می‌شود. دوباره همان دکمه را بزنید تا خاموش شود.",
+    helpTourFeaturedTitle: "نوار آگهی‌های ویژه",
+    helpTourFeaturedText:
+      "ردیف افقی آگهی‌های برجسته؛ اگر چندتاست با فلش کنار حرکت دهید.",
+    helpTourQuickDeptTitle: "میانبر دپارتمان",
+    helpTourQuickDeptText:
+      "کاشی‌های تصویردار زیر نوار ویژه: یک بار برای فیلتر همان دپارتمان، دوباره برای برداشتن فیلتر.",
+    helpTourCardsTitle: "کارت‌های آگهی",
+    helpTourCardsText:
+      "خلاصه هر آگهی است؛ برای جزئیات باز کنید. با ورود می‌توانید ذخیره کنید. در موبایل نگه داشتن طولانی روی کارت ممکن است میانبر باز شود.",
+    helpTourMapTitle: "نقشه",
+    helpTourMapText:
+      "برای آگهی‌هایی که موقعیت دارند سنجاق می‌زند. سنجاق را بزنید برای پیش‌نمایش؛ روی دسکتاپ هاور ردیف لیست ممکن است سنجاق را برجسته کند.",
+    helpTourAccountTitle: "حساب و منو",
+    helpTourAccountText:
+      "از منو با گوگل وارد شوید تا نشان‌گذاری، جستجوی هوشمند، ثبت آگهی و فضای کار در دسترس باشد.",
   },
   addAd: {
     notConfigured: "Firebase روی کلاینت پیکربندی نشده است.",

@@ -57,6 +57,13 @@ const en: Messages = {
     help: "Help",
     clearFiltersAria: "Clear filters",
     clearFiltersTitle: "Clear filters",
+    advancedFiltersToggleAria: "More filters: department, category, price",
+    advancedFiltersToggleTitle: "Show or hide department, category, and price filters",
+    advancedFiltersApply: "Apply filters",
+    advancedFiltersApplyAria: "Apply department, category, and price filters to the list",
+    advancedFiltersSectionDept: "Department",
+    advancedFiltersSectionCat: "Category",
+    advancedFiltersSectionListing: "Price & options",
     searchPlaceholder: "Search title or category...",
     sortDateNewOld: "Sort by date: newest first",
     sortDateOldNew: "Sort by date: oldest first",
@@ -77,6 +84,8 @@ const en: Messages = {
     listingFilters: "Price & item options",
     listingFiltersPh: "Price range & options…",
     listingFiltersActive: "Price/option filters on",
+    listingFiltersApply: "Apply",
+    listingFiltersApplyAria: "Apply price and item filters to the listing list",
     priceMin: "Min price",
     priceMax: "Max price",
     filterFreeOnly: "Free only",
@@ -148,6 +157,57 @@ const en: Messages = {
     aiSearchErrConfig: "AI search is temporarily unavailable.",
     aiSearchErrService: "AI search could not complete. Try again later.",
     aiSearchErrGeneric: "Something went wrong. Try again.",
+    helpPageButtonAria: "How this page works",
+    helpPageButtonTitle: "Quick tour: what each part of this screen does",
+    helpPageTitle: "How this city page works",
+    helpPageIntro:
+      "Walkthrough of the main areas. Open this anytime from the ? button.",
+    helpPageClose: "Got it",
+    helpPageBackHome: "← Home",
+    helpFooterLink: "Help using this page",
+    helpPageDismiss: "Close walkthrough",
+    helpTourMenuTitle: "City and help icons",
+    helpTourMenuText:
+      "The first hamburger (☰) opens the city switcher when several cities are available. The ? button opens this page tour. The Koochly + city line and logo return home. Site-wide About and Help are on the home page.",
+    helpTourListMapTitle: "List and Map (phones)",
+    helpTourListMapText:
+      "On smaller screens, use these tabs to switch between the scrollable list of ads and the map of pins.",
+    helpTourResetTitle: "Reset filters",
+    helpTourResetText:
+      "The circular arrow clears departments, categories, the keyword box, price and item toggles, sort order, and smart search - whenever something is active.",
+    helpTourKeywordTitle: "Keyword search",
+    helpTourKeywordText:
+      "Filters listings by words in the title or category. It is separate from the sparkles smart search.",
+    helpTourDeptTitle: "Departments",
+    helpTourDeptText:
+      "Pick one or more business areas (with thumbnails when shown). Only listings in the current city are included.",
+    helpTourCatTitle: "Categories",
+    helpTourCatText:
+      "Narrow to listing types. Type inside the field to filter the category list. You can combine departments and categories.",
+    helpTourPriceTitle: "Price and item options",
+    helpTourPriceText:
+      "Set min or max price for goods, or filter to free, new, exchangeable, or negotiable when those apply. Tap Apply (checkmark) to update the list; closing the panel without applying keeps the previous filters.",
+    helpTourSortTitle: "Sort",
+    helpTourSortText:
+      "Sort by posting date (tap again to reverse) or by how many visits a listing received.",
+    helpTourAiTitle: "Smart search (signed in)",
+    helpTourAiText:
+      "The sparkles button opens chat-style search: the site sends your question to an AI to rank ads on this page by meaning. Tap the same button again to turn it off.",
+    helpTourFeaturedTitle: "Featured strip",
+    helpTourFeaturedText:
+      "A horizontal row of highlighted ads. Use the side arrows when there is more than one.",
+    helpTourQuickDeptTitle: "Department shortcuts",
+    helpTourQuickDeptText:
+      "Image tiles under the featured row: tap once to filter to that department, tap again to clear that filter.",
+    helpTourCardsTitle: "Listing cards",
+    helpTourCardsText:
+      "Each card summarizes an ad. Open it for full detail. Signed-in users can bookmark. On mobile, a long press on a card may open the ad like a shortcut.",
+    helpTourMapTitle: "Map",
+    helpTourMapText:
+      "Shows pins for listings that have a location. Choose a pin for a short preview; on desktop, hovering a list row can highlight a pin.",
+    helpTourAccountTitle: "Account and menu",
+    helpTourAccountText:
+      "Sign in with Google from the menu to save bookmarks, use smart search, post a listing, and open your workspace.",
   },
   addAd: {
     notConfigured: "Firebase is not configured on the client.",

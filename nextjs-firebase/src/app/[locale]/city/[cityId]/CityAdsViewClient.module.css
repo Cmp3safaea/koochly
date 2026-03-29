@@ -50,6 +50,11 @@
   color: var(--accent);
 }
 
+.filterBarShell {
+  width: 100%;
+  min-width: 0;
+}
+
 .filterBar {
   display: flex;
   gap: 8px;
@@ -72,12 +77,121 @@
     flex-wrap: nowrap;
   }
 
-  /* Open dropdown stacks above neighbors (logo strip, other triggers) */
-  .filterBarDept:has(.filterMenu),
-  .filterBarCategory:has(.filterMenu),
-  .filterBarListing:has(.filterMenuListing) {
+}
+
+.advancedFiltersPanel {
+  margin-top: 2px;
+  margin-bottom: 10px;
+  padding: 14px 14px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border-80);
+  background: var(--surface-glass-80);
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 55;
+}
+
+.advancedFiltersGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 901px) {
+  .advancedFiltersGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 18px;
+    align-items: start;
+  }
+
+  .advancedFiltersListingSlot {
+    grid-column: 1 / -1;
+  }
+
+  .advancedFiltersPanel .filterBlockWide {
+    max-width: none;
+  }
+
+  .advancedFiltersPanel .advancedFiltersDept:has(.filterMenu),
+  .advancedFiltersPanel .advancedFiltersCategory:has(.filterMenu) {
     z-index: 60;
   }
+}
+
+.advancedFiltersField {
+  min-width: 0;
+}
+
+.advancedFiltersSectionLabel {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.advancedFiltersListingCard {
+  border-radius: 12px;
+  border: 1px solid var(--border-90);
+  background: var(--surface);
+  padding: 12px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.advancedFiltersListingCardActive {
+  border-color: var(--accent-border-mid);
+  background: var(--accent-soft-08);
+}
+
+.advancedFiltersFooter {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-80);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.advancedFiltersApplyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--accent-border-strong);
+  background: var(--accent);
+  color: white;
+  font-weight: 800;
+  font-size: 0.88rem;
+  cursor: pointer;
+  box-shadow: 0 1px 0 color-mix(in srgb, white 24%, transparent);
+}
+
+.advancedFiltersApplyBtn:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.advancedFiltersApplyBtn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.filterPanelToggleBtn {
+  position: relative;
+}
+
+.filterPanelToggleDot {
+  position: absolute;
+  top: 5px;
+  inset-inline-end: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--surface);
 }
 
 .filterLogoWrap {
@@ -141,6 +255,12 @@
   display: flex;
   align-items: center;
   position: relative;
+}
+
+/* Sibling `.filterBlockCompact` controls use z-index: 50; later flex items paint on top at equal
+   z-index, so the city list would sit under clear / filter / search. Lift the whole slot when open. */
+.filterBarCityPicker:has(.cityQuickMenu) {
+  z-index: 100;
 }
 
 .cityQuickBtn {
@@ -539,6 +659,15 @@
   border-bottom: none;
 }
 
+.menuItemButton {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
 .menuItem:hover {
   background: var(--accent-soft-08);
   color: var(--accent);
@@ -791,6 +920,48 @@
   font-size: 0.88rem;
   background: var(--surface);
   color: var(--text-strong);
+}
+
+.listingFilterApplyRow {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-faint);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.listingFilterApplyBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--accent-border-mid);
+  background: var(--accent-soft-12);
+  color: var(--text-ui);
+  font-size: 0.88rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    opacity 0.15s ease,
+    filter 0.15s ease;
+}
+
+.listingFilterApplyBtn:hover:not(:disabled) {
+  filter: brightness(1.04);
+}
+
+.listingFilterApplyBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.listingFilterApplyGlyph {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .filterOption {
@@ -1880,56 +2051,89 @@
     text-overflow: ellipsis;
   }
 
-  .filterBar > .filterBlockCompact:nth-child(1) {
+  .filterBarHasCityPicker > .filterBarCityPicker {
     order: 2;
     width: 48px;
     flex: 0 0 48px;
   }
 
-  .filterBar > .filterBlockCompact:nth-child(3) {
+  .filterBarHasCityPicker > .filterBarToggleSlot {
     order: 3;
     width: 48px;
     flex: 0 0 48px;
   }
 
-  .filterBar > .filterBlockSearch {
+  .filterBar:not(.filterBarHasCityPicker) > .filterBarToggleSlot {
+    order: 2;
+    width: 48px;
+    flex: 0 0 48px;
+  }
+
+  .filterBarHasCityPicker > .filterBarSearchSlot {
     order: 4;
     flex: 1 1 0;
     max-width: none;
     min-width: 0;
   }
 
-  .filterBar > .filterBlockCity {
-    order: 4;
-    flex: 0 0 48px;
-    min-width: 48px;
+  .filterBar:not(.filterBarHasCityPicker) > .filterBarSearchSlot {
+    order: 3;
+    flex: 1 1 0;
+    max-width: none;
+    min-width: 0;
   }
 
-  .filterBar > .filterBlockCompact:nth-child(5) {
+  .filterBarHasCityPicker > .filterBarAiSlot {
+    order: 5;
+  }
+
+  .filterBar:not(.filterBarHasCityPicker) > .filterBarAiSlot {
+    order: 4;
+  }
+
+  .filterBarHasCityPicker > .filterBarSortSlot {
+    order: 6;
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .filterBar:not(.filterBarHasCityPicker) > .filterBarSortSlot {
     order: 5;
     width: auto;
     flex: 0 0 auto;
   }
 
-  /* Dept → category → price/attributes (last), independent of optional city pin row */
-  .filterBarDept,
-  .filterBarCategory,
-  .filterBarListing {
-    flex: 1 1 100%;
-    min-width: 0;
-    max-width: none;
-  }
-
-  .filterBarDept {
-    order: 6;
-  }
-
-  .filterBarCategory {
+  .filterBarHasCityPicker > .filterBarClearSlot {
     order: 7;
+    width: 48px;
+    flex: 0 0 48px;
   }
 
-  .filterBarListing {
-    order: 8;
+  .filterBar:not(.filterBarHasCityPicker) > .filterBarClearSlot {
+    order: 6;
+    width: 48px;
+    flex: 0 0 48px;
+  }
+
+  .advancedFiltersDept:has(.filterMenu),
+  .advancedFiltersCategory:has(.filterMenu) {
+    z-index: 60;
+  }
+
+  /* Toolbar uses narrow `.filterBlockWide`; in the advanced panel, dept/cat triggers should use full row width
+     so the checkbox dropdown matches the screen. */
+  .advancedFiltersPanel .filterBlockWide {
+    max-width: none;
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .advancedFiltersPanel .filterBlockWide .filterMenu {
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
   }
 
   .filterBlock {
@@ -2338,4 +2542,22 @@
     animation: none;
     opacity: 0.75;
   }
+}
+
+.cityPageFooter {
+  margin-top: 28px;
+  padding: 18px 0 12px;
+  border-top: 1px solid var(--border-80);
+  text-align: center;
+}
+
+.cityPageFooterHelp {
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.cityPageFooterHelp:hover {
+  text-decoration: underline;
 }
