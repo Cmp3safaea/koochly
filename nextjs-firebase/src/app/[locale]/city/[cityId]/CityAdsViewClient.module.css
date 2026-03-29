@@ -1,5 +1,6 @@
 .shell {
   width: 100%;
+  min-width: 0;
 }
 
 .mobileToggle {
@@ -59,7 +60,19 @@
   padding: 0;
   align-items: center;
   width: 100%;
+  min-width: 0;
   overflow: visible;
+}
+
+/* Wide toolbar: avoid clipping when the row is wider than the viewport (split view, small landscape). */
+@media (min-width: 901px) {
+  .filterBar {
+    overflow-x: auto;
+    overflow-y: visible;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
 }
 
 .filterLogoWrap {
@@ -1761,6 +1774,7 @@
     flex-wrap: wrap;
     align-items: center;
     row-gap: 8px;
+    overflow-x: visible;
   }
 
   /* Logo on top; then one row: menu | clear | search (flex) | sort; then dept + category full width */
@@ -1778,6 +1792,9 @@
 
   .filterWordmark {
     font-size: 0.96rem;
+    max-width: min(200px, 58vw);
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .filterBar > .filterBlockCompact:nth-child(1) {

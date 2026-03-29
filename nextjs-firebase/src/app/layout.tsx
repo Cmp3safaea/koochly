@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import "./globals.css";
 import { getSiteBaseUrl } from "../lib/siteUrl";
@@ -40,9 +40,14 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport = {
+export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f3f4f6" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1120" },
+  ],
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
