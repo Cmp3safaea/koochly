@@ -6,7 +6,7 @@
   font-family: var(--font-app);
   line-height: 1.5;
   font-weight: 400;
-  /* Capacitor / iOS WebView: use with padding when you need explicit safe margins */
+  /* Mobile / PWA: use with padding when you need explicit safe margins */
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
   --safe-area-inset-right: env(safe-area-inset-right, 0px);
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
