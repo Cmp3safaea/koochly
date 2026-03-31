@@ -7,6 +7,11 @@ import { directoryDepartmentDisplayLabel } from "../../../../lib/directoryDepart
 import { getSiteBaseUrl } from "../../../../lib/siteUrl";
 import { getMapsBrowserApiKey } from "../../../../lib/mapsBrowserKey";
 import { reviewSummaryFromAdData } from "../../../../lib/adReviewSummary";
+import { resolveCityFlagUrl } from "../../../../lib/cityFlagUrl";
+import {
+  AD_PROMOTION_TYPES,
+  type AdPromotionType,
+} from "../../../../lib/adPromotions";
 import CityAdsViewClient, {
   type CityJumpOption,
   type CityAdCard,
@@ -36,6 +41,10 @@ type AdDoc = {
   dateTime?: unknown;
   seq?: number;
   approved?: boolean;
+  paidAds?: boolean;
+  paidAdsExpiresAt?: unknown;
+  promotionBadges?: unknown;
+  promotion_badges?: unknown;
   visits?: unknown;
   subcat?: unknown;
   selectedCategoryTags?: unknown;
@@ -140,6 +149,90 @@ function normalizeSubcats(value: unknown): string[] {
     .map((v) => (typeof v === "string" ? v.trim() : ""))
     .filter((v, i, arr) => v.length > 0 && arr.indexOf(v) === i)
     .slice(0, 8);
+}
+
+const promotionTypeAllowed = new Set<string>([...AD_PROMOTION_TYPES]);
+
+function promotionBadgesAsArray(raw: unknown): unknown[] {
+  if (Array.isArray(raw)) return raw;
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    return Object.values(raw as Record<string, unknown>);
+  }
+  return [];
+}
+
+function activePromotionTypesFromDoc(
+  data: Record<string, unknown>,
+  nowMs: number,
+): AdPromotionType[] {
+  const raw = promotionBadgesAsArray(
+    data.promotionBadges ?? data.promotion_badges,
+  );
+  const out: AdPromotionType[] = [];
+  for (const row of raw) {
+    if (typeof row === "string") {
+      const type = row.trim().toLowerCase();
+      if (promotionTypeAllowed.has(type)) out.push(type as AdPromotionType);
+      continue;
+    }
+    if (!row || typeof row !== "object") continue;
+    const o = row as Record<string, unknown>;
+    const typeRaw =
+      (typeof o.type === "string" ? o.type : null) ??
+      (typeof o.promoType === "string" ? o.promoType : null) ??
+      (typeof o.promotionType === "string" ? o.promotionType : null);
+    const type = (typeRaw ?? "").trim().toLowerCase();
+    if (!promotionTypeAllowed.has(type)) continue;
+    const exp = toDateTimeMs(
+      o.expireDate ?? o.expiresAt ?? o.expire_at ?? o.expireAt,
+    );
+    if (exp !== null && exp <= nowMs) continue;
+    out.push(type as AdPromotionType);
+  }
+  return AD_PROMOTION_TYPES.filter((t) => out.includes(t));
+}
+
+function mergePromotionTypes(
+  a: AdPromotionType[],
+  b: AdPromotionType[] | undefined,
+): AdPromotionType[] {
+  if (!b?.length) return a;
+  const set = new Set<string>([...a, ...b]);
+  return AD_PROMOTION_TYPES.filter((t) => set.has(t));
+}
+
+async function promotionTypesFromSubcollections(
+  db: ReturnType<typeof getFirestoreAdmin>,
+  adIds: string[],
+  nowMs: number,
+): Promise<Map<string, AdPromotionType[]>> {
+  const out = new Map<string, AdPromotionType[]>();
+  await Promise.all(
+    adIds.map(async (id) => {
+      try {
+        const snap = await db.collection("ads").doc(id).collection("promotions").get();
+        const found = new Set<string>();
+        for (const doc of snap.docs) {
+          const d = doc.data() as Record<string, unknown>;
+          const rawType =
+            (typeof d.type === "string" ? d.type.trim().toLowerCase() : "") ||
+            doc.id.trim().toLowerCase();
+          if (!promotionTypeAllowed.has(rawType)) continue;
+          const exp = toDateTimeMs(
+            d.expireDate ?? d.expiresAt ?? d.expire_at ?? d.expireAt,
+          );
+          if (exp !== null && exp <= nowMs) continue;
+          found.add(rawType);
+        }
+        if (found.size > 0) {
+          out.set(id, AD_PROMOTION_TYPES.filter((t) => found.has(t)));
+        }
+      } catch {
+        /* ignore per-ad */
+      }
+    }),
+  );
+  return out;
 }
 
 function collectCategoryCodes(
@@ -276,11 +369,14 @@ export default async function CityAdsByCountryPage({
     typeof cityData.country_fa === "string" ? cityData.country_fa : "";
   const countryEng =
     typeof cityData.country_eng === "string" ? cityData.country_eng : "";
-  const flagUrl =
-    typeof cityData.flag_url === "string"
-      ? (cityData.flag_url as string)
-      : undefined;
-
+  const cityCurrencySymbol =
+    typeof cityData.currency_symbol === "string" ? cityData.currency_symbol.trim() : "";
+  const flagUrl = resolveCityFlagUrl({
+    flagUrl: typeof cityData.flag_url === "string" ? cityData.flag_url : undefined,
+    countryEng,
+    countryFa,
+    pathCountrySlug: countryParam,
+  });
   const rawLatLng = cityData.latlng as any;
   const cityCenterLat = toFiniteNumber(
     rawLatLng?.__lat__ ?? rawLatLng?.lat ?? rawLatLng?.latitude,
@@ -345,6 +441,14 @@ export default async function CityAdsByCountryPage({
 
   const pageTitle =
     cityEng && countryFa ? `${countryFa} - ${cityEng}` : cityEng || cityFa;
+  const nowMs = Date.now();
+  const allAdDocIds = ads
+    .map((a) => a.id)
+    .filter((id): id is string => typeof id === "string" && id.length > 0);
+  const subPromoByAdId =
+    allAdDocIds.length > 0
+      ? await promotionTypesFromSubcollections(db, allAdDocIds, nowMs)
+      : new Map<string, AdPromotionType[]>();
 
   const adsForClient: CityAdCard[] = ads.map((ad) => {
     const rawLoc = ad.location as any;
@@ -401,6 +505,17 @@ export default async function CityAdsByCountryPage({
         : ad.isFree === true
           ? null
           : priceRaw;
+    const paidAds = ad.paidAds === true;
+    const paidAdsExpiresAtMsRaw = toDateTimeMs(ad.paidAdsExpiresAt);
+    const paidAdsExpiresAtMs =
+      paidAds && typeof paidAdsExpiresAtMsRaw === "number" ? paidAdsExpiresAtMsRaw : null;
+    const adData = ad as unknown as Record<string, unknown>;
+    const fromBadges = activePromotionTypesFromDoc(adData, nowMs);
+    const fromSub =
+      typeof ad.id === "string" && ad.id
+        ? subPromoByAdId.get(ad.id)
+        : undefined;
+    const activePromotions = mergePromotionTypes(fromBadges, fromSub);
 
     return {
       id: ad.id ?? title,
@@ -425,6 +540,10 @@ export default async function CityAdsByCountryPage({
       exchangeable: ad.exchangeable === true,
       negotiable: ad.negotiable === true,
       mainCategory: mainCat,
+      paidAds,
+      paidAdsExpiresAtMs,
+      activePromotions:
+        activePromotions.length > 0 ? activePromotions : undefined,
     };
   });
 
@@ -571,6 +690,7 @@ export default async function CityAdsByCountryPage({
         countryFa={countryFa}
         countryEng={countryEng}
         flagUrl={flagUrl}
+        cityCurrencySymbol={cityCurrencySymbol}
         ads={adsForClient}
         cityCenter={cityCenter}
         departmentOptions={departmentOptions}

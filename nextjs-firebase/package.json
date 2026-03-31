@@ -9,7 +9,8 @@
     "start": "next start -p $PORT",
     "lint": "next lint",
     "seo:verify": "node ./scripts/seo-verify.mjs",
-    "seo:priority-urls": "node ./scripts/seo-priority-urls.mjs"
+    "seo:priority-urls": "node ./scripts/seo-priority-urls.mjs",
+    "import:places-draft": "node ./scripts/import-places-draft.mjs"
   },
   "keywords": [],
   "author": "",

@@ -1,0 +1,18 @@
+﻿UAE region=AE lang=en | cities=dubai, sharjah | maxTotal=20 | perCityTargets=10,10
+
+- City dubai (target +10)
+node : Error: Places searchText 403: Requests to this API places.googleapis.com method 
+google.maps.places.v1.Places.SearchText are blocked.
+At C:\Users\cmp3safaea\AppData\Local\Temp\ps-script-919c81ac-8164-44c4-a570-c92a09b7364e.ps1:87 char:127
++ ... | Out-Null; node .\scripts\import-places-draft.mjs --static-cities -- ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error: Places s...xt are blocked.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    at searchTextPage 
+(file:///C:/Users/cmp3safaea/koochly/koochly/nextjs-firebase/scripts/import-places-draft.mjs:368:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async collectForCity 
+(file:///C:/Users/cmp3safaea/koochly/koochly/nextjs-firebase/scripts/import-places-draft.mjs:434:20)
+    at async main (file:///C:/Users/cmp3safaea/koochly/koochly/nextjs-firebase/scripts/import-places-draft.mjs:567:5)
+Assertion failed: !(handle->flags & UV_HANDLE_CLOSING), file src\win\async.c, line 76

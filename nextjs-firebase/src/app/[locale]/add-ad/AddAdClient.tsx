@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "reac
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { onAuthStateChanged, signInWithPopup, type User } from "firebase/auth";
 import {
   getAuthClientOrNull,
@@ -15,6 +16,29 @@ import { useI18n, useLocalizedHref } from "../../../i18n/client";
 import KoochlyLogo from "../../images/Koochly-Logo.png";
 import { CustomSelect } from "./CustomSelect";
 import styles from "./AddAdForm.module.css";
+import {
+  AD_PROMOTION_TYPES,
+  type AdPromotionType,
+} from "../../../lib/adPromotions";
+
+const PROMO_HELP: Record<AdPromotionType, { title: string; body: string }> = {
+  featured: {
+    title: "city.promoteFeaturedTitle",
+    body: "city.promoteFeaturedBody",
+  },
+  spotlight: {
+    title: "city.promoteSpotlightTitle",
+    body: "city.promoteSpotlightBody",
+  },
+  bump: {
+    title: "city.promoteBumpTitle",
+    body: "city.promoteBumpBody",
+  },
+  urgent: {
+    title: "city.promoteUrgentTitle",
+    body: "city.promoteUrgentBody",
+  },
+};
 
 const AddAdLocationPicker = dynamic(() => import("./AddAdLocationPicker"), { ssr: false });
 
@@ -22,6 +46,7 @@ type CityRow = {
   id: string;
   city_fa?: string;
   city_eng?: string;
+  currency_symbol?: string;
   active?: boolean;
 } & Record<string, unknown>;
 
@@ -93,6 +118,8 @@ export default function AddAdClient({
 } = {}) {
   const { t, locale } = useI18n();
   const loc = useLocalizedHref();
+  const searchParams = useSearchParams();
+  const editParam = (searchParams.get("edit") ?? "").trim();
   const configured = isFirebaseClientConfigured();
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -126,6 +153,9 @@ export default function AddAdClient({
   const [lonStr, setLonStr] = useState("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+  const [selectedPromotionTypes, setSelectedPromotionTypes] = useState<
+    AdPromotionType[]
+  >([]);
 
   useLayoutEffect(() => {
     const urls = imageFiles.map((f) => URL.createObjectURL(f));
@@ -150,11 +180,45 @@ export default function AddAdClient({
 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [success, setSuccess] = useState<{ seq: number; url: string } | null>(null);
+  const [success, setSuccess] = useState<{
+    seq: number | null;
+    url: string;
+    pendingApproval?: boolean;
+  } | null>(null);
   const [step, setStep] = useState(1);
   const [profileCityPref, setProfileCityPref] = useState("");
   const [defaultsLoaded, setDefaultsLoaded] = useState(false);
-  const TOTAL_STEPS = 4;
+  const [startChoice, setStartChoice] = useState<"unset" | "manual" | "ai">(
+    "unset",
+  );
+  const [aiOffering, setAiOffering] = useState("");
+  const [aiExtra, setAiExtra] = useState("");
+  const [aiDraftErr, setAiDraftErr] = useState<string | null>(null);
+  const [aiDraftBusy, setAiDraftBusy] = useState(false);
+  const [editingAdId, setEditingAdId] = useState("");
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editLoadErr, setEditLoadErr] = useState<string | null>(null);
+
+  const totalSteps = editingAdId ? 4 : 5;
+
+  useEffect(() => {
+    if (!user) setStartChoice("unset");
+  }, [user]);
+
+  useEffect(() => {
+    if (!editParam) {
+      setEditingAdId("");
+      setExistingImageUrls([]);
+      setEditLoadErr(null);
+    }
+  }, [editParam]);
+
+  useEffect(() => {
+    if (!editParam || !user) return;
+    setStartChoice("manual");
+    setStep(1);
+  }, [editParam, user]);
 
   useEffect(() => {
     if (!configured) {
@@ -178,7 +242,7 @@ export default function AddAdClient({
     (async () => {
       try {
         const [cRes, dRes] = await Promise.all([
-          getCitiesCached(),
+          getCitiesCached(0),
           fetch(`/api/directory?locale=${encodeURIComponent(locale)}`),
         ]);
         const cJson = cRes;
@@ -207,6 +271,10 @@ export default function AddAdClient({
 
   useEffect(() => {
     if (!user || defaultsLoaded) return;
+    if (editParam) {
+      setDefaultsLoaded(true);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
@@ -233,7 +301,95 @@ export default function AddAdClient({
     return () => {
       cancelled = true;
     };
-  }, [user, defaultsLoaded, address, phone, website, instagram]);
+  }, [user, defaultsLoaded, editParam, address, phone, website, instagram]);
+
+  useEffect(() => {
+    if (!editParam || !user || !authReady || metaLoading) return;
+    let cancelled = false;
+    (async () => {
+      setEditLoading(true);
+      setEditLoadErr(null);
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch(`/api/user/my-ads/${encodeURIComponent(editParam)}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+        if (!res.ok) {
+          throw new Error(typeof json.error === "string" ? json.error : t("addAd.editLoadErr"));
+        }
+        if (cancelled) return;
+        setEditingAdId(editParam);
+        setCityId(typeof json.cityId === "string" ? json.cityId : "");
+        setDepartmentId(typeof json.departmentId === "string" ? json.departmentId : "");
+        setCatCode(typeof json.catCode === "string" ? json.catCode : "");
+        setTitle(typeof json.title === "string" ? json.title : "");
+        setEngName(typeof json.engName === "string" ? json.engName : "");
+        setDetails(typeof json.details === "string" ? json.details : "");
+        setAddress(typeof json.address === "string" ? json.address : "");
+        setPhone(typeof json.phone === "string" ? json.phone : "");
+        setWebsite(typeof json.website === "string" ? json.website : "");
+        setInstagram(typeof json.instagram === "string" ? json.instagram : "");
+        const mc = json.mainCategory === "services" ? "services" : "goods";
+        setMainCategory(mc);
+        setServicesDescription(typeof json.services === "string" ? json.services : "");
+        const tags = Array.isArray(json.selectedTags)
+          ? json.selectedTags.filter((x): x is string => typeof x === "string")
+          : [];
+        setSelectedTags(tags.slice(0, MAX_SUBCATEGORY_TAGS));
+        if (typeof json.lat === "number" && Number.isFinite(json.lat)) {
+          setLatStr(json.lat.toFixed(6));
+        } else {
+          setLatStr("");
+        }
+        if (typeof json.lon === "number" && Number.isFinite(json.lon)) {
+          setLonStr(json.lon.toFixed(6));
+        } else {
+          setLonStr("");
+        }
+        if (mc === "goods") {
+          const p = json.price;
+          if (json.isFree === true) {
+            setIsFree(true);
+            setPriceStr("");
+          } else if (typeof p === "number" && Number.isFinite(p)) {
+            setIsFree(false);
+            setPriceStr(String(p));
+          } else {
+            setIsFree(false);
+            setPriceStr("");
+          }
+          setIsNewItem(json.isNewItem === true);
+          setExchangeable(json.exchangeable === true);
+          setNegotiable(json.negotiable === true);
+        } else {
+          setPriceStr("");
+          setIsNewItem(false);
+          setExchangeable(false);
+          setIsFree(false);
+          setNegotiable(false);
+        }
+        const imgs = Array.isArray(json.images)
+          ? json.images.filter((u): u is string => typeof u === "string" && u.trim().length > 0)
+          : [];
+        setExistingImageUrls(imgs.slice(0, MAX_AD_IMAGES));
+        setImageFiles([]);
+        setSelectedPromotionTypes([]);
+        setStep(1);
+        setErr(null);
+      } catch (e) {
+        if (!cancelled) {
+          setEditLoadErr(e instanceof Error ? e.message : t("addAd.editLoadErr"));
+          setEditingAdId("");
+        }
+      } finally {
+        if (!cancelled) setEditLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [editParam, user, authReady, metaLoading, t]);
 
   useEffect(() => {
     if (cityId || !profileCityPref || activeCities.length === 0) return;
@@ -250,6 +406,14 @@ export default function AddAdClient({
     () => activeCities.find((x) => x.id === cityId),
     [activeCities, cityId],
   );
+  const selectedCityCurrencySymbol = useMemo(() => {
+    if (!selectedCity) return "";
+    const c = selectedCity as Record<string, unknown>;
+    const fromSnake = typeof c.currency_symbol === "string" ? c.currency_symbol.trim() : "";
+    const fromCamel = typeof c.currencySymbol === "string" ? c.currencySymbol.trim() : "";
+    const fromLegacy = typeof c.currency === "string" ? c.currency.trim() : "";
+    return fromSnake || fromCamel || fromLegacy || "";
+  }, [selectedCity]);
 
   const mapCenter = useMemo(() => cityCenterFromRow(selectedCity), [selectedCity]);
 
@@ -323,6 +487,99 @@ export default function AddAdClient({
     setSelectedTags([]);
   };
 
+  const applyAiDraft = useCallback(
+    (draft: {
+      departmentId: string;
+      catCode: string;
+      mainCategory: MainCategory;
+      title: string;
+      engName: string;
+      details: string;
+      services: string;
+      selectedTags: string[];
+    }) => {
+      setDepartmentId(draft.departmentId);
+      setCatCode(draft.catCode);
+      setMainCategory(draft.mainCategory);
+      setTitle(draft.title);
+      setEngName(draft.engName);
+      setDetails(draft.details);
+      setServicesDescription(draft.services);
+      setSelectedTags(draft.selectedTags);
+      setStartChoice("manual");
+      setStep(1);
+      setErr(null);
+      setAiDraftErr(null);
+    },
+    [],
+  );
+
+  const runAiDraft = useCallback(async () => {
+    setAiDraftErr(null);
+    const offer = aiOffering.trim();
+    if (!offer) {
+      setAiDraftErr(t("addAd.aiErrOffering"));
+      return;
+    }
+    const auth = getAuthClientOrNull();
+    const u = auth?.currentUser;
+    if (!u) {
+      setAiDraftErr(t("city.aiSearchErrAuth"));
+      return;
+    }
+    setAiDraftBusy(true);
+    try {
+      const token = await u.getIdToken();
+      const res = await fetch("/api/ai/draft-ad", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          locale,
+          offering: offer,
+          extra: aiExtra.trim(),
+        }),
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        draft?: {
+          departmentId: string;
+          catCode: string;
+          mainCategory: MainCategory;
+          title: string;
+          engName: string;
+          details: string;
+          services: string;
+          selectedTags: string[];
+        };
+      };
+      if (!res.ok) {
+        if (res.status === 401) setAiDraftErr(t("city.aiSearchErrAuth"));
+        else if (res.status === 503) setAiDraftErr(t("city.aiSearchErrConfig"));
+        else if (res.status === 502) setAiDraftErr(t("city.aiSearchErrService"));
+        else if (res.status === 422)
+          setAiDraftErr(json.error || t("addAd.aiErrInvalid"));
+        else setAiDraftErr(json.error || t("city.aiSearchErrGeneric"));
+        return;
+      }
+      const d = json.draft;
+      if (
+        !d ||
+        (d.mainCategory !== "goods" && d.mainCategory !== "services")
+      ) {
+        setAiDraftErr(t("city.aiSearchErrGeneric"));
+        return;
+      }
+      applyAiDraft(d);
+    } catch {
+      setAiDraftErr(t("city.aiSearchErrGeneric"));
+    } finally {
+      setAiDraftBusy(false);
+    }
+  }, [aiExtra, aiOffering, applyAiDraft, locale, t]);
+
   const availableTags = useMemo(() => {
     const selected = categoryOptions.find((c) => c.code === catCode);
     return Array.isArray(selected?.subcategories) ? selected!.subcategories : [];
@@ -351,6 +608,11 @@ export default function AddAdClient({
     }
     if (!cityId || !departmentId || !catCode || title.trim().length < 2) {
       setErr(t("addAd.errFill"));
+      return;
+    }
+    const imageCount = editingAdId ? existingImageUrls.length + imageFiles.length : imageFiles.length;
+    if (imageCount < 1) {
+      setErr(t("addAd.errImageRequired"));
       return;
     }
     const lat = parseCoord(latStr);
@@ -400,6 +662,68 @@ export default function AddAdClient({
 
       const isGoods = mainCategory === "goods";
       const idToken = await auth.currentUser.getIdToken();
+      if (editingAdId) {
+        const res = await fetch(`/api/user/my-ads/${encodeURIComponent(editingAdId)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            idToken,
+            cityId,
+            departmentId,
+            catCode,
+            title: title.trim(),
+            engName: engName.trim(),
+            details: details.trim(),
+            address: address.trim(),
+            phone: phone.trim(),
+            website: website.trim(),
+            instagram: instagram.trim(),
+            lat,
+            lon,
+            selectedTags,
+            existingImageUrls,
+            images: imagesPayload,
+            mainCategory,
+            services: servicesDescription.trim(),
+            ...(isGoods
+              ? {
+                  price: isFree ? null : parsePriceNumber(priceStr),
+                  isNewItem,
+                  exchangeable,
+                  isFree,
+                  negotiable,
+                }
+              : {
+                  price: null,
+                  isNewItem: false,
+                  exchangeable: false,
+                  isFree: false,
+                  negotiable: false,
+                }),
+          }),
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          seq?: number | null;
+          url?: string;
+          pendingApproval?: boolean;
+        };
+        if (!res.ok) {
+          setErr(data.error ?? t("addAd.errSubmit"));
+          return;
+        }
+        const u = typeof data.url === "string" ? data.url : "";
+        const sq = typeof data.seq === "number" ? data.seq : null;
+        if (u || sq !== null) {
+          setSuccess({
+            seq: sq,
+            url: u || (sq !== null ? loc(`/b/${sq}`) : ""),
+            pendingApproval: true,
+          });
+        }
+        return;
+      }
+
       const res = await fetch("/api/ads/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -418,7 +742,8 @@ export default function AddAdClient({
           lat,
           lon,
           selectedTags,
-          images: imagesPayload.length ? imagesPayload : undefined,
+          images: imagesPayload,
+          promotionTypes: selectedPromotionTypes,
           mainCategory,
           services: servicesDescription.trim(),
           ...(isGoods
@@ -448,7 +773,7 @@ export default function AddAdClient({
         return;
       }
       if (typeof data.seq === "number" && typeof data.url === "string") {
-        setSuccess({ seq: data.seq, url: data.url });
+        setSuccess({ seq: data.seq, url: data.url, pendingApproval: true });
         setTitle("");
         setEngName("");
         setDetails("");
@@ -467,6 +792,7 @@ export default function AddAdClient({
         setLonStr("");
         setSelectedTags([]);
         setImageFiles([]);
+        setSelectedPromotionTypes([]);
       }
     } catch (e) {
       console.error(e);
@@ -486,6 +812,8 @@ export default function AddAdClient({
     if (!latStr.trim() && !lonStr.trim()) return true;
     return lat !== null && lon !== null;
   })();
+  const canProceedStep4 =
+    (editingAdId ? existingImageUrls.length + imageFiles.length : imageFiles.length) >= 1;
 
   const nextStep = () => {
     setErr(null);
@@ -497,7 +825,11 @@ export default function AddAdClient({
       setErr(t("addAd.errCoords"));
       return;
     }
-    setStep((s) => Math.min(TOTAL_STEPS, s + 1));
+    if (step === 4 && !canProceedStep4) {
+      setErr(t("addAd.errImageRequired"));
+      return;
+    }
+    setStep((s) => Math.min(totalSteps, s + 1));
   };
 
   const prevStep = () => {
@@ -515,6 +847,8 @@ export default function AddAdClient({
     );
   }
 
+  const submitted = success != null;
+
   return (
     <div className={styles.page}>
       <div className={styles.shell}>
@@ -523,20 +857,76 @@ export default function AddAdClient({
             <Image src={KoochlyLogo} alt="" className={styles.logo} width={52} height={52} />
             <div className={styles.brandText}>
               <span className={styles.brandTitle}>{t("addAd.brand")}</span>
-              <span className={styles.brandSub}>{t("addAd.sub")}</span>
+              {submitted ? null : (
+                <span className={styles.brandSub}>{t("addAd.sub")}</span>
+              )}
             </div>
           </Link>
-          <Link href={loc("/")} className={styles.backLink}>
-            {t("addAd.backHome")}
-          </Link>
+          {submitted ? null : (
+            <Link href={loc("/")} className={styles.backLink}>
+              {t("addAd.backHome")}
+            </Link>
+          )}
         </div>
 
         <div className={styles.card}>
+          {submitted ? (
+            <div className={styles.success} role="status">
+              <div className={styles.successTitle}>{t("addAd.successTitle")}</div>
+              <p className={styles.successText}>
+                {success.pendingApproval ? (
+                  success.seq != null ? (
+                    <>
+                      {t("addAd.successBody")}: <strong>{success.seq}</strong>
+                      <br />
+                      {t("addAd.successPendingApproval")}
+                    </>
+                  ) : (
+                    t("addAd.successPendingApproval")
+                  )
+                ) : success.seq != null ? (
+                  <>
+                    {t("addAd.successBody")}: <strong>{success.seq}</strong> — {t("addAd.successUrl")}
+                    :&nbsp;
+                    <span dir="ltr">{success.url}</span>
+                  </>
+                ) : success.url ? (
+                  <>
+                    {t("addAd.successUrl")}:&nbsp;
+                    <span dir="ltr">{success.url}</span>
+                  </>
+                ) : (
+                  t("addAd.successTitle")
+                )}
+              </p>
+              {!success.pendingApproval && success.seq != null ? (
+                <Link href={loc(`/b/${success.seq}`)} className={styles.successLink}>
+                  {t("addAd.viewAd")}
+                </Link>
+              ) : !success.pendingApproval && success.url ? (
+                <Link
+                  href={
+                    /^https?:\/\//i.test(success.url)
+                      ? success.url
+                      : loc(success.url.startsWith("/") ? success.url : `/${success.url}`)
+                  }
+                  className={styles.successLink}
+                >
+                  {t("addAd.viewAd")}
+                </Link>
+              ) : null}
+            </div>
+          ) : (
+            <>
           <header className={styles.cardHead}>
-            <div className={styles.cardKicker}>{t("addAd.kicker")}</div>
-            <h1 className={styles.cardTitle}>{t("addAd.title")}</h1>
+            <div className={styles.cardKicker}>
+              {editParam ? t("addAd.editKicker") : t("addAd.kicker")}
+            </div>
+            <h1 className={styles.cardTitle}>
+              {editParam ? t("addAd.editTitle") : t("addAd.title")}
+            </h1>
             <p className={styles.cardLead}>
-              {t("addAd.lead")}
+              {editParam ? t("addAd.editLead") : t("addAd.lead")}
             </p>
           </header>
 
@@ -564,14 +954,149 @@ export default function AddAdClient({
                 </div>
               ) : null}
 
-              <div className={styles.stepHeader}>
+              {user && startChoice === "unset" && !editParam ? (
+                <div
+                  className={styles.modePickSection}
+                  dir={locale === "en" ? "ltr" : "rtl"}
+                >
+                  <h2 className={styles.modePickTitle}>{t("addAd.modePickTitle")}</h2>
+                  <p className={styles.modePickLead}>{t("addAd.modePickLead")}</p>
+                  <div className={styles.modePickGrid}>
+                    <button
+                      type="button"
+                      className={styles.modeCard}
+                      onClick={() => {
+                        setStartChoice("manual");
+                        setStep(1);
+                        setErr(null);
+                      }}
+                    >
+                      <span className={styles.modeCardIcon} aria-hidden>
+                        ✎
+                      </span>
+                      <span className={styles.modeCardKicker}>{t("addAd.sub")}</span>
+                      <span className={styles.modeCardTitle}>
+                        {t("addAd.modeManualTitle")}
+                      </span>
+                      <p className={styles.modeCardBody}>{t("addAd.modeManualBody")}</p>
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.modeCard}
+                      onClick={() => {
+                        setStartChoice("ai");
+                        setAiDraftErr(null);
+                      }}
+                    >
+                      <span className={styles.modeCardIcon} aria-hidden>
+                        ✨
+                      </span>
+                      <span className={styles.modeCardKicker}>AI</span>
+                      <span className={styles.modeCardTitle}>{t("addAd.modeAiTitle")}</span>
+                      <p className={styles.modeCardBody}>{t("addAd.modeAiBody")}</p>
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {user && startChoice === "ai" ? (
+                <div
+                  className={styles.aiPanel}
+                  dir={locale === "en" ? "ltr" : "rtl"}
+                >
+                  <h2 className={styles.aiPanelTitle}>{t("addAd.aiPanelTitle")}</h2>
+                  <p className={styles.aiPanelLead}>{t("addAd.aiPanelLead")}</p>
+                  <div className={styles.aiExamples}>
+                    <div className={styles.aiExamplesLabel}>
+                      {t("addAd.aiExamplesTitle")}
+                    </div>
+                    <ul className={styles.aiExampleList}>
+                      <li>{t("addAd.aiEx1")}</li>
+                      <li>{t("addAd.aiEx2")}</li>
+                      <li>{t("addAd.aiEx3")}</li>
+                    </ul>
+                  </div>
+                  <div className={`${styles.field} ${styles.fieldFull}`}>
+                    <label className={styles.label} htmlFor="ai-offering">
+                      {t("addAd.aiLabelOffering")}
+                    </label>
+                    <textarea
+                      id="ai-offering"
+                      className={styles.textarea}
+                      value={aiOffering}
+                      onChange={(e) => setAiOffering(e.target.value)}
+                      placeholder={t("addAd.aiPhOffering")}
+                      rows={3}
+                      dir="auto"
+                    />
+                  </div>
+                  <div className={`${styles.field} ${styles.fieldFull}`}>
+                    <label className={styles.label} htmlFor="ai-extra">
+                      {t("addAd.aiLabelExtra")}
+                    </label>
+                    <textarea
+                      id="ai-extra"
+                      className={styles.textarea}
+                      value={aiExtra}
+                      onChange={(e) => setAiExtra(e.target.value)}
+                      placeholder={t("addAd.aiPhExtra")}
+                      rows={2}
+                      dir="auto"
+                    />
+                  </div>
+                  {aiDraftErr ? (
+                    <div className={styles.error} role="alert">
+                      {aiDraftErr}
+                    </div>
+                  ) : null}
+                  <div className={styles.aiActions}>
+                    <button
+                      type="button"
+                      className={styles.navBtn}
+                      disabled={aiDraftBusy}
+                      onClick={() => {
+                        setStartChoice("unset");
+                        setAiDraftErr(null);
+                      }}
+                    >
+                      {t("addAd.stepBack")}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.submit}
+                      disabled={aiDraftBusy}
+                      onClick={() => void runAiDraft()}
+                    >
+                      {aiDraftBusy ? t("addAd.aiGenerating") : t("addAd.aiGenerate")}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {(!user || startChoice === "manual") ? (
+                <>
+                  {user && startChoice === "manual" ? (
+                    <button
+                      type="button"
+                      className={styles.modeChangeBtn}
+                      onClick={() => {
+                        setStartChoice("unset");
+                        setStep(1);
+                        setErr(null);
+                      }}
+                    >
+                      {t("addAd.modeChange")}
+                    </button>
+                  ) : null}
+
+                  <div className={styles.stepHeader}>
                 <div className={styles.stepMeta}>
-                  {t("addAd.stepOf", { current: step, total: TOTAL_STEPS })}
+                  {t("addAd.stepOf", { current: step, total: totalSteps })}
                 </div>
                 <div className={styles.stepBar} aria-hidden="true">
                   <div
                     className={styles.stepBarFill}
-                    style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
+                    style={{ width: `${(step / totalSteps) * 100}%` }}
                   />
                 </div>
               </div>
@@ -593,6 +1118,12 @@ export default function AddAdClient({
                   <span className={styles.stepChipIndex}>4</span>
                   {t("addAd.stepImages")}
                 </span>
+                {totalSteps >= 5 ? (
+                  <span className={`${styles.stepChip} ${step >= 5 ? styles.stepChipActive : ""}`}>
+                    <span className={styles.stepChipIndex}>5</span>
+                    {t("addAd.stepSpotlight")}
+                  </span>
+                ) : null}
               </div>
 
               <div className={`${styles.grid} ${styles.grid2}`}>
@@ -750,19 +1281,27 @@ export default function AddAdClient({
                         {!isFree ? (
                           <div className={`${styles.field} ${styles.fieldFull}`}>
                             <label className={styles.label} htmlFor="ad-price">
-                              {t("addAd.price")}{" "}
-                              <span className={styles.optional}>({t("addAd.optional")})</span>
+                              {t("addAd.price")} <span className={styles.optional}>({t("addAd.optional")})</span>
                             </label>
-                            <input
-                              id="ad-price"
-                              className={styles.input}
-                              value={priceStr}
-                              onChange={(e) => setPriceStr(e.target.value)}
-                              placeholder={t("addAd.pricePh")}
-                              inputMode="decimal"
-                              dir="ltr"
-                              autoComplete="off"
-                            />
+                            <div className={styles.priceInputWrap}>
+                              {selectedCityCurrencySymbol ? (
+                                <span className={styles.pricePrefix} aria-hidden>
+                                  {selectedCityCurrencySymbol}
+                                </span>
+                              ) : null}
+                              <input
+                                id="ad-price"
+                                className={`${styles.input} ${
+                                  selectedCityCurrencySymbol ? styles.inputWithPrefix : ""
+                                }`}
+                                value={priceStr}
+                                onChange={(e) => setPriceStr(e.target.value)}
+                                placeholder={t("addAd.pricePh")}
+                                inputMode="decimal"
+                                dir="ltr"
+                                autoComplete="off"
+                              />
+                            </div>
                           </div>
                         ) : null}
 
@@ -970,7 +1509,7 @@ export default function AddAdClient({
                   <div className={`${styles.field} ${styles.fieldFull}`}>
                   <span className={styles.label}>
                     {t("addAd.images")}{" "}
-                    <span className={styles.optional}>({t("addAd.imagesSub")})</span>
+                    <span className={styles.imagesRequiredHint}>({t("addAd.imagesSub")})</span>
                   </span>
                   <div className={styles.imageRow}>
                     <label
@@ -1057,6 +1596,50 @@ export default function AddAdClient({
                   </p>
                 </div>
                 ) : null}
+
+                {step === 5 ? (
+                  <div className={`${styles.field} ${styles.fieldFull}`}>
+                    <div className={styles.promoFreeBanner} role="status">
+                      {t("addAd.promoFreeBanner")}
+                    </div>
+                    <p className={styles.promoIntro}>{t("city.promoteIntro")}</p>
+                    <p className={styles.promoLead}>{t("addAd.promoStepLead")}</p>
+                    <div className={styles.promoOptions} role="group" aria-label={t("addAd.stepSpotlight")}>
+                      {AD_PROMOTION_TYPES.map((ty) => {
+                        const keys = PROMO_HELP[ty];
+                        const checked = selectedPromotionTypes.includes(ty);
+                        return (
+                          <label
+                            key={ty}
+                            className={`${styles.promoOption} ${checked ? styles.promoOptionActive : ""}`}
+                          >
+                            <input
+                              type="checkbox"
+                              className={styles.promoCheckbox}
+                              checked={checked}
+                              onChange={() =>
+                                setSelectedPromotionTypes((prev) =>
+                                  prev.includes(ty)
+                                    ? prev.filter((x) => x !== ty)
+                                    : [...prev, ty],
+                                )
+                              }
+                            />
+                            <span className={styles.promoOptionText}>
+                              <span className={styles.promoOptionTitle}>
+                                {t(keys.title)}
+                              </span>
+                              <span className={styles.promoOptionBody}>
+                                {t(keys.body)}
+                              </span>
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <p className={styles.hint}>{t("addAd.promoSkipHint")}</p>
+                  </div>
+                ) : null}
               </div>
 
               {err ? (
@@ -1069,8 +1652,13 @@ export default function AddAdClient({
                 <button type="button" className={styles.navBtn} onClick={prevStep} disabled={step === 1 || busy}>
                   {t("addAd.stepBack")}
                 </button>
-                {step < TOTAL_STEPS ? (
-                  <button type="button" className={styles.submit} onClick={nextStep} disabled={busy}>
+                {step < totalSteps ? (
+                  <button
+                    type="button"
+                    className={styles.submit}
+                    onClick={nextStep}
+                    disabled={busy || (step === 4 && !canProceedStep4)}
+                  >
                     {t("addAd.stepNext")}
                   </button>
                 ) : (
@@ -1091,22 +1679,12 @@ export default function AddAdClient({
                   </>
                 )}
               </div>
+                </>
+              ) : null}
             </>
           )}
-
-          {success ? (
-            <div className={styles.success} role="status">
-              <div className={styles.successTitle}>{t("addAd.successTitle")}</div>
-              <p className={styles.successText}>
-                {t("addAd.successBody")}: <strong>{success.seq}</strong> — {t("addAd.successUrl")}
-                :&nbsp;
-                <span dir="ltr">{success.url}</span>
-              </p>
-              <Link href={loc(`/b/${success.seq}`)} className={styles.successLink}>
-                {t("addAd.viewAd")}
-              </Link>
-            </div>
-          ) : null}
+            </>
+          )}
         </div>
       </div>
     </div>

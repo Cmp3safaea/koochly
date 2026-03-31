@@ -235,8 +235,6 @@ export default async function CityCategoryLandingPage({
   const cityFa = sanitize(cityData.city_fa);
   const countryEng = typeof cityData.country_eng === "string" ? cityData.country_eng : "";
   const countryFa = typeof cityData.country_fa === "string" ? cityData.country_fa.trim() : "";
-  const flagUrl =
-    typeof cityData.flag_url === "string" ? cityData.flag_url : undefined;
   const rawLatLng = cityData.latlng as any;
   const cityCenterLat = toFiniteNumber(rawLatLng?.__lat__ ?? rawLatLng?.lat ?? rawLatLng?.latitude);
   const cityCenterLon = toFiniteNumber(rawLatLng?.__lon__ ?? rawLatLng?.lon ?? rawLatLng?.longitude);
@@ -417,7 +415,6 @@ export default async function CityCategoryLandingPage({
         cityFa={cityFa}
         countryFa={countryFa}
         countryEng={countryEng}
-        flagUrl={flagUrl}
         ads={adsForClient}
         cityCenter={cityCenter}
         departmentOptions={departmentOptions}

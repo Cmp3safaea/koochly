@@ -8,10 +8,16 @@ import { resolveLocale } from "../../../../i18n/server";
 import { directoryDepartmentDisplayLabel } from "../../../../lib/directoryDepartmentLabel";
 import { getMapsBrowserApiKey } from "../../../../lib/mapsBrowserKey";
 import { reviewSummaryFromAdData } from "../../../../lib/adReviewSummary";
+import { resolveCityFlagUrl } from "../../../../lib/cityFlagUrl";
+import {
+  AD_PROMOTION_TYPES,
+  type AdPromotionType,
+} from "../../../../lib/adPromotions";
 import CityAdsViewClient, {
   type CityJumpOption,
   type CityAdCard,
   type DepartmentQuickItem,
+  type PopularCategoryLink,
 } from "./CityAdsViewClient";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +53,9 @@ type AdDoc = {
   exchangeable?: unknown;
   negotiable?: unknown;
   mainCategory?: unknown;
+  promotionBadges?: unknown;
+  /** Alternate field name from some imports / scripts */
+  promotion_badges?: unknown;
 };
 
 type SelectOption = {
@@ -119,25 +128,69 @@ function toFiniteNumber(value: unknown): number | null {
 }
 
 function toDateTimeMs(value: unknown): number | null {
-  if (!value) return null;
+  if (value === null || value === undefined) return null;
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string") {
     const t = Date.parse(value);
     return Number.isFinite(t) ? t : null;
   }
   if (typeof value === "object") {
-    const v = value as any;
+    const v = value as Record<string, unknown> & {
+      toMillis?: () => number;
+      toDate?: () => Date;
+    };
+    if (typeof v.toMillis === "function") {
+      try {
+        const ms = v.toMillis();
+        if (typeof ms === "number" && Number.isFinite(ms)) return ms;
+      } catch {
+        /* ignore */
+      }
+    }
     if (typeof v.toDate === "function") {
-      const d = v.toDate();
-      const t = d instanceof Date ? d.getTime() : Date.parse(String(d));
-      return Number.isFinite(t) ? t : null;
+      try {
+        const d = v.toDate();
+        const t = d instanceof Date ? d.getTime() : Date.parse(String(d));
+        return Number.isFinite(t) ? t : null;
+      } catch {
+        /* ignore */
+      }
+    }
+    const vx = v as {
+      seconds?: number | string;
+      _seconds?: number | string;
+      nanoseconds?: number | string;
+      _nanoseconds?: number | string;
+    };
+    const secRaw =
+      typeof vx.seconds === "number" && Number.isFinite(vx.seconds)
+        ? vx.seconds
+        : typeof vx.seconds === "string"
+          ? Number(vx.seconds)
+          : typeof vx._seconds === "number" && Number.isFinite(vx._seconds)
+            ? vx._seconds
+            : typeof vx._seconds === "string"
+              ? Number(vx._seconds)
+              : NaN;
+    const sec = Number.isFinite(secRaw) ? secRaw : null;
+    if (sec !== null) {
+      const nsRaw =
+        typeof vx.nanoseconds === "number"
+          ? vx.nanoseconds
+          : typeof vx.nanoseconds === "string"
+            ? Number(vx.nanoseconds)
+            : typeof vx._nanoseconds === "number"
+              ? vx._nanoseconds
+              : typeof vx._nanoseconds === "string"
+                ? Number(vx._nanoseconds)
+                : 0;
+      const ns = Number.isFinite(nsRaw) ? nsRaw : 0;
+      return sec * 1000 + Math.floor(ns / 1e6);
     }
     if (typeof v.__time__ === "string") {
       const t = Date.parse(v.__time__);
       return Number.isFinite(t) ? t : null;
     }
-    if (typeof v._seconds === "number") return v._seconds * 1000;
-    if (typeof v.seconds === "number") return v.seconds * 1000;
   }
   return null;
 }
@@ -169,6 +222,91 @@ function normalizeSubcats(value: unknown): string[] {
     .map((v) => (typeof v === "string" ? v.trim() : ""))
     .filter((v, i, arr) => v.length > 0 && arr.indexOf(v) === i)
     .slice(0, 8);
+}
+
+const promotionTypeAllowed = new Set<string>([...AD_PROMOTION_TYPES]);
+
+function promotionBadgesAsArray(raw: unknown): unknown[] {
+  if (Array.isArray(raw)) return raw;
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    return Object.values(raw as Record<string, unknown>);
+  }
+  return [];
+}
+
+function activePromotionTypesFromDoc(
+  data: Record<string, unknown>,
+  nowMs: number,
+): AdPromotionType[] {
+  const raw = promotionBadgesAsArray(
+    data.promotionBadges ?? data.promotion_badges,
+  );
+  const out: AdPromotionType[] = [];
+  for (const row of raw) {
+    if (typeof row === "string") {
+      const type = row.trim().toLowerCase();
+      if (promotionTypeAllowed.has(type)) out.push(type as AdPromotionType);
+      continue;
+    }
+    if (!row || typeof row !== "object") continue;
+    const o = row as Record<string, unknown>;
+    const typeRaw =
+      (typeof o.type === "string" ? o.type : null) ??
+      (typeof o.promoType === "string" ? o.promoType : null) ??
+      (typeof o.promotionType === "string" ? o.promotionType : null);
+    const type = (typeRaw ?? "").trim().toLowerCase();
+    if (!promotionTypeAllowed.has(type)) continue;
+    const exp = toDateTimeMs(
+      o.expireDate ?? o.expiresAt ?? o.expire_at ?? o.expireAt,
+    );
+    /* Missing expiry = treat as active (manual / legacy docs). */
+    if (exp !== null && exp <= nowMs) continue;
+    out.push(type as AdPromotionType);
+  }
+  return AD_PROMOTION_TYPES.filter((t) => out.includes(t));
+}
+
+function mergePromotionTypes(
+  a: AdPromotionType[],
+  b: AdPromotionType[] | undefined,
+): AdPromotionType[] {
+  if (!b?.length) return a;
+  const set = new Set<string>([...a, ...b]);
+  return AD_PROMOTION_TYPES.filter((t) => set.has(t));
+}
+
+async function promotionTypesFromSubcollections(
+  db: ReturnType<typeof getFirestoreAdmin>,
+  adIds: string[],
+  nowMs: number,
+): Promise<Map<string, AdPromotionType[]>> {
+  const out = new Map<string, AdPromotionType[]>();
+  await Promise.all(
+    adIds.map(async (id) => {
+      try {
+        const snap = await db.collection("ads").doc(id).collection("promotions").get();
+        const found = new Set<string>();
+        for (const doc of snap.docs) {
+          const d = doc.data() as Record<string, unknown>;
+          const rawType =
+            (typeof d.type === "string" ? d.type.trim().toLowerCase() : "") ||
+            doc.id.trim().toLowerCase();
+          if (!promotionTypeAllowed.has(rawType)) continue;
+          const exp = toDateTimeMs(
+            d.expireDate ?? d.expiresAt ?? d.expire_at ?? d.expireAt,
+          );
+          if (exp !== null && exp <= nowMs) continue;
+          found.add(rawType);
+        }
+        if (found.size > 0) {
+          out.set(id, AD_PROMOTION_TYPES.filter((t) => found.has(t)));
+        }
+      } catch {
+        /* ignore per-ad */
+      }
+    }),
+  );
+  return out;
 }
 
 export default async function CityAdsPage({
@@ -227,12 +365,17 @@ export default async function CityAdsPage({
     typeof cityData.country_fa === "string" ? cityData.country_fa : "";
   const countryEng =
     typeof cityData.country_eng === "string" ? cityData.country_eng : "";
+  const cityCurrencySymbol =
+    typeof cityData.currency_symbol === "string" ? cityData.currency_symbol.trim() : "";
   const canonicalCityKey = sanitizeCityToken(cityEng || cityFa || citySnap.id || "");
   if (canonicalCityKey && cityKey !== canonicalCityKey) {
     redirect(withLocale(uiLocale, `/city/${encodeURIComponent(canonicalCityKey)}`));
   }
-  const flagUrl =
-    typeof cityData.flag_url === "string" ? cityData.flag_url : undefined;
+  const flagUrl = resolveCityFlagUrl({
+    flagUrl: typeof cityData.flag_url === "string" ? cityData.flag_url : undefined,
+    countryEng,
+    countryFa,
+  });
 
   const rawLatLng = cityData.latlng as any;
   const cityCenterLat = toFiniteNumber(
@@ -281,7 +424,8 @@ export default async function CityAdsPage({
 
   const ads: AdDoc[] = adsSnap.docs.map((d) => {
     const data = d.data() as AdDoc;
-    return { id: d.id, ...data };
+    /* Document id must win over any `id` field stored inside the ad payload. */
+    return { ...data, id: d.id };
   });
 
   // Sort by `seq` if present, otherwise keep stable order.
@@ -294,6 +438,15 @@ export default async function CityAdsPage({
   // SEO + heading: always prefer city_eng.
   const pageTitle =
     cityEng && countryFa ? `${countryFa} - ${cityEng}` : cityEng || cityFa;
+
+  const nowMs = Date.now();
+  const allAdDocIds = ads
+    .map((a) => a.id)
+    .filter((id): id is string => typeof id === "string" && id.length > 0);
+  const subPromoByAdId =
+    allAdDocIds.length > 0
+      ? await promotionTypesFromSubcollections(db, allAdDocIds, nowMs)
+      : new Map<string, AdPromotionType[]>();
 
   const adsForClient: CityAdCard[] = ads.map((ad) => {
     const rawLoc = ad.location as any;
@@ -370,6 +523,14 @@ export default async function CityAdsPage({
           ? null
           : priceRaw;
 
+    const adData = ad as unknown as Record<string, unknown>;
+    const fromBadges = activePromotionTypesFromDoc(adData, nowMs);
+    const fromSub =
+      typeof ad.id === "string" && ad.id
+        ? subPromoByAdId.get(ad.id)
+        : undefined;
+    const activePromotions = mergePromotionTypes(fromBadges, fromSub);
+
     return {
       id: ad.id ?? title,
       title,
@@ -396,6 +557,8 @@ export default async function CityAdsPage({
       exchangeable: ad.exchangeable === true,
       negotiable: ad.negotiable === true,
       mainCategory: mainCat,
+      activePromotions:
+        activePromotions.length > 0 ? activePromotions : undefined,
     };
   });
 
@@ -448,6 +611,20 @@ export default async function CityAdsPage({
     }))
     .sort((a, b) => a.label.localeCompare(b.label));
 
+  const hubPath = hubPathForCityDoc(cityData);
+  const popularCategories: PopularCategoryLink[] = categoryOptions.map(
+    (cat): PopularCategoryLink => ({
+      value: cat.value,
+      label: cat.label,
+      href: withLocale(
+        uiLocale,
+        hubPath
+          ? `${hubPath}category/${encodeURIComponent(cat.value)}/`
+          : `/city/${encodeURIComponent(canonicalCityKey)}?cat=${encodeURIComponent(cat.value)}`,
+      ),
+    }),
+  );
+
   const departmentQuickFilters: DepartmentQuickItem[] = Array.from(
     new Set(adsForClient.map((a) => a.departmentId).filter(Boolean) as string[]),
   )
@@ -483,12 +660,14 @@ export default async function CityAdsPage({
         countryFa={countryFa}
         countryEng={countryEng}
         flagUrl={flagUrl}
+        cityCurrencySymbol={cityCurrencySymbol}
         ads={adsForClient}
         cityCenter={cityCenter}
         departmentOptions={departmentOptions}
         categoryOptions={categoryOptions}
         departmentQuickFilters={departmentQuickFilters}
         cityOptions={cityOptions}
+        popularCategories={popularCategories}
         currentCityId={canonicalCityKey}
         initialCatCode={initialCatCode}
         initialDepartmentId={initialDepartmentId}

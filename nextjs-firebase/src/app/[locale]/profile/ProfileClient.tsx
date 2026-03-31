@@ -71,6 +71,44 @@ function CardRevealEyeIcon({ className }: { className?: string }) {
   );
 }
 
+function EditIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M12 20h9" />
+      <path d="m16.5 3.5 4 4L8 20l-5 1 1-5 12.5-12.5Z" />
+    </svg>
+  );
+}
+
+function TrashIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M19 6l-1 14H6L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
+}
+
 function formatViewedAgo(viewedAtMs: number, locale: Locale): string {
   const intlLocale = locale === "fa" ? "fa-IR" : "en-GB";
   const rtf = new Intl.RelativeTimeFormat(intlLocale, { numeric: "auto" });
@@ -265,6 +303,15 @@ type ProfileRow = {
 
 type CityOption = { id: string; city_fa?: string; city_eng?: string; active?: boolean };
 
+type MyAdRow = {
+  adId: string;
+  seq: number | null;
+  title: string;
+  approved: boolean;
+  image: string | null;
+  city: string;
+};
+
 function resolveWorkspaceBackPath(profileCity: string, cities: CityOption[]): string {
   const selected = profileCity.trim();
   if (!selected) return "/";
@@ -302,7 +349,9 @@ export default function ProfileClient({ showWorkspaceHeader = false }: { showWor
   const [profile, setProfile] = useState<ProfileRow>(EMPTY_PROFILE);
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
-  const [tab, setTab] = useState<"profile" | "recent" | "favorites" | "billing">("profile");
+  const [tab, setTab] = useState<"profile" | "recent" | "favorites" | "myAds" | "billing">(
+    "profile",
+  );
   const [cities, setCities] = useState<CityOption[]>([]);
   const [recentVisits, setRecentVisits] = useState<RecentVisitRow[]>([]);
   const [recentLoading, setRecentLoading] = useState(false);
@@ -313,6 +362,13 @@ export default function ProfileClient({ showWorkspaceHeader = false }: { showWor
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [favoriteErr, setFavoriteErr] = useState<string | null>(null);
   const [favoriteRemovingId, setFavoriteRemovingId] = useState<string | null>(null);
+  const [myAds, setMyAds] = useState<MyAdRow[]>([]);
+  const [myAdsLoading, setMyAdsLoading] = useState(false);
+  const [myAdsErr, setMyAdsErr] = useState<string | null>(null);
+  const [myAdDeletingId, setMyAdDeletingId] = useState<string | null>(null);
+  const [confirmDeleteAd, setConfirmDeleteAd] = useState<{ adId: string; title: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!configured) {
@@ -464,6 +520,38 @@ export default function ProfileClient({ showWorkspaceHeader = false }: { showWor
     };
   }, [user, tab, t]);
 
+  useEffect(() => {
+    if (!user || tab !== "myAds") return;
+    let cancelled = false;
+    (async () => {
+      setMyAdsLoading(true);
+      setMyAdsErr(null);
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch("/api/user/my-ads", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const json = (await res.json().catch(() => ({}))) as {
+          ads?: MyAdRow[];
+          error?: string;
+        };
+        if (!res.ok) throw new Error(json.error ?? t("profile.myAdsLoadErr"));
+        if (cancelled) return;
+        setMyAds(Array.isArray(json.ads) ? json.ads : []);
+      } catch (e) {
+        if (!cancelled) {
+          setMyAds([]);
+          setMyAdsErr(e instanceof Error ? e.message : t("profile.myAdsLoadErr"));
+        }
+      } finally {
+        if (!cancelled) setMyAdsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, tab, t]);
+
   const removeFavorite = useCallback(
     async (adId: string) => {
       if (!user) return;
@@ -520,6 +608,30 @@ export default function ProfileClient({ showWorkspaceHeader = false }: { showWor
       setLoading(false);
     }
   };
+
+  const deleteMyAd = useCallback(
+    async (adId: string) => {
+      if (!user) return;
+      setMyAdDeletingId(adId);
+      setMyAdsErr(null);
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch(`/api/user/my-ads/${encodeURIComponent(adId)}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const json = (await res.json().catch(() => ({}))) as { error?: string };
+        if (!res.ok) throw new Error(json.error ?? t("profile.myAdsDeleteErr"));
+        setMyAds((prev) => prev.filter((r) => r.adId !== adId));
+      } catch (e) {
+        setMyAdsErr(e instanceof Error ? e.message : t("profile.myAdsDeleteErr"));
+      } finally {
+        setMyAdDeletingId(null);
+        setConfirmDeleteAd((prev) => (prev?.adId === adId ? null : prev));
+      }
+    },
+    [user, t],
+  );
 
   if (!configured) return <p className={styles.msg}>{t("addAd.notConfigured")}</p>;
   if (!authReady) return <p className={styles.msg}>{t("addAd.checkingAuth")}</p>;
@@ -586,6 +698,13 @@ export default function ProfileClient({ showWorkspaceHeader = false }: { showWor
           onClick={() => setTab("favorites")}
         >
           ❤️ {t("profile.tabFavorites")}
+        </button>
+        <button
+          type="button"
+          className={tab === "myAds" ? styles.tabBtnActive : styles.tabBtn}
+          onClick={() => setTab("myAds")}
+        >
+          📋 {t("profile.tabMyAds")}
         </button>
         <button
           type="button"
@@ -729,6 +848,66 @@ export default function ProfileClient({ showWorkspaceHeader = false }: { showWor
           </>
         ) : null}
 
+        {tab === "myAds" ? (
+          <>
+            {myAdsLoading ? (
+              <p className={styles.msg}>{t("profile.myAdsLoading")}</p>
+            ) : myAdsErr ? (
+              <p className={styles.err}>{myAdsErr}</p>
+            ) : myAds.length === 0 ? (
+              <p className={styles.msg}>{t("profile.myAdsEmpty")}</p>
+            ) : (
+              <div className={styles.myAdsList}>
+                {myAds.map((row) => (
+                  <div key={row.adId} className={styles.myAdRow}>
+                    <div className={styles.myAdThumb}>
+                      {row.image ? (
+                        <img src={row.image} alt="" loading="lazy" />
+                      ) : null}
+                    </div>
+                    <div className={styles.myAdBody}>
+                      <h3 className={styles.myAdTitle}>{row.title}</h3>
+                      <div className={styles.myAdMeta}>
+                        {row.city ? `${row.city}` : ""}
+                        {row.seq != null ? (row.city ? " · " : "") + `#${row.seq}` : ""}
+                      </div>
+                    </div>
+                    <div className={styles.myAdActions}>
+                      <span
+                        className={`${styles.approvalBadge} ${
+                          row.approved ? styles.approvalBadgeOk : styles.approvalBadgeWait
+                        }`}
+                      >
+                        {row.approved ? t("profile.myAdsApproved") : t("profile.myAdsPending")}
+                      </span>
+                      <div className={styles.myAdActionButtons}>
+                        <Link
+                          href={loc(`/add-ad?edit=${encodeURIComponent(row.adId)}`)}
+                          className={`${styles.adActionIconBtn} ${styles.adActionEdit}`}
+                          title={t("profile.myAdsEdit")}
+                          aria-label={t("profile.myAdsEditAria", { title: row.title })}
+                        >
+                          <EditIcon className={styles.adActionIcon} />
+                        </Link>
+                        <button
+                          type="button"
+                          className={`${styles.adActionIconBtn} ${styles.adActionDelete}`}
+                          title={t("profile.myAdsDelete")}
+                          aria-label={t("profile.myAdsDeleteAria", { title: row.title })}
+                          disabled={myAdDeletingId === row.adId}
+                          onClick={() => setConfirmDeleteAd({ adId: row.adId, title: row.title })}
+                        >
+                          <TrashIcon className={styles.adActionIcon} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        ) : null}
+
         {tab === "billing" ? (
           <div className={styles.comingSoon}>
             <div className={styles.comingIcon}>✨</div>
@@ -737,6 +916,50 @@ export default function ProfileClient({ showWorkspaceHeader = false }: { showWor
           </div>
         ) : null}
       </section>
+      {confirmDeleteAd ? (
+        <div
+          className={styles.confirmOverlay}
+          role="presentation"
+          onClick={() => {
+            if (!myAdDeletingId) setConfirmDeleteAd(null);
+          }}
+        >
+          <div
+            className={styles.confirmModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-ad-confirm-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="delete-ad-confirm-title" className={styles.confirmTitle}>
+              {t("profile.myAdsDelete")}
+            </h3>
+            <p className={styles.confirmText}>
+              {t("profile.myAdsDeleteConfirm", { title: confirmDeleteAd.title })}
+            </p>
+            <div className={styles.confirmActions}>
+              <button
+                type="button"
+                className={styles.confirmCancelBtn}
+                onClick={() => setConfirmDeleteAd(null)}
+                disabled={myAdDeletingId === confirmDeleteAd.adId}
+              >
+                {locale === "fa" ? "انصراف" : "Cancel"}
+              </button>
+              <button
+                type="button"
+                className={styles.confirmDeleteBtn}
+                onClick={() => void deleteMyAd(confirmDeleteAd.adId)}
+                disabled={myAdDeletingId === confirmDeleteAd.adId}
+              >
+                {myAdDeletingId === confirmDeleteAd.adId
+                  ? t("addAd.submitting")
+                  : t("profile.myAdsDelete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }

@@ -1,0 +1,10 @@
+{
+  "dubai": { "city_fa": "دبي", "city_eng": "Dubai", "lat": 25.2048, "lng": 55.2708 },
+  "abu_dhabi": { "city_fa": "أبو ظبي", "city_eng": "Abu Dhabi", "lat": 24.4539, "lng": 54.3773 },
+  "sharjah": { "city_fa": "الشارقة", "city_eng": "Sharjah", "lat": 25.3463, "lng": 55.4209 },
+  "ajman": { "city_fa": "عجمان", "city_eng": "Ajman", "lat": 25.4052, "lng": 55.5136 },
+  "ras_al_khaimah": { "city_fa": "رأس الخيمة", "city_eng": "Ras Al Khaimah", "lat": 25.7895, "lng": 55.9433 },
+  "fujairah": { "city_fa": "الفجيرة", "city_eng": "Fujairah", "lat": 25.1288, "lng": 56.3264 },
+  "al_ain": { "city_fa": "العين", "city_eng": "Al Ain", "lat": 24.1302, "lng": 55.8023 },
+  "umm_al_quwain": { "city_fa": "أم القيوين", "city_eng": "Umm Al Quwain", "lat": 25.565, "lng": 55.5552 }
+}

@@ -1,13 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
-import { getFirebaseAuthAdmin, getFirebaseStorageBucket, getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
-import { resolveDirectoryCategoriesForAdmin } from "../../../../lib/directoryCategoriesAdmin";
-import { getSiteBaseUrl } from "../../../../lib/siteUrl";
-import {
-  AD_PROMOTION_DURATION_MS,
-  normalizePromotionTypes,
-} from "../../../../lib/adPromotions";
+import { FieldValue, type DocumentReference, type Firestore } from "firebase-admin/firestore";
+import { getFirebaseAuthAdmin, getFirebaseStorageBucket, getFirestoreAdmin } from "../../../../../lib/firebaseAdmin";
+import { resolveDirectoryCategoriesForAdmin } from "../../../../../lib/directoryCategoriesAdmin";
+import { getSiteBaseUrl } from "../../../../../lib/siteUrl";
 
 export const runtime = "nodejs";
 
@@ -15,10 +11,17 @@ const MAX_IMAGES = 4;
 const MAX_IMAGE_BYTES = 100 * 1024;
 const IMAGE_MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-function safeFileBase(name: string): string {
-  const base = name.replace(/\\/g, "/").split("/").pop() ?? "image";
-  const cleaned = base.replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 120);
-  return cleaned || "image";
+function asString(v: unknown): string {
+  return typeof v === "string" ? v.trim() : "";
+}
+
+function asNumber(v: unknown): number | null {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string" && v.trim()) {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
 }
 
 function normalizeExternalUrl(raw: string): string {
@@ -69,38 +72,208 @@ function parseImageUploadSpecs(b: Record<string, unknown>): { error?: string; sp
     }
     return { specs };
   }
-
-  let imageBase64 = typeof b.imageBase64 === "string" ? b.imageBase64.trim() : "";
-  if (!imageBase64) return { specs: [] };
-  imageBase64 = stripDataUrlBase64(imageBase64);
-  const imageMime =
-    typeof b.imageMimeType === "string" ? b.imageMimeType.trim().toLowerCase() : "";
-  const imageFileName =
-    typeof b.imageFileName === "string" ? b.imageFileName : "photo.jpg";
-  return {
-    specs: [{ base64Raw: imageBase64, mime: imageMime, fileName: imageFileName }],
-  };
+  return { specs: [] };
 }
 
-async function nextAdSeq(): Promise<number> {
-  const db = getFirestoreAdmin();
+function safeFileBase(name: string): string {
+  const base = name.replace(/\\/g, "/").split("/").pop() ?? "image";
+  const cleaned = base.replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 120);
+  return cleaned || "image";
+}
+
+function isUsersDocRef(uid: string, ref: unknown): boolean {
+  if (!ref || typeof ref !== "object") return false;
+  const r = ref as DocumentReference;
+  return typeof r.path === "string" && r.path === `users/${uid}`;
+}
+
+function departmentIdFromAd(data: Record<string, unknown>): string | null {
+  const d = data.departmentID;
+  if (d && typeof d === "object" && d !== null && "id" in d) {
+    const id = (d as { id: unknown }).id;
+    return typeof id === "string" && id.trim() ? id.trim() : null;
+  }
+  return null;
+}
+
+async function uidFromRequest(request: Request): Promise<string | null> {
+  const authHeader = request.headers.get("authorization") ?? "";
+  const token = authHeader.toLowerCase().startsWith("bearer ")
+    ? authHeader.slice(7).trim()
+    : "";
+  if (!token) return null;
   try {
-    const snap = await db.collection("ads").orderBy("seq", "desc").limit(1).get();
-    if (snap.empty) return 10000;
-    const s = snap.docs[0].data().seq;
-    return typeof s === "number" && Number.isFinite(s) ? Math.floor(s) + 1 : 10000;
+    const decoded = await getFirebaseAuthAdmin().verifyIdToken(token);
+    return decoded.uid;
   } catch {
-    return Math.floor(Date.now() / 1000);
+    return null;
   }
 }
 
-export async function POST(req: Request) {
+async function resolveCityId(db: Firestore, data: Record<string, unknown>): Promise<string | null> {
+  const fa = asString(data.city_fa);
+  const en = asString(data.city_eng);
+  if (en) {
+    const s = await db.collection("cities").where("city_eng", "==", en).limit(1).get();
+    if (!s.empty) return s.docs[0].id;
+  }
+  if (fa) {
+    const s = await db.collection("cities").where("city_fa", "==", fa).limit(1).get();
+    if (!s.empty) return s.docs[0].id;
+  }
+  const legacy = asString(data.city);
+  if (legacy) {
+    const byFa = await db.collection("cities").where("city_fa", "==", legacy).limit(1).get();
+    if (!byFa.empty) return byFa.docs[0].id;
+    const byEng = await db.collection("cities").where("city_eng", "==", legacy).limit(1).get();
+    if (!byEng.empty) return byEng.docs[0].id;
+  }
+  return null;
+}
+
+function normalizeSubcats(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((v) => (typeof v === "string" ? v.trim() : ""))
+    .filter((v, i, arr) => v.length > 0 && arr.indexOf(v) === i)
+    .slice(0, 8);
+}
+
+async function loadOwnedAd(db: Firestore, uid: string, adId: string) {
+  const ref = db.collection("ads").doc(adId);
+  const snap = await ref.get();
+  if (!snap.exists) return { error: "آگهی پیدا نشد" as const, status: 404 as const };
+  const data = snap.data() as Record<string, unknown>;
+  if (!isUsersDocRef(uid, data.user)) {
+    return { error: "دسترسی ندارید" as const, status: 403 as const };
+  }
+  return { ref, data };
+}
+
+type RouteCtx = { params: Promise<{ adId: string }> };
+
+export async function GET(request: Request, context: RouteCtx) {
+  try {
+    const uid = await uidFromRequest(request);
+    if (!uid) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const { adId: rawId } = await context.params;
+    const adId = typeof rawId === "string" ? rawId.trim() : "";
+    if (!adId) {
+      return NextResponse.json({ error: "شناسه نامعتبر" }, { status: 400 });
+    }
+
+    const db = getFirestoreAdmin();
+    const loaded = await loadOwnedAd(db, uid, adId);
+    if ("error" in loaded && loaded.status) {
+      return NextResponse.json({ error: loaded.error }, { status: loaded.status });
+    }
+    const { data } = loaded;
+
+    const departmentId = departmentIdFromAd(data);
+    const catCode = asString(data.cat_code);
+    const loc = data.location as Record<string, unknown> | null | undefined;
+    let lat: number | null = null;
+    let lon: number | null = null;
+    if (loc && typeof loc === "object") {
+      const la = loc.lat;
+      const lo = loc.lon ?? loc.lng;
+      if (typeof la === "number" && Number.isFinite(la)) lat = la;
+      if (typeof lo === "number" && Number.isFinite(lo)) lon = lo;
+    }
+
+    const mainRaw = asString(data.mainCategory).toLowerCase();
+    const mainCategory: "goods" | "services" = mainRaw === "services" ? "services" : "goods";
+    const inst = asString(data.instagram);
+    const instLegacy = asString(data.instorgam);
+    const instagram =
+      inst && inst !== "N/A"
+        ? inst
+        : instLegacy && instLegacy !== "N/A"
+          ? instLegacy
+          : "";
+
+    const imgs = Array.isArray(data.images)
+      ? data.images.filter((u): u is string => typeof u === "string" && u.trim().length > 0)
+      : [];
+
+    const tags =
+      normalizeSubcats(data.selectedCategoryTags).length > 0
+        ? normalizeSubcats(data.selectedCategoryTags)
+        : normalizeSubcats(data.subcat);
+
+    const cityId = await resolveCityId(db, data);
+
+    const price = data.price;
+    const isFree = data.isFree === true;
+    const isNewItem = data.isNewItem === true;
+    const exchangeable = data.exchangeable === true;
+    const negotiable = data.negotiable === true;
+
+    return NextResponse.json({
+      adId,
+      cityId: cityId ?? "",
+      departmentId: departmentId ?? "",
+      catCode,
+      title: asString(data.title),
+      engName: asString(data.engName),
+      details: asString(data.details),
+      address: asString(data.address),
+      phone: asString(data.phone),
+      website: asString(data.website),
+      instagram,
+      lat,
+      lon,
+      selectedTags: tags.slice(0, 2),
+      mainCategory,
+      services: asString(data.services),
+      price: typeof price === "number" && Number.isFinite(price) ? price : null,
+      isFree,
+      isNewItem,
+      exchangeable,
+      negotiable,
+      images: imgs.slice(0, MAX_IMAGES),
+      approved: data.approved === true,
+    });
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Unknown error" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PATCH(request: Request, context: RouteCtx) {
   let body: unknown;
   try {
-    body = await req.json();
+    body = await request.json();
   } catch {
     return NextResponse.json({ error: "بدنه درخواست نامعتبر است" }, { status: 400 });
   }
+
+  const uid = await uidFromRequest(request);
+  if (!uid) {
+    return NextResponse.json({ error: "نشست نامعتبر است" }, { status: 401 });
+  }
+
+  const { adId: rawId } = await context.params;
+  const adId = typeof rawId === "string" ? rawId.trim() : "";
+  if (!adId) {
+    return NextResponse.json({ error: "شناسه نامعتبر" }, { status: 400 });
+  }
+
+  const db = getFirestoreAdmin();
+  const loaded = await loadOwnedAd(db, uid, adId);
+  if ("error" in loaded && loaded.status) {
+    return NextResponse.json({ error: loaded.error }, { status: loaded.status });
+  }
+  const { ref: adRef, data: prev } = loaded;
+
+  const prevImages = Array.isArray(prev.images)
+    ? prev.images.filter((u): u is string => typeof u === "string" && u.trim().length > 0)
+    : [];
+  const prevSet = new Set(prevImages);
 
   const b = body as Record<string, unknown>;
   const idToken = typeof b.idToken === "string" ? b.idToken.trim() : "";
@@ -153,6 +326,12 @@ export async function POST(req: Request) {
     price = parsePriceFromBody(b.price);
   }
 
+  const existingRaw = Array.isArray(b.existingImageUrls) ? b.existingImageUrls : [];
+  const keptExisting = existingRaw
+    .map((u) => (typeof u === "string" ? u.trim() : ""))
+    .filter((u) => u.length > 0 && prevSet.has(u))
+    .slice(0, MAX_IMAGES);
+
   if (!idToken || !cityId || !departmentId || !catCode || title.length < 2) {
     return NextResponse.json(
       { error: "عنوان، شهر، بخش، دسته و ورود به سیستم الزامی است" },
@@ -161,15 +340,14 @@ export async function POST(req: Request) {
   }
 
   const auth = getFirebaseAuthAdmin();
-  let uid: string;
   try {
     const decoded = await auth.verifyIdToken(idToken);
-    uid = decoded.uid;
+    if (decoded.uid !== uid) {
+      return NextResponse.json({ error: "نشست نامعتبر است" }, { status: 401 });
+    }
   } catch {
     return NextResponse.json({ error: "نشست نامعتبر است" }, { status: 401 });
   }
-
-  const db = getFirestoreAdmin();
 
   const citySnap = await db.collection("cities").doc(cityId).get();
   if (!citySnap.exists) {
@@ -229,14 +407,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsedImages.error }, { status: 400 });
   }
   const imageSpecs = parsedImages.specs;
-  if (imageSpecs.length < 1) {
+  const room = MAX_IMAGES - keptExisting.length;
+  if (imageSpecs.length > room) {
     return NextResponse.json(
-      { error: "حداقل یک تصویر لازم است" },
+      { error: "حداکثر ۴ تصویر مجاز است" },
       { status: 400 },
     );
   }
 
-  const images: string[] = [];
+  const newImages: string[] = [];
   const bucket = getFirebaseStorageBucket();
 
   for (let i = 0; i < imageSpecs.length; i++) {
@@ -277,34 +456,35 @@ export async function POST(req: Request) {
       },
     });
     const encodedPath = encodeURIComponent(objectPath);
-    images.push(
+    newImages.push(
       `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${token}`,
     );
   }
 
-  const seq = await nextAdSeq();
-  const baseUrl = getSiteBaseUrl();
-  const url = `${baseUrl}/b/${seq}`;
+  const images = [...keptExisting, ...newImages];
+  if (images.length < 1) {
+    return NextResponse.json(
+      { error: "حداقل یک تصویر لازم است" },
+      { status: 400 },
+    );
+  }
 
-  const adsRef = db.collection("ads").doc();
   const dirRef = db.collection("directory").doc(departmentId);
-  const userRef = db.collection("users").doc(uid);
-
   const location =
     lat !== null && lon !== null
       ? { lat, lon }
       : null;
 
-  const promotionTypes = normalizePromotionTypes(b.promotionTypes);
-  const promoExpiresAt = Timestamp.fromMillis(Date.now() + AD_PROMOTION_DURATION_MS);
-  const promotionBadges = promotionTypes.map((type) => ({
-    type,
-    expireDate: promoExpiresAt,
-  }));
+  const seq = asNumber(prev.seq);
+  const baseUrl = getSiteBaseUrl();
+  const url =
+    typeof prev.url === "string" && prev.url.trim()
+      ? prev.url.trim()
+      : seq !== null
+        ? `${baseUrl}/b/${seq}`
+        : "";
 
-  const batch = db.batch();
-  batch.set(adsRef, {
-    GoogleRate: null,
+  await adRef.update({
     address: address || "",
     approved: false,
     cat: catRow.label,
@@ -327,27 +507,41 @@ export async function POST(req: Request) {
     isNewItem,
     exchangeable,
     negotiable,
-    seq,
     subcat: selectedCategoryTags,
     selectedCategoryTags,
     title,
-    url,
-    user: userRef,
-    visits: 0,
     website: websiteRaw ? normalizeExternalUrl(websiteRaw) : "",
-    promotionBadges,
+    ...(url ? { url } : {}),
   });
 
-  for (const type of promotionTypes) {
-    const pRef = adsRef.collection("promotions").doc(type);
-    batch.set(pRef, {
-      type,
-      setDate: FieldValue.serverTimestamp(),
-      expireDate: promoExpiresAt,
-    });
+  return NextResponse.json({ ok: true, id: adId, seq, url, pendingApproval: true });
+}
+
+export async function DELETE(request: Request, context: RouteCtx) {
+  try {
+    const uid = await uidFromRequest(request);
+    if (!uid) {
+      return NextResponse.json({ error: "نشست نامعتبر است" }, { status: 401 });
+    }
+
+    const { adId: rawId } = await context.params;
+    const adId = typeof rawId === "string" ? rawId.trim() : "";
+    if (!adId) {
+      return NextResponse.json({ error: "شناسه نامعتبر" }, { status: 400 });
+    }
+
+    const db = getFirestoreAdmin();
+    const loaded = await loadOwnedAd(db, uid, adId);
+    if ("error" in loaded && loaded.status) {
+      return NextResponse.json({ error: loaded.error }, { status: loaded.status });
+    }
+
+    await loaded.ref.delete();
+    return NextResponse.json({ ok: true, id: adId });
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Unknown error" },
+      { status: 500 },
+    );
   }
-
-  await batch.commit();
-
-  return NextResponse.json({ ok: true, id: adsRef.id, seq, url });
 }

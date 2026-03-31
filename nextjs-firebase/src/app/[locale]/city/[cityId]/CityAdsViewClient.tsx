@@ -15,6 +15,7 @@ import { useI18n, useLocalizedHref } from "../../../../i18n/client";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 import ActivityLogClient from "../../activity/ActivityLogClient";
 import StarRating from "../../../../components/StarRating";
+import type { AdPromotionType } from "../../../../lib/adPromotions";
 
 // Google Maps is client-only and loads external scripts, so we disable SSR.
 const GoogleMapView = dynamic(() => import("./GoogleMap"), { ssr: false });
@@ -48,6 +49,9 @@ export type CityAdCard = {
   exchangeable?: boolean;
   negotiable?: boolean;
   mainCategory?: string | null;
+  currencySymbol?: string | null;
+  /** Non-expired listing promos from `promotionBadges` (see `ads/{id}/promotions`). */
+  activePromotions?: AdPromotionType[];
 };
 
 export type DepartmentQuickItem = {
@@ -70,6 +74,105 @@ type SelectOption = {
   value: string;
   label: string;
 };
+
+const PROMO_LABEL_KEY: Record<AdPromotionType, string> = {
+  featured: "city.promoteFeaturedTitle",
+  spotlight: "city.promoteSpotlightTitle",
+  bump: "city.promoteBumpTitle",
+  urgent: "city.promoteUrgentTitle",
+};
+
+const PROMO_PILL_CLASS: Record<AdPromotionType, string> = {
+  featured: styles.cardPromoPill_featured,
+  spotlight: styles.cardPromoPill_spotlight,
+  bump: styles.cardPromoPill_bump,
+  urgent: styles.cardPromoPill_urgent,
+};
+
+const PROMO_SORT_WEIGHT: Record<AdPromotionType, number> = {
+  featured: 40,
+  spotlight: 30,
+  urgent: 20,
+  bump: 10,
+};
+
+function getAdPromotionScore(ad: CityAdCard): number {
+  const promos = Array.isArray(ad.activePromotions) ? ad.activePromotions : [];
+  let score = 0;
+  for (const p of promos) {
+    const w = PROMO_SORT_WEIGHT[p] ?? 0;
+    if (w > score) score = w;
+  }
+  return score;
+}
+
+function getAdPromotionExpiryMs(ad: CityAdCard, nowMs: number): number | null {
+  const ms = ad.paidAdsExpiresAtMs;
+  if (typeof ms !== "number" || !Number.isFinite(ms) || ms <= nowMs) return null;
+  return ms;
+}
+
+function getTopPromotionType(types: AdPromotionType[] | undefined): AdPromotionType | null {
+  if (!Array.isArray(types) || types.length === 0) return null;
+  let top: AdPromotionType | null = null;
+  let topWeight = -1;
+  for (const t of types) {
+    const w = PROMO_SORT_WEIGHT[t] ?? 0;
+    if (w > topWeight) {
+      top = t;
+      topWeight = w;
+    }
+  }
+  return top;
+}
+
+function getVisiblePromotionTypes(ad: CityAdCard): AdPromotionType[] {
+  return Array.isArray(ad.activePromotions) ? ad.activePromotions : [];
+}
+
+function CardPromoTypeIcon({ type }: { type: AdPromotionType }) {
+  const cls = styles.cardPromoIconSvg;
+  switch (type) {
+    case "featured":
+      return (
+        <svg className={cls} viewBox="0 0 20 20" aria-hidden focusable="false">
+          <path
+            fill="currentColor"
+            d="M10 2.2l2.45 4.96 5.48.8-3.97 3.87.94 5.46L10 14.77l-4.9 2.57.94-5.46-3.97-3.87 5.48-.8L10 2.2z"
+          />
+        </svg>
+      );
+    case "spotlight":
+      return (
+        <svg className={cls} viewBox="0 0 20 20" aria-hidden focusable="false">
+          <circle cx="10" cy="10" r="3.25" fill="currentColor" />
+          <circle cx="10" cy="3.25" r="1.15" fill="currentColor" opacity="0.85" />
+          <circle cx="10" cy="16.75" r="1.15" fill="currentColor" opacity="0.85" />
+          <circle cx="3.25" cy="10" r="1.15" fill="currentColor" opacity="0.85" />
+          <circle cx="16.75" cy="10" r="1.15" fill="currentColor" opacity="0.85" />
+        </svg>
+      );
+    case "bump":
+      return (
+        <svg className={cls} viewBox="0 0 20 20" aria-hidden focusable="false">
+          <path
+            fill="currentColor"
+            d="M10 4.5L15.2 12h-3.1v3.5H7.9V12H4.8L10 4.5z"
+          />
+        </svg>
+      );
+    case "urgent":
+    default:
+      return (
+        <svg className={cls} viewBox="0 0 20 20" aria-hidden focusable="false">
+          <path
+            fill="currentColor"
+            d="M10 2a8 8 0 100 16 8 8 0 000-16zm-.75 4.2h1.5v5.4h-1.5V6.2zm.75 8.1a1.05 1.05 0 110-2.1 1.05 1.05 0 010 2.1z"
+          />
+        </svg>
+      );
+  }
+}
 
 function parseListingFilterPrice(s: string): number | null {
   const t = s.trim().replace(/[,\s\u066C]/g, "");
@@ -170,6 +273,8 @@ function PriorityStripChevron({
 }
 
 const MAX_MULTI_SELECTION = 2;
+/** Client-side list pages; last page shows a promotion callout below the grid. */
+const ADS_LIST_PAGE_SIZE = 20;
 /** Long-press duration on a card (ms) to open the ad page instead of focusing on the map. */
 const CARD_LONG_PRESS_MS = 550;
 
@@ -505,6 +610,59 @@ function CardRevealEyeIcon({ className }: { className?: string }) {
   );
 }
 
+function CardMetaViewsIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3" fill="currentColor" />
+    </svg>
+  );
+}
+
+function CardMetaTimeIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle
+        cx="12"
+        cy="12"
+        r="8.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M12 7.6v4.8l3.1 1.9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function AiSparkleIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 3.8 13.9 8l4.3 1.6-4.3 1.6L12 15.4l-1.9-4.2L5.8 9.6 10.1 8 12 3.8Z"
+        fill="currentColor"
+      />
+      <path
+        d="M18.7 13.2l.9 2 2 .9-2 .9-.9 2-.9-2-2-.9 2-.9.9-2Z"
+        fill="currentColor"
+        opacity=".9"
+      />
+      <path
+        d="M5.5 14.3l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8.8-1.7Z"
+        fill="currentColor"
+        opacity=".85"
+      />
+    </svg>
+  );
+}
+
 function SortByDateIcon({
   direction,
   className,
@@ -604,6 +762,7 @@ export default function CityAdsViewClient({
   countryFa = "",
   countryEng = "",
   flagUrl,
+  cityCurrencySymbol = "",
   ads,
   cityCenter,
   departmentOptions,
@@ -625,6 +784,7 @@ export default function CityAdsViewClient({
   countryFa?: string;
   countryEng?: string;
   flagUrl?: string;
+  cityCurrencySymbol?: string;
   ads: CityAdCard[];
   cityCenter?: { lat: number; lon: number } | null;
   departmentOptions?: SelectOption[];
@@ -647,6 +807,8 @@ export default function CityAdsViewClient({
   const [selectedAdId, setSelectedAdId] = useState<string | null>(null);
   /** Wide layout (≥901px): moving the mouse over a list card tints the map pin. */
   const [allowListMapHover, setAllowListMapHover] = useState(false);
+  /** Matches city layout breakpoint: list hidden in map mode below this width. */
+  const [layoutNarrow, setLayoutNarrow] = useState(false);
   const [hoveredListAdId, setHoveredListAdId] = useState<string | null>(null);
   const [cityJumpId, setCityJumpId] = useState<string>(currentCityId ?? "");
   const [cityPickerOpen, setCityPickerOpen] = useState(false);
@@ -690,6 +852,11 @@ export default function CityAdsViewClient({
   const [filterNewOnly, setFilterNewOnly] = useState(false);
   const [filterExchangeOnly, setFilterExchangeOnly] = useState(false);
   const [filterNegotiableOnly, setFilterNegotiableOnly] = useState(false);
+  const [filterPromoAny, setFilterPromoAny] = useState(false);
+  const [filterPromoFeatured, setFilterPromoFeatured] = useState(false);
+  const [filterPromoSpotlight, setFilterPromoSpotlight] = useState(false);
+  const [filterPromoBump, setFilterPromoBump] = useState(false);
+  const [filterPromoUrgent, setFilterPromoUrgent] = useState(false);
   /** Draft values for price/item listing filters (applied only after user taps Apply). */
   const [listingDraftMinStr, setListingDraftMinStr] = useState("");
   const [listingDraftMaxStr, setListingDraftMaxStr] = useState("");
@@ -697,6 +864,11 @@ export default function CityAdsViewClient({
   const [listingDraftNewOnly, setListingDraftNewOnly] = useState(false);
   const [listingDraftExchangeOnly, setListingDraftExchangeOnly] = useState(false);
   const [listingDraftNegotiableOnly, setListingDraftNegotiableOnly] = useState(false);
+  const [listingDraftPromoAny, setListingDraftPromoAny] = useState(false);
+  const [listingDraftPromoFeatured, setListingDraftPromoFeatured] = useState(false);
+  const [listingDraftPromoSpotlight, setListingDraftPromoSpotlight] = useState(false);
+  const [listingDraftPromoBump, setListingDraftPromoBump] = useState(false);
+  const [listingDraftPromoUrgent, setListingDraftPromoUrgent] = useState(false);
   const [priorityPool, setPriorityPool] = useState<PriorityApiAd[]>([]);
   const [aiSearchOpen, setAiSearchOpen] = useState(false);
   const [aiQuery, setAiQuery] = useState("");
@@ -704,6 +876,8 @@ export default function CityAdsViewClient({
   const [aiMatchedIds, setAiMatchedIds] = useState<string[] | null>(null);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  /** 0-based page index for the main listing grid (see `ADS_LIST_PAGE_SIZE`). */
+  const [adsListPageIndex, setAdsListPageIndex] = useState(0);
   const directoryRef = useRef<HTMLDivElement | null>(null);
   const categoryRef = useRef<HTMLDivElement | null>(null);
   const advancedPanelRef = useRef<HTMLDivElement | null>(null);
@@ -721,7 +895,7 @@ export default function CityAdsViewClient({
 
   const filterScrollSig = useMemo(
     () =>
-      `${[...selectedDepartmentIds].sort().join("\0")}\n${[...selectedCatCodes].sort().join("\0")}\n${priceMinStr}\n${priceMaxStr}\n${filterFreeOnly}\n${filterNewOnly}\n${filterExchangeOnly}\n${filterNegotiableOnly}`,
+      `${[...selectedDepartmentIds].sort().join("\0")}\n${[...selectedCatCodes].sort().join("\0")}\n${priceMinStr}\n${priceMaxStr}\n${filterFreeOnly}\n${filterNewOnly}\n${filterExchangeOnly}\n${filterNegotiableOnly}\n${filterPromoAny}\n${filterPromoFeatured}\n${filterPromoSpotlight}\n${filterPromoBump}\n${filterPromoUrgent}`,
     [
       selectedDepartmentIds,
       selectedCatCodes,
@@ -731,6 +905,11 @@ export default function CityAdsViewClient({
       filterNewOnly,
       filterExchangeOnly,
       filterNegotiableOnly,
+      filterPromoAny,
+      filterPromoFeatured,
+      filterPromoSpotlight,
+      filterPromoBump,
+      filterPromoUrgent,
     ],
   );
 
@@ -746,7 +925,11 @@ export default function CityAdsViewClient({
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mqWide = window.matchMedia("(min-width: 901px)");
-    const update = () => setAllowListMapHover(mqWide.matches);
+    const update = () => {
+      const wide = mqWide.matches;
+      setAllowListMapHover(wide);
+      setLayoutNarrow(!wide);
+    };
     update();
     mqWide.addEventListener("change", update);
     return () => mqWide.removeEventListener("change", update);
@@ -772,6 +955,11 @@ export default function CityAdsViewClient({
         setListingDraftNewOnly(filterNewOnly);
         setListingDraftExchangeOnly(filterExchangeOnly);
         setListingDraftNegotiableOnly(filterNegotiableOnly);
+        setListingDraftPromoAny(filterPromoAny);
+        setListingDraftPromoFeatured(filterPromoFeatured);
+        setListingDraftPromoSpotlight(filterPromoSpotlight);
+        setListingDraftPromoBump(filterPromoBump);
+        setListingDraftPromoUrgent(filterPromoUrgent);
       }
     } else {
       advancedPanelEverOpenedRef.current = false;
@@ -786,6 +974,11 @@ export default function CityAdsViewClient({
     filterNewOnly,
     filterExchangeOnly,
     filterNegotiableOnly,
+    filterPromoAny,
+    filterPromoFeatured,
+    filterPromoSpotlight,
+    filterPromoBump,
+    filterPromoUrgent,
   ]);
 
   const listingDraftDirty = useMemo(
@@ -795,7 +988,12 @@ export default function CityAdsViewClient({
       listingDraftFreeOnly !== filterFreeOnly ||
       listingDraftNewOnly !== filterNewOnly ||
       listingDraftExchangeOnly !== filterExchangeOnly ||
-      listingDraftNegotiableOnly !== filterNegotiableOnly,
+      listingDraftNegotiableOnly !== filterNegotiableOnly ||
+      listingDraftPromoAny !== filterPromoAny ||
+      listingDraftPromoFeatured !== filterPromoFeatured ||
+      listingDraftPromoSpotlight !== filterPromoSpotlight ||
+      listingDraftPromoBump !== filterPromoBump ||
+      listingDraftPromoUrgent !== filterPromoUrgent,
     [
       listingDraftMinStr,
       listingDraftMaxStr,
@@ -803,12 +1001,22 @@ export default function CityAdsViewClient({
       listingDraftNewOnly,
       listingDraftExchangeOnly,
       listingDraftNegotiableOnly,
+      listingDraftPromoAny,
+      listingDraftPromoFeatured,
+      listingDraftPromoSpotlight,
+      listingDraftPromoBump,
+      listingDraftPromoUrgent,
       priceMinStr,
       priceMaxStr,
       filterFreeOnly,
       filterNewOnly,
       filterExchangeOnly,
       filterNegotiableOnly,
+      filterPromoAny,
+      filterPromoFeatured,
+      filterPromoSpotlight,
+      filterPromoBump,
+      filterPromoUrgent,
     ],
   );
 
@@ -841,6 +1049,11 @@ export default function CityAdsViewClient({
     setFilterNewOnly(listingDraftNewOnly);
     setFilterExchangeOnly(listingDraftExchangeOnly);
     setFilterNegotiableOnly(listingDraftNegotiableOnly);
+    setFilterPromoAny(listingDraftPromoAny);
+    setFilterPromoFeatured(listingDraftPromoFeatured);
+    setFilterPromoSpotlight(listingDraftPromoSpotlight);
+    setFilterPromoBump(listingDraftPromoBump);
+    setFilterPromoUrgent(listingDraftPromoUrgent);
     setOpenFilter(null);
     setAdvancedFiltersOpen(false);
   }, [
@@ -852,6 +1065,11 @@ export default function CityAdsViewClient({
     listingDraftNewOnly,
     listingDraftExchangeOnly,
     listingDraftNegotiableOnly,
+    listingDraftPromoAny,
+    listingDraftPromoFeatured,
+    listingDraftPromoSpotlight,
+    listingDraftPromoBump,
+    listingDraftPromoUrgent,
   ]);
 
   useEffect(() => {
@@ -1236,6 +1454,17 @@ export default function CityAdsViewClient({
     return () => window.clearInterval(id);
   }, [priorityStrip.length]);
 
+  const priceBounds = useMemo(() => {
+    const nums = ads
+      .map((a) => (typeof a.price === "number" && Number.isFinite(a.price) ? a.price : null))
+      .filter((n): n is number => n !== null && n >= 0);
+    if (nums.length === 0) return null;
+    const min = Math.floor(Math.min(...nums));
+    const max = Math.ceil(Math.max(...nums));
+    return { min, max: Math.max(min + 1, max) };
+  }, [ads]);
+  const sliderBounds = priceBounds ?? { min: 0, max: 1000 };
+
   const filteredAds = useMemo(
     () => {
       const q = searchQuery.trim().toLowerCase();
@@ -1270,6 +1499,12 @@ export default function CityAdsViewClient({
         if (filterNewOnly && !a.isNewItem) return false;
         if (filterExchangeOnly && !a.exchangeable) return false;
         if (filterNegotiableOnly && !a.negotiable) return false;
+        const adPromos = Array.isArray(a.activePromotions) ? a.activePromotions : [];
+        if (filterPromoAny && adPromos.length === 0) return false;
+        if (filterPromoFeatured && !adPromos.includes("featured")) return false;
+        if (filterPromoSpotlight && !adPromos.includes("spotlight")) return false;
+        if (filterPromoBump && !adPromos.includes("bump")) return false;
+        if (filterPromoUrgent && !adPromos.includes("urgent")) return false;
         if (hasPriceRange) {
           const p =
             typeof a.price === "number" && Number.isFinite(a.price) ? a.price : null;
@@ -1288,7 +1523,24 @@ export default function CityAdsViewClient({
         return v + (visitBumps[card.id] ?? 0);
       };
 
+      const nowMs = Date.now();
       out.sort((a, b) => {
+        // Promoted and non-expired ads should be shown first.
+        const aPromoScore = getAdPromotionScore(a);
+        const bPromoScore = getAdPromotionScore(b);
+        const aPromoExpiry = getAdPromotionExpiryMs(a, nowMs);
+        const bPromoExpiry = getAdPromotionExpiryMs(b, nowMs);
+        const aHasPriority = aPromoScore > 0 || aPromoExpiry !== null;
+        const bHasPriority = bPromoScore > 0 || bPromoExpiry !== null;
+        if (aHasPriority !== bHasPriority) return aHasPriority ? -1 : 1;
+        if (aPromoScore !== bPromoScore) return bPromoScore - aPromoScore;
+        if (aPromoExpiry !== null && bPromoExpiry !== null && aPromoExpiry !== bPromoExpiry) {
+          // Nearer expiry first keeps soon-ending promotions visible.
+          return aPromoExpiry - bPromoExpiry;
+        }
+        if (aPromoExpiry !== null && bPromoExpiry === null) return -1;
+        if (aPromoExpiry === null && bPromoExpiry !== null) return 1;
+
         if (listSortKey === "visits") {
           const av = visitTotal(a);
           const bv = visitTotal(b);
@@ -1328,6 +1580,11 @@ export default function CityAdsViewClient({
       filterNewOnly,
       filterExchangeOnly,
       filterNegotiableOnly,
+      filterPromoAny,
+      filterPromoFeatured,
+      filterPromoSpotlight,
+      filterPromoBump,
+      filterPromoUrgent,
     ],
   );
 
@@ -1341,6 +1598,41 @@ export default function CityAdsViewClient({
     }
     return out;
   }, [filteredAds, aiMatchedIds]);
+
+  const displayedAdsListResetSig = useMemo(() => {
+    if (displayedAds.length === 0) return "0";
+    const last = displayedAds[displayedAds.length - 1];
+    return `${displayedAds.length}:${displayedAds[0]?.id ?? ""}:${last?.id ?? ""}`;
+  }, [displayedAds]);
+
+  useEffect(() => {
+    setAdsListPageIndex(0);
+  }, [filterScrollSig, sortScrollSig, searchQuery, aiMatchedIds, displayedAdsListResetSig]);
+
+  const adsListTotalPages = useMemo(
+    () => Math.max(1, Math.ceil(displayedAds.length / ADS_LIST_PAGE_SIZE)),
+    [displayedAds.length],
+  );
+
+  useEffect(() => {
+    setAdsListPageIndex((p) => Math.min(p, Math.max(0, adsListTotalPages - 1)));
+  }, [adsListTotalPages]);
+
+  const adsListSafePage = Math.min(adsListPageIndex, adsListTotalPages - 1);
+  const paginatedListAds = useMemo(() => {
+    const start = adsListSafePage * ADS_LIST_PAGE_SIZE;
+    return displayedAds.slice(start, start + ADS_LIST_PAGE_SIZE);
+  }, [displayedAds, adsListSafePage]);
+
+  const showAdsPagination = displayedAds.length > ADS_LIST_PAGE_SIZE;
+  const isAdsListLastPage =
+    displayedAds.length > 0 && adsListSafePage === adsListTotalPages - 1;
+  /** Under the pager in the list column (not below the tall map column). */
+  const showPromoteInListCards =
+    isAdsListLastPage && (!layoutNarrow || mobileMode !== "map");
+  /** Narrow + map tab: list column is hidden in CSS — show promote under the map. */
+  const showPromoteInMapFooter =
+    isAdsListLastPage && layoutNarrow && mobileMode === "map";
 
   const runAiSearch = useCallback(async () => {
     const q = aiQuery.trim();
@@ -1447,6 +1739,8 @@ export default function CityAdsViewClient({
       ? t("city.introPrefix", { city: introCityName, country: introCountryLabel })
       : t("city.introPrefixNoCountry", { city: introCityName });
   const fmtN = (n: number) => (locale === "fa" ? toPersianDigits(n) : String(n));
+  const formatPrice = (n: number) =>
+    locale === "fa" ? n.toLocaleString("fa-IR") : n.toLocaleString("en-GB");
 
   const draftDirectorySummary =
     draftDepartmentIds.length === 0
@@ -1469,7 +1763,12 @@ export default function CityAdsViewClient({
     listingDraftFreeOnly ||
     listingDraftNewOnly ||
     listingDraftExchangeOnly ||
-    listingDraftNegotiableOnly;
+    listingDraftNegotiableOnly ||
+    listingDraftPromoAny ||
+    listingDraftPromoFeatured ||
+    listingDraftPromoSpotlight ||
+    listingDraftPromoBump ||
+    listingDraftPromoUrgent;
 
   const listingFiltersActive =
     priceMinStr.trim() !== "" ||
@@ -1477,7 +1776,12 @@ export default function CityAdsViewClient({
     filterFreeOnly ||
     filterNewOnly ||
     filterExchangeOnly ||
-    filterNegotiableOnly;
+    filterNegotiableOnly ||
+    filterPromoAny ||
+    filterPromoFeatured ||
+    filterPromoSpotlight ||
+    filterPromoBump ||
+    filterPromoUrgent;
 
   const advancedFiltersAppliedBadge =
     selectedDepartmentIds.length > 0 ||
@@ -1609,6 +1913,48 @@ export default function CityAdsViewClient({
           </div>
         </div>
 
+        <div className={`${styles.filterBlockCompact} ${styles.filterBarClearSlot}`}>
+          <button
+            type="button"
+            className={styles.clearFiltersBtn}
+            onClick={() => {
+              setSelectedDepartmentIds([]);
+              setSelectedCatCodes([]);
+              setSearchQuery("");
+              setListSortKey("date");
+              setListSortDir("desc");
+              setDirectoryQuery("");
+              setCategoryQuery("");
+              setOpenFilter(null);
+              setPriceMinStr("");
+              setPriceMaxStr("");
+              setFilterFreeOnly(false);
+              setFilterNewOnly(false);
+              setFilterExchangeOnly(false);
+              setFilterNegotiableOnly(false);
+              setListingDraftMinStr("");
+              setListingDraftMaxStr("");
+              setListingDraftFreeOnly(false);
+              setListingDraftNewOnly(false);
+              setListingDraftExchangeOnly(false);
+              setListingDraftNegotiableOnly(false);
+              setDraftDepartmentIds([]);
+              setDraftCatCodes([]);
+              setAdvancedFiltersOpen(false);
+              setAiMatchedIds(null);
+              setAiQuery("");
+              setAiError(null);
+            }}
+            disabled={!hasActiveFilters}
+            aria-label={t("city.clearFiltersAria")}
+            title={t("city.clearFiltersTitle")}
+          >
+            <span className={styles.clearFiltersIcon} aria-hidden="true">
+              ↺
+            </span>
+          </button>
+        </div>
+
         {authConfigured && userEmail ? (
           <div className={`${styles.filterBlockCompact} ${styles.aiSearchWrap} ${styles.filterBarAiSlot}`}>
             <button
@@ -1722,52 +2068,9 @@ export default function CityAdsViewClient({
               priority
             />
           </Link>
-          {flagUrl ? <img src={flagUrl} alt="" className={styles.filterCityFlag} /> : null}
           <span className={styles.filterWordmark} lang={locale === "fa" ? "fa" : "en"}>
             {`${t("city.brand")} · ${introCityName}`}
           </span>
-        </div>
-
-        <div className={`${styles.filterBlockCompact} ${styles.filterBarClearSlot}`}>
-          <button
-            type="button"
-            className={styles.clearFiltersBtn}
-            onClick={() => {
-              setSelectedDepartmentIds([]);
-              setSelectedCatCodes([]);
-              setSearchQuery("");
-              setListSortKey("date");
-              setListSortDir("desc");
-              setDirectoryQuery("");
-              setCategoryQuery("");
-              setOpenFilter(null);
-              setPriceMinStr("");
-              setPriceMaxStr("");
-              setFilterFreeOnly(false);
-              setFilterNewOnly(false);
-              setFilterExchangeOnly(false);
-              setFilterNegotiableOnly(false);
-              setListingDraftMinStr("");
-              setListingDraftMaxStr("");
-              setListingDraftFreeOnly(false);
-              setListingDraftNewOnly(false);
-              setListingDraftExchangeOnly(false);
-              setListingDraftNegotiableOnly(false);
-              setDraftDepartmentIds([]);
-              setDraftCatCodes([]);
-              setAdvancedFiltersOpen(false);
-              setAiMatchedIds(null);
-              setAiQuery("");
-              setAiError(null);
-            }}
-            disabled={!hasActiveFilters}
-            aria-label={t("city.clearFiltersAria")}
-            title={t("city.clearFiltersTitle")}
-          >
-            <span className={styles.clearFiltersIcon} aria-hidden="true">
-              ↺
-            </span>
-          </button>
         </div>
         </div>
 
@@ -2012,32 +2315,52 @@ export default function CityAdsViewClient({
                     listingFiltersDraftActive ? styles.advancedFiltersListingCardActive : ""
                   }`}
                 >
-                  <div className={styles.listingFilterPriceRow}>
-                    <label className={styles.listingFilterPriceField}>
-                      <span className={styles.listingFilterPriceLabel}>{t("city.priceMin")}</span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        className={styles.listingFilterInput}
-                        value={listingDraftMinStr}
-                        onChange={(e) => setListingDraftMinStr(e.target.value)}
-                        dir="ltr"
-                        autoComplete="off"
-                      />
-                    </label>
-                    <label className={styles.listingFilterPriceField}>
-                      <span className={styles.listingFilterPriceLabel}>{t("city.priceMax")}</span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        className={styles.listingFilterInput}
-                        value={listingDraftMaxStr}
-                        onChange={(e) => setListingDraftMaxStr(e.target.value)}
-                        dir="ltr"
-                        autoComplete="off"
-                      />
-                    </label>
-                  </div>
+                  <div className={styles.listingFilterSliders}>
+                      <label className={styles.listingFilterPriceField}>
+                        <span className={styles.listingFilterPriceLabel}>
+                          {t("city.priceMin")}
+                          <strong className={styles.listingFilterPriceValue}>
+                            {parseListingFilterPrice(listingDraftMinStr) ?? sliderBounds.min}
+                          </strong>
+                        </span>
+                        <input
+                          type="range"
+                          min={sliderBounds.min}
+                          max={sliderBounds.max}
+                          step={1}
+                          className={styles.listingFilterRange}
+                          value={parseListingFilterPrice(listingDraftMinStr) ?? sliderBounds.min}
+                          onChange={(e) => {
+                            const next = Number(e.target.value);
+                            const currMax =
+                              parseListingFilterPrice(listingDraftMaxStr) ?? sliderBounds.max;
+                            setListingDraftMinStr(String(Math.min(next, currMax)));
+                          }}
+                        />
+                      </label>
+                      <label className={styles.listingFilterPriceField}>
+                        <span className={styles.listingFilterPriceLabel}>
+                          {t("city.priceMax")}
+                          <strong className={styles.listingFilterPriceValue}>
+                            {parseListingFilterPrice(listingDraftMaxStr) ?? sliderBounds.max}
+                          </strong>
+                        </span>
+                        <input
+                          type="range"
+                          min={sliderBounds.min}
+                          max={sliderBounds.max}
+                          step={1}
+                          className={styles.listingFilterRange}
+                          value={parseListingFilterPrice(listingDraftMaxStr) ?? sliderBounds.max}
+                          onChange={(e) => {
+                            const next = Number(e.target.value);
+                            const currMin =
+                              parseListingFilterPrice(listingDraftMinStr) ?? sliderBounds.min;
+                            setListingDraftMaxStr(String(Math.max(next, currMin)));
+                          }}
+                        />
+                      </label>
+                    </div>
                   <label className={styles.filterCheckboxRow}>
                     <input
                       type="checkbox"
@@ -2073,6 +2396,49 @@ export default function CityAdsViewClient({
                     <span className={styles.filterCheckboxLabel}>
                       {t("city.filterNegotiableOnly")}
                     </span>
+                  </label>
+                  <div className={styles.listingPromoHead}>
+                    {t("city.filterPromotions")}
+                  </div>
+                  <label className={styles.filterCheckboxRow}>
+                    <input
+                      type="checkbox"
+                      checked={listingDraftPromoAny}
+                      onChange={(e) => setListingDraftPromoAny(e.target.checked)}
+                    />
+                    <span className={styles.filterCheckboxLabel}>{t("city.filterPromoAny")}</span>
+                  </label>
+                  <label className={styles.filterCheckboxRow}>
+                    <input
+                      type="checkbox"
+                      checked={listingDraftPromoFeatured}
+                      onChange={(e) => setListingDraftPromoFeatured(e.target.checked)}
+                    />
+                    <span className={styles.filterCheckboxLabel}>{t("city.promoteFeaturedTitle")}</span>
+                  </label>
+                  <label className={styles.filterCheckboxRow}>
+                    <input
+                      type="checkbox"
+                      checked={listingDraftPromoSpotlight}
+                      onChange={(e) => setListingDraftPromoSpotlight(e.target.checked)}
+                    />
+                    <span className={styles.filterCheckboxLabel}>{t("city.promoteSpotlightTitle")}</span>
+                  </label>
+                  <label className={styles.filterCheckboxRow}>
+                    <input
+                      type="checkbox"
+                      checked={listingDraftPromoBump}
+                      onChange={(e) => setListingDraftPromoBump(e.target.checked)}
+                    />
+                    <span className={styles.filterCheckboxLabel}>{t("city.promoteBumpTitle")}</span>
+                  </label>
+                  <label className={styles.filterCheckboxRow}>
+                    <input
+                      type="checkbox"
+                      checked={listingDraftPromoUrgent}
+                      onChange={(e) => setListingDraftPromoUrgent(e.target.checked)}
+                    />
+                    <span className={styles.filterCheckboxLabel}>{t("city.promoteUrgentTitle")}</span>
                   </label>
                 </div>
               </div>
@@ -2308,7 +2674,9 @@ export default function CityAdsViewClient({
               </div>
             ) : null}
 
-            {displayedAds.map((ad) => {
+            {paginatedListAds.map((ad) => {
+              const visiblePromotions = getVisiblePromotionTypes(ad);
+              const topPromotionType = getTopPromotionType(visiblePromotions);
               const approved = ad.approved === true;
               const paidValid =
                 ad.paidAds === true &&
@@ -2383,6 +2751,14 @@ export default function CityAdsViewClient({
               >
                 <div className={styles.cardTop}>
                   <div className={styles.cardThumb}>
+                    {topPromotionType ? (
+                      <span
+                        className={`${styles.cardPromoThumbBadge} ${PROMO_PILL_CLASS[topPromotionType]}`}
+                        aria-label={t(PROMO_LABEL_KEY[topPromotionType])}
+                      >
+                        <CardPromoTypeIcon type={topPromotionType} />
+                      </span>
+                    ) : null}
                     {ad.image ? (
                       <img
                         className={styles.cardImg}
@@ -2403,6 +2779,12 @@ export default function CityAdsViewClient({
                     ) : null}
                     {ad.category ? (
                       <div className={styles.cardCat}>{ad.category}</div>
+                    ) : null}
+                    {typeof ad.price === "number" && Number.isFinite(ad.price) ? (
+                      <div className={styles.cardPrice}>
+                        {formatPrice(ad.price)}
+                        {((ad.currencySymbol ?? cityCurrencySymbol).trim() && ` ${(ad.currencySymbol ?? cityCurrencySymbol).trim()}`) || ""}
+                      </div>
                     ) : null}
                     {(ad.reviewCount ?? 0) > 0 && ad.reviewAvg != null ? (
                       <div className={styles.cardReviewRow}>
@@ -2514,20 +2896,139 @@ export default function CityAdsViewClient({
                       </div>
                     ) : null}
                     <div className={styles.cardFootMeta}>
-                      <span
-                        className={styles.cardVisits}
-                        title={t("city.visitsTitle")}
-                      >
-                        {t("city.visits", { n: fmtN(visitCount) })}
+                      <span className={styles.cardMetaItem} title={t("city.visitsTitle")}>
+                        <CardMetaViewsIcon className={styles.cardMetaIcon} />
+                        <span className={styles.cardVisits}>
+                          {t("city.visits", { n: fmtN(visitCount) })}
+                        </span>
                       </span>
                       {addedAgoLabel ? (
-                        <div className={styles.cardAddedAgo}>{addedAgoLabel}</div>
+                        <div className={styles.cardMetaItem}>
+                          <CardMetaTimeIcon className={styles.cardMetaIcon} />
+                          <span className={styles.cardAddedAgo}>{addedAgoLabel}</span>
+                        </div>
                       ) : null}
                     </div>
                   </div>
               </article>
               );
             })}
+
+            {showAdsPagination ? (
+              <nav
+                className={styles.adsListPagination}
+                aria-label={t("city.adsPaginationAria")}
+              >
+                <button
+                  type="button"
+                  className={styles.adsListPaginationBtn}
+                  disabled={adsListSafePage <= 0}
+                  aria-label={t("city.adsPaginationPrev")}
+                  onClick={() => {
+                    setAdsListPageIndex((p) => Math.max(0, p - 1));
+                    requestAnimationFrame(() => {
+                      cardsSectionRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    });
+                  }}
+                >
+                  ‹
+                </button>
+                <span className={styles.adsListPaginationStatus}>
+                  {t("city.adsPaginationPage", {
+                    current: fmtN(adsListSafePage + 1),
+                    total: fmtN(adsListTotalPages),
+                  })}
+                </span>
+                <button
+                  type="button"
+                  className={styles.adsListPaginationBtn}
+                  disabled={adsListSafePage >= adsListTotalPages - 1}
+                  aria-label={t("city.adsPaginationNext")}
+                  onClick={() => {
+                    setAdsListPageIndex((p) =>
+                      Math.min(adsListTotalPages - 1, p + 1),
+                    );
+                    requestAnimationFrame(() => {
+                      cardsSectionRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      });
+                    });
+                  }}
+                >
+                  ›
+                </button>
+              </nav>
+            ) : null}
+
+            {showPromoteInListCards ? (
+              <div
+                className={`${styles.promoteCalloutStrip} ${styles.promoteCalloutAfterPager}`}
+              >
+                <section
+                  className={styles.promoteCallout}
+                  aria-labelledby="city-promote-heading"
+                >
+                  <h2
+                    id="city-promote-heading"
+                    className={styles.promoteCalloutTitle}
+                  >
+                    {t("city.promoteHeading")}
+                  </h2>
+                  <p className={styles.promoteCalloutIntro}>
+                    {t("city.promoteIntro")}
+                  </p>
+                  <ul className={styles.promoteCalloutList}>
+                    <li className={styles.promoteCalloutItem}>
+                      <span className={styles.promoteCalloutItemTitle}>
+                        {t("city.promoteFeaturedTitle")}
+                      </span>
+                      <span className={styles.promoteCalloutItemBody}>
+                        {t("city.promoteFeaturedBody")}
+                      </span>
+                    </li>
+                    <li className={styles.promoteCalloutItem}>
+                      <span className={styles.promoteCalloutItemTitle}>
+                        {t("city.promoteSpotlightTitle")}
+                      </span>
+                      <span className={styles.promoteCalloutItemBody}>
+                        {t("city.promoteSpotlightBody")}
+                      </span>
+                    </li>
+                    <li className={styles.promoteCalloutItem}>
+                      <span className={styles.promoteCalloutItemTitle}>
+                        {t("city.promoteBumpTitle")}
+                      </span>
+                      <span className={styles.promoteCalloutItemBody}>
+                        {t("city.promoteBumpBody")}
+                      </span>
+                    </li>
+                    <li className={styles.promoteCalloutItem}>
+                      <span className={styles.promoteCalloutItemTitle}>
+                        {t("city.promoteUrgentTitle")}
+                      </span>
+                      <span className={styles.promoteCalloutItemBody}>
+                        {t("city.promoteUrgentBody")}
+                      </span>
+                    </li>
+                  </ul>
+                  <div className={styles.promoteCalloutActions}>
+                    <Link href={loc("/add-ad")} className={styles.promoteCalloutCta}>
+                      {t("city.promoteCtaPost")}
+                    </Link>
+                    <Link
+                      href={loc("/workspace")}
+                      className={styles.promoteCalloutCtaSecondary}
+                    >
+                      {t("city.promoteCtaWorkspace")}
+                    </Link>
+                  </div>
+                </section>
+              </div>
+            ) : null}
           </div>
         </aside>
 
@@ -2619,6 +3120,69 @@ export default function CityAdsViewClient({
           >
             {cityIntroText}
           </p>
+
+          {showPromoteInMapFooter ? (
+            <div
+              className={`${styles.promoteCalloutStrip} ${styles.promoteCalloutMapFooter}`}
+            >
+              <section
+                className={styles.promoteCallout}
+                aria-label={t("city.promoteHeading")}
+              >
+                <h2 className={styles.promoteCalloutTitle}>
+                  {t("city.promoteHeading")}
+                </h2>
+                <p className={styles.promoteCalloutIntro}>
+                  {t("city.promoteIntro")}
+                </p>
+                <ul className={styles.promoteCalloutList}>
+                  <li className={styles.promoteCalloutItem}>
+                    <span className={styles.promoteCalloutItemTitle}>
+                      {t("city.promoteFeaturedTitle")}
+                    </span>
+                    <span className={styles.promoteCalloutItemBody}>
+                      {t("city.promoteFeaturedBody")}
+                    </span>
+                  </li>
+                  <li className={styles.promoteCalloutItem}>
+                    <span className={styles.promoteCalloutItemTitle}>
+                      {t("city.promoteSpotlightTitle")}
+                    </span>
+                    <span className={styles.promoteCalloutItemBody}>
+                      {t("city.promoteSpotlightBody")}
+                    </span>
+                  </li>
+                  <li className={styles.promoteCalloutItem}>
+                    <span className={styles.promoteCalloutItemTitle}>
+                      {t("city.promoteBumpTitle")}
+                    </span>
+                    <span className={styles.promoteCalloutItemBody}>
+                      {t("city.promoteBumpBody")}
+                    </span>
+                  </li>
+                  <li className={styles.promoteCalloutItem}>
+                    <span className={styles.promoteCalloutItemTitle}>
+                      {t("city.promoteUrgentTitle")}
+                    </span>
+                    <span className={styles.promoteCalloutItemBody}>
+                      {t("city.promoteUrgentBody")}
+                    </span>
+                  </li>
+                </ul>
+                <div className={styles.promoteCalloutActions}>
+                  <Link href={loc("/add-ad")} className={styles.promoteCalloutCta}>
+                    {t("city.promoteCtaPost")}
+                  </Link>
+                  <Link
+                    href={loc("/workspace")}
+                    className={styles.promoteCalloutCtaSecondary}
+                  >
+                    {t("city.promoteCtaWorkspace")}
+                  </Link>
+                </div>
+              </section>
+            </div>
+          ) : null}
         </section>
       </div>
 
@@ -2638,6 +3202,11 @@ export default function CityAdsViewClient({
             aria-labelledby="ai-search-dialog-title"
             onClick={(e) => e.stopPropagation()}
           >
+            <div className={styles.aiSearchHero}>
+              <span className={styles.aiSearchHeroIconWrap} aria-hidden>
+                <AiSparkleIcon className={styles.aiSearchHeroIcon} />
+              </span>
+            </div>
             <h2 id="ai-search-dialog-title" className={styles.aiSearchModalTitle}>
               {t("city.aiSearchModalTitle")}
             </h2>

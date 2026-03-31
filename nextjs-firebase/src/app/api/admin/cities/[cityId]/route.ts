@@ -62,6 +62,7 @@ export async function PATCH(
       country_eng: asString(body.country_eng),
       country_fa: asString(body.country_fa),
       flag_url: asString(body.flag_url),
+      currency_symbol: asString(body.currency_symbol),
       updatedAt: FieldValue.serverTimestamp(),
     };
     const order = asNumber(body.order);

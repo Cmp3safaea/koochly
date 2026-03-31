@@ -6,7 +6,7 @@
 .mobileToggle {
   display: none;
   position: sticky;
-  top: 0;
+  top: env(safe-area-inset-top, 0px);
   z-index: 50;
   background: var(--surface-glass-80);
   backdrop-filter: blur(10px);
@@ -207,14 +207,6 @@
 .filterLogo {
   width: auto;
   height: 34px;
-}
-
-.filterCityFlag {
-  width: 26px;
-  height: 18px;
-  object-fit: cover;
-  border-radius: 4px;
-  border: 1px solid var(--border-slate);
 }
 
 .filterWordmark {
@@ -897,6 +889,21 @@
   margin-bottom: 10px;
 }
 
+.listingFilterSliders {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border-input));
+  border-radius: 12px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-soft-08) 50%, var(--surface)) 0%,
+    color-mix(in srgb, var(--surface) 94%, white) 100%
+  );
+}
+
 .listingFilterPriceField {
   flex: 1;
   display: flex;
@@ -906,9 +913,23 @@
 }
 
 .listingFilterPriceLabel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-muted);
+}
+
+.listingFilterPriceValue {
+  font-size: 0.78rem;
+  color: var(--text-strong);
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-soft-12) 78%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border-input));
 }
 
 .listingFilterInput {
@@ -920,6 +941,82 @@
   font-size: 0.88rem;
   background: var(--surface);
   color: var(--text-strong);
+}
+
+.listingFilterRange {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+  height: 20px;
+  appearance: none;
+  background: transparent;
+}
+
+.listingFilterRange::-webkit-slider-runnable-track {
+  height: 7px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent) 35%, var(--surface-2)) 0%,
+    color-mix(in srgb, var(--accent) 70%, var(--surface-2)) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border-input));
+}
+
+.listingFilterRange::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-input));
+  background: radial-gradient(circle at 35% 35%, #fff 0 28%, var(--accent) 70%);
+  box-shadow:
+    0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 0 0 2px color-mix(in srgb, white 65%, transparent) inset;
+}
+
+.listingFilterRange::-moz-range-track {
+  height: 7px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent) 35%, var(--surface-2)) 0%,
+    color-mix(in srgb, var(--accent) 70%, var(--surface-2)) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border-input));
+}
+
+.listingFilterRange::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border-input));
+  background: radial-gradient(circle at 35% 35%, #fff 0 28%, var(--accent) 70%);
+  box-shadow:
+    0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 0 0 2px color-mix(in srgb, white 65%, transparent) inset;
+}
+
+.listingFilterRange:hover::-webkit-slider-thumb,
+.listingFilterRange:focus-visible::-webkit-slider-thumb,
+.listingFilterRange:hover::-moz-range-thumb,
+.listingFilterRange:focus-visible::-moz-range-thumb {
+  transform: scale(1.06);
+}
+
+.listingFilterRange:focus-visible {
+  outline: none;
+}
+
+.listingPromoHead {
+  margin-top: 6px;
+  margin-bottom: 2px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .listingFilterApplyRow {
@@ -994,6 +1091,12 @@
 .filterCheckboxRow:hover {
   background: var(--accent-soft-08);
   border-color: var(--accent-border-20);
+}
+
+.filterCheckboxRow:has(input[type="checkbox"]:checked) {
+  background: color-mix(in srgb, var(--accent-soft-12) 78%, var(--surface));
+  border-color: var(--accent-border-mid);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .filterCheckboxRow input[type="checkbox"] {
@@ -1169,6 +1272,175 @@
   gap: 10px;
 }
 
+.adsListPagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 4px 4px;
+  margin-top: 4px;
+}
+
+.adsListPaginationBtn {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-input);
+  background: var(--surface);
+  color: var(--text-ui);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.adsListPaginationBtn:hover:not(:disabled) {
+  border-color: var(--accent-border-mid);
+  background: var(--accent-soft-08);
+}
+
+.adsListPaginationBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.adsListPaginationStatus {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 7.5rem;
+  text-align: center;
+}
+
+.promoteCalloutStrip {
+  margin-top: 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Directly under list pagination — avoids placing CTA below the tall map column. */
+.promoteCalloutStrip.promoteCalloutAfterPager {
+  margin-top: 10px;
+}
+
+/* Narrow layout + map tab: list column is hidden; keep CTA in the map panel. */
+.promoteCalloutStrip.promoteCalloutMapFooter {
+  margin-top: 12px;
+  padding: 0 10px 14px;
+  box-sizing: border-box;
+}
+
+.promoteCallout {
+  margin-top: 0;
+  padding: 16px 14px 18px;
+  border-radius: 14px;
+  border: 1px solid var(--accent-border-mid);
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--accent-soft-12) 55%, var(--surface)),
+    var(--surface) 72%
+  );
+  box-shadow: 0 8px 24px var(--shadow-card-1);
+}
+
+.promoteCalloutTitle {
+  margin: 0 0 8px;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--text-strong);
+  line-height: 1.35;
+}
+
+.promoteCalloutIntro {
+  margin: 0 0 14px;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--text-slate-600);
+}
+
+.promoteCalloutList {
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.promoteCalloutItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-90);
+}
+
+.promoteCalloutItemTitle {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.promoteCalloutItemBody {
+  display: block;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-slate-600);
+}
+
+.promoteCalloutActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.promoteCalloutCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-decoration: none;
+  border: 1px solid var(--accent-border-strong);
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 1px 0 color-mix(in srgb, white 22%, transparent);
+}
+
+.promoteCalloutCta:hover {
+  filter: brightness(1.06);
+}
+
+.promoteCalloutCtaSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 750;
+  text-decoration: none;
+  border: 1px solid var(--border-input);
+  background: var(--surface);
+  color: var(--text-ui);
+}
+
+.promoteCalloutCtaSecondary:hover {
+  border-color: var(--accent-border-mid);
+  background: var(--accent-soft-08);
+}
+
 .card {
   cursor: pointer;
   background: var(--card-bg);
@@ -1224,6 +1496,7 @@
 .cardThumb {
   width: 96px;
   flex-shrink: 0;
+  position: relative;
 }
 
 .cardImg {
@@ -1257,6 +1530,111 @@
   word-break: break-word;
 }
 
+.cardPromoRow {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cardPromoPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px 4px 7px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
+  box-shadow:
+    0 2px 6px color-mix(in srgb, black 7%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 55%, transparent);
+}
+
+.card:hover .cardPromoPill {
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 12px color-mix(in srgb, black 11%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 55%, transparent);
+}
+
+.cardPromoPillIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cardPromoIconSvg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+
+.cardPromoPillText {
+  line-height: 1;
+  white-space: nowrap;
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardPromoPill_featured {
+  color: #92400e;
+  background: linear-gradient(160deg, #fffbeb 0%, #fde68a 120%);
+  border-color: color-mix(in srgb, #d97706 42%, transparent);
+}
+
+.cardPromoPill_spotlight {
+  color: #5b21b6;
+  background: linear-gradient(160deg, #faf5ff 0%, #ddd6fe 125%);
+  border-color: color-mix(in srgb, #7c3aed 38%, transparent);
+}
+
+.cardPromoPill_bump {
+  color: #065f46;
+  background: linear-gradient(160deg, #ecfdf5 0%, #a7f3d0 125%);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.cardPromoPill_urgent {
+  color: #991b1b;
+  background: linear-gradient(160deg, #fef2f2 0%, #fecaca 125%);
+  border-color: color-mix(in srgb, #dc2626 38%, transparent);
+}
+
+.cardPromoThumbBadge {
+  position: absolute;
+  top: 6px;
+  inset-inline-start: 6px;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, white 58%, transparent);
+  backdrop-filter: blur(2px);
+  box-shadow:
+    0 4px 12px color-mix(in srgb, black 16%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 60%, transparent);
+}
+
+.cardPromoThumbBadge .cardPromoIconSvg {
+  width: 16px;
+  height: 16px;
+}
+
 .cardEngName {
   margin: 3px 0 0 0;
   padding: 0;
@@ -1278,6 +1656,16 @@
   letter-spacing: 0.01em;
   width: 100%;
   max-width: 100%;
+}
+
+.cardPrice {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--accent);
 }
 
 .cardCat::before {
@@ -1379,6 +1767,21 @@
   min-width: 0;
   margin-inline-start: auto;
   text-align: right;
+}
+
+.cardMetaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+}
+
+.cardMetaIcon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  color: var(--text-slate-600);
+  opacity: 0.9;
 }
 
 .cardVisits {
@@ -2020,8 +2423,13 @@
     top: auto;
   }
 
+  .mapUserWelcome {
+    display: none;
+  }
+
   .mobileToggle {
     display: flex;
+    margin-top: 4px;
   }
 
   .filterBar {
@@ -2083,36 +2491,36 @@
     min-width: 0;
   }
 
-  .filterBarHasCityPicker > .filterBarAiSlot {
-    order: 5;
-  }
-
-  .filterBar:not(.filterBarHasCityPicker) > .filterBarAiSlot {
-    order: 4;
-  }
-
-  .filterBarHasCityPicker > .filterBarSortSlot {
-    order: 6;
-    width: auto;
-    flex: 0 0 auto;
-  }
-
-  .filterBar:not(.filterBarHasCityPicker) > .filterBarSortSlot {
-    order: 5;
-    width: auto;
-    flex: 0 0 auto;
-  }
-
   .filterBarHasCityPicker > .filterBarClearSlot {
-    order: 7;
+    order: 5;
     width: 48px;
     flex: 0 0 48px;
   }
 
   .filterBar:not(.filterBarHasCityPicker) > .filterBarClearSlot {
-    order: 6;
+    order: 4;
     width: 48px;
     flex: 0 0 48px;
+  }
+
+  .filterBarHasCityPicker > .filterBarAiSlot {
+    order: 6;
+  }
+
+  .filterBar:not(.filterBarHasCityPicker) > .filterBarAiSlot {
+    order: 5;
+  }
+
+  .filterBarHasCityPicker > .filterBarSortSlot {
+    order: 7;
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .filterBar:not(.filterBarHasCityPicker) > .filterBarSortSlot {
+    order: 6;
+    width: auto;
+    flex: 0 0 auto;
   }
 
   .advancedFiltersDept:has(.filterMenu),
@@ -2305,6 +2713,12 @@
     height: 20px;
   }
 
+  .columns[data-mobile-mode="list"] .mapCol .mapAuthBar {
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 66px);
+    z-index: 35;
+  }
+
 }
 
 /*
@@ -2378,7 +2792,10 @@
   position: fixed;
   inset: 0;
   z-index: 10000;
-  background: rgba(15, 23, 42, 0.45);
+  background:
+    radial-gradient(120% 80% at 20% 0%, rgba(20, 184, 166, 0.18), transparent 55%),
+    rgba(2, 6, 23, 0.55);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -2389,91 +2806,158 @@
 .aiSearchModal {
   margin-top: 8vh;
   width: 100%;
-  max-width: 440px;
-  background: var(--surface);
-  border: 1px solid var(--border-95);
+  max-width: 500px;
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--surface) 88%, white) 0%,
+      color-mix(in srgb, var(--surface) 95%, var(--accent-soft-08)) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border-95));
+  border-radius: 20px;
+  box-shadow:
+    0 26px 70px color-mix(in srgb, black 25%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 62%, transparent);
+  padding: 22px 22px 20px;
+}
+
+.aiSearchHero {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.aiSearchHeroIconWrap {
+  width: 44px;
+  height: 44px;
   border-radius: 14px;
-  box-shadow: 0 22px 48px var(--shadow-dropdown);
-  padding: 20px 20px 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft-12) 75%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border-input));
+  box-shadow:
+    0 8px 24px color-mix(in srgb, var(--accent) 18%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 55%, transparent);
+}
+
+.aiSearchHeroIcon {
+  width: 22px;
+  height: 22px;
 }
 
 .aiSearchModalTitle {
-  margin: 0 0 12px;
-  font-size: 1.15rem;
-  font-weight: 650;
+  margin: 0 0 8px;
+  font-size: 1.28rem;
+  font-weight: 850;
+  letter-spacing: -0.02em;
   color: var(--text-ui);
+  text-align: center;
+}
+
+.aiSearchLead {
+  margin: 0 0 12px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  text-align: center;
 }
 
 .aiSearchTextarea {
   width: 100%;
-  min-height: 100px;
+  min-height: 112px;
   box-sizing: border-box;
-  padding: 10px 12px;
-  border: 1px solid var(--border-input);
-  border-radius: 10px;
+  padding: 12px 13px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border-input));
+  border-radius: 13px;
   font: inherit;
-  font-size: 0.95rem;
+  font-size: 0.94rem;
+  line-height: 1.5;
   color: var(--text-ui);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 92%, white);
   resize: vertical;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
 }
 
 .aiSearchTextarea:focus {
   outline: none;
-  border-color: var(--accent-border-mid);
-  box-shadow: 0 0 0 3px var(--accent-soft-12);
+  border-color: color-mix(in srgb, var(--accent) 65%, var(--accent-border-mid));
+  background: var(--surface);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-soft-12) 75%, transparent);
 }
 
 .aiSearchPrivacy {
-  margin: 8px 0 10px;
-  font-size: 0.68rem;
+  margin: 10px 0 12px;
+  font-size: 0.7rem;
   line-height: 1.4;
   color: var(--text-slate-600);
+  text-align: center;
 }
 
 .aiSearchActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
+  gap: 10px;
+  justify-content: stretch;
 }
 
 .aiSearchBtnSecondary,
 .aiSearchBtnPrimary {
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.78rem;
+  flex: 1 1 160px;
+  min-height: 42px;
+  padding: 9px 14px;
+  border-radius: 11px;
+  font-size: 0.83rem;
+  font-weight: 750;
   cursor: pointer;
   border: 1px solid var(--border-input);
   background: var(--surface);
   color: var(--text-ui);
+  transition:
+    transform 0.12s ease,
+    border-color 0.15s ease,
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
 }
 
 .aiSearchBtnSecondary:hover:not(:disabled) {
   border-color: var(--accent-border-mid);
   background: var(--accent-soft-08);
+  transform: translateY(-1px);
 }
 
 .aiSearchBtnPrimary {
   border-color: var(--accent-border-mid);
-  background: var(--accent-soft-12);
-  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent-bright), #0f766e);
+  box-shadow: 0 8px 20px var(--accent-shadow-12);
 }
 
 .aiSearchBtnPrimary:hover:not(:disabled) {
-  filter: brightness(1.06);
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 11px 26px var(--accent-glow-25);
 }
 
 .aiSearchBtnSecondary:disabled,
 .aiSearchBtnPrimary:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .aiSearchErr {
-  margin: 10px 0 0;
-  font-size: 0.76rem;
+  margin: 12px 0 0;
+  font-size: 0.78rem;
+  font-weight: 650;
   color: #b91c1c;
+  text-align: center;
 }
 
 :global(html[data-theme="dark"]) .aiSearchErr {
@@ -2481,11 +2965,15 @@
 }
 
 .aiSearchThinking {
-  margin: 10px 0 8px;
-  padding: 11px 12px;
-  border-radius: 10px;
-  background: var(--accent-soft-08);
-  border: 1px solid var(--border-faint);
+  margin: 12px 0 10px;
+  padding: 12px 13px;
+  border-radius: 12px;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--accent-soft-12) 65%, var(--surface)) 0%,
+    color-mix(in srgb, var(--accent-soft-08) 62%, var(--surface)) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border-faint));
 }
 
 .aiSearchThinkingRow {
@@ -2496,8 +2984,8 @@
 }
 
 .aiSearchThinkingLabel {
-  font-size: 0.78rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 700;
   color: var(--text-ui);
   letter-spacing: 0.01em;
 }
@@ -2509,8 +2997,8 @@
 }
 
 .aiSearchDot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--accent);
   opacity: 0.35;
@@ -2541,6 +3029,28 @@
   .aiSearchDot {
     animation: none;
     opacity: 0.75;
+  }
+}
+
+@media (max-width: 560px) {
+  .aiSearchModal {
+    margin-top: 4vh;
+    border-radius: 16px;
+    padding: 16px 14px 14px;
+  }
+
+  .aiSearchModalTitle {
+    font-size: 1.08rem;
+  }
+
+  .aiSearchLead {
+    font-size: 0.82rem;
+    margin-bottom: 10px;
+  }
+
+  .aiSearchBtnSecondary,
+  .aiSearchBtnPrimary {
+    flex-basis: 100%;
   }
 }
 

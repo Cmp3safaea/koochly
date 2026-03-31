@@ -30,6 +30,7 @@ type CityRow = {
   country_eng: string;
   country_fa: string;
   flag_url: string;
+  currency_symbol: string;
   latlng: { lat: number; lng: number } | null;
   order: number | null;
   usageCount?: number;
@@ -174,6 +175,7 @@ export default function AdminClient({
   const [countryEng, setCountryEng] = useState("");
   const [countryFa, setCountryFa] = useState("");
   const [flagUrl, setFlagUrl] = useState("");
+  const [currencySymbol, setCurrencySymbol] = useState("");
   const [cityOrder, setCityOrder] = useState("");
   const [cityLat, setCityLat] = useState("");
   const [cityLng, setCityLng] = useState("");
@@ -297,6 +299,7 @@ export default function AdminClient({
         setCountryEng(picked.country_eng ?? "");
         setCountryFa(picked.country_fa ?? "");
         setFlagUrl(picked.flag_url ?? "");
+        setCurrencySymbol(picked.currency_symbol ?? "");
         setCityOrder(picked.order !== null && picked.order !== undefined ? String(picked.order) : "");
         setCityLat(
           picked.latlng && Number.isFinite(picked.latlng.lat) ? String(picked.latlng.lat) : "",
@@ -312,6 +315,7 @@ export default function AdminClient({
         setCountryEng("");
         setCountryFa("");
         setFlagUrl("");
+        setCurrencySymbol("");
         setCityOrder("");
         setCityLat("");
         setCityLng("");
@@ -642,6 +646,7 @@ export default function AdminClient({
     setCountryEng(selectedCity.country_eng ?? "");
     setCountryFa(selectedCity.country_fa ?? "");
     setFlagUrl(selectedCity.flag_url ?? "");
+    setCurrencySymbol(selectedCity.currency_symbol ?? "");
     setCityOrder(
       selectedCity.order !== null && selectedCity.order !== undefined
         ? String(selectedCity.order)
@@ -797,6 +802,7 @@ export default function AdminClient({
     setCountryEng("");
     setCountryFa("");
     setFlagUrl("");
+    setCurrencySymbol("");
     setCityOrder("5");
     setCityLat("");
     setCityLng("");
@@ -930,6 +936,7 @@ export default function AdminClient({
         country_eng: countryEng.trim(),
         country_fa: countryFa.trim(),
         flag_url: flagUrl.trim(),
+        currency_symbol: currencySymbol.trim(),
         order: orderNum,
         latlng:
           latNum !== null && Number.isFinite(latNum) && lngNum !== null && Number.isFinite(lngNum)
@@ -1777,6 +1784,14 @@ export default function AdminClient({
               <div className={styles.formRow}>
                 <label>{t("admin.flagUrl")}</label>
                 <input value={flagUrl} onChange={(e) => setFlagUrl(e.target.value)} />
+              </div>
+              <div className={styles.formRow}>
+                <label>{t("admin.currencySymbol")}</label>
+                <input
+                  value={currencySymbol}
+                  onChange={(e) => setCurrencySymbol(e.target.value)}
+                  placeholder={locale === "fa" ? "مثلاً £ یا $" : "e.g. £ or $"}
+                />
               </div>
               <div className={styles.formRow}>
                 <label>{t("admin.cityOrder")}</label>

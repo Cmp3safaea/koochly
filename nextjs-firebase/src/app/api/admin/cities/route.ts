@@ -68,6 +68,7 @@ export async function GET() {
         country_eng: asString(data.country_eng),
         country_fa: asString(data.country_fa),
         flag_url: asString(data.flag_url),
+        currency_symbol: asString(data.currency_symbol),
         order: asNumber(data.order),
         latlng: lat !== null && lng !== null ? { lat, lng } : null,
         usageCount: usageMap.get(cityEng.toLowerCase()) ?? 0,
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
     const countryEng = asString(body.country_eng);
     const countryFa = asString(body.country_fa);
     const flagUrl = asString(body.flag_url);
+    const currencySymbol = asString(body.currency_symbol);
     const active = asBoolean(body.active, false);
     const order = asNumber(body.order);
     const requestedId = asString(body.id);
@@ -119,6 +121,7 @@ export async function POST(request: Request) {
       country_eng: countryEng,
       country_fa: countryFa,
       flag_url: flagUrl,
+      currency_symbol: currencySymbol,
       updatedAt: FieldValue.serverTimestamp(),
       createdAt: FieldValue.serverTimestamp(),
     };

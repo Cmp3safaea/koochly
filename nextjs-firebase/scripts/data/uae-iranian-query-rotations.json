@@ -1,0 +1,62 @@
+[
+  {
+    "textQuery": "Iranian restaurant",
+    "includedType": "restaurant",
+    "catCode": "iranian_restaurant",
+    "cat": "Iranian restaurant"
+  },
+  {
+    "textQuery": "Persian restaurant",
+    "includedType": "restaurant",
+    "catCode": "persian_restaurant",
+    "cat": "Persian restaurant"
+  },
+  {
+    "textQuery": "Iranian food",
+    "includedType": "restaurant",
+    "catCode": "iranian_food",
+    "cat": "Iranian food"
+  },
+  {
+    "textQuery": "Persian cuisine",
+    "includedType": "restaurant",
+    "catCode": "persian_cuisine",
+    "cat": "Persian cuisine"
+  },
+  {
+    "textQuery": "Tehran restaurant",
+    "includedType": "restaurant",
+    "catCode": "iranian_tehran_style",
+    "cat": "Tehran-style restaurant"
+  },
+  {
+    "textQuery": "رستوران ایرانی",
+    "includedType": "restaurant",
+    "catCode": "iranian_restaurant_fa",
+    "cat": "Iranian restaurant (fa query)"
+  },
+  {
+    "textQuery": "Iranian supermarket",
+    "includedType": "supermarket",
+    "catCode": "iranian_supermarket",
+    "cat": "Iranian supermarket"
+  },
+  {
+    "textQuery": "Persian grocery",
+    "includedType": "grocery_store",
+    "catCode": "persian_grocery",
+    "cat": "Persian grocery"
+  },
+  {
+    "textQuery": "Iranian sweets bakery",
+    "includedType": "bakery",
+    "catCode": "iranian_sweets",
+    "cat": "Iranian sweets & bakery"
+  },
+  {
+    "textQuery": "Persian cafe",
+    "includedType": "cafe",
+    "catCode": "persian_cafe",
+    "cat": "Persian cafe"
+  }
+]

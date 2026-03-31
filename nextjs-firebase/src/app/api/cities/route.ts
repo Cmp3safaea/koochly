@@ -35,7 +35,16 @@ export async function GET() {
         }
       }
 
-      return { id: d.id, ...data };
+      const normalizedCurrencySymbol =
+        typeof data.currency_symbol === "string" && data.currency_symbol.trim()
+          ? data.currency_symbol.trim()
+          : typeof data.currencySymbol === "string" && data.currencySymbol.trim()
+            ? data.currencySymbol.trim()
+            : typeof data.currency === "string" && data.currency.trim()
+              ? data.currency.trim()
+              : "";
+
+      return { id: d.id, ...data, currency_symbol: normalizedCurrencySymbol };
     });
 
     // Sort by `order` (if present). Use dynamic access to avoid TS schema mismatches.

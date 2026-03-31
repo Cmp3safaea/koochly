@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { getMapsBrowserApiKey } from "../../../lib/mapsBrowserKey";
 import AddAdClient from "./AddAdClient";
 import { withLocale } from "@koochly/shared";
@@ -24,5 +25,9 @@ export async function generateMetadata({
 
 export default function AddAdPage() {
   const googleMapsApiKey = getMapsBrowserApiKey();
-  return <AddAdClient googleMapsApiKey={googleMapsApiKey} />;
+  return (
+    <Suspense fallback={null}>
+      <AddAdClient googleMapsApiKey={googleMapsApiKey} />
+    </Suspense>
+  );
 }
