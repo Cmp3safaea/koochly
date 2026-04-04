@@ -1,14 +1,46 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { I18nProvider } from "../../i18n/client";
-import { getMessages, isLocale, locales, type Locale } from "@koochly/shared";
+import {
+  getMessages,
+  isLocale,
+  locales,
+  logoPublicPath,
+  type Locale,
+} from "@koochly/shared";
 import { LanguageSwitcher } from "../../components/LanguageSwitcher";
 import FirebaseRuntimeInit from "../../components/FirebaseRuntimeInit";
 import { getFirebaseWebPublicConfig } from "../../lib/firebaseWebConfig";
+import { getSiteBaseUrl } from "../../lib/siteUrl";
 import { ThemeToggle } from "../ThemeToggle";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: loc } = await params;
+  if (!isLocale(loc)) return {};
+  const locale = loc as Locale;
+  const logo = logoPublicPath(locale);
+  return {
+    openGraph: {
+      images: [{ url: logo, alt: "Persiana" }],
+    },
+    twitter: {
+      images: [logo],
+    },
+    icons: {
+      icon: logo,
+      shortcut: logo,
+      apple: logo,
+    },
+  };
 }
 
 export default async function LocaleLayout({

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import ProfileClient from "../profile/ProfileClient";
 
 export const metadata: Metadata = {
-  title: "My workspace - Divaro",
+  title: "My workspace - Persiana",
   robots: { index: false, follow: false },
 };
 

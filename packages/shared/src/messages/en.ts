@@ -14,9 +14,11 @@ const en: Messages = {
     addYourAd: "Post your listing",
   },
   home: {
-    brand: "Divaro",
-    loadingWelcome: "Welcome to Divaro",
+    brand: "Persiana",
+    loadingWelcome: "Welcome to Persiana",
     loadingSubtitle: "A trusted guide to Iranian businesses abroad",
+    splashAria: "Welcome splash",
+    splashSkip: "Skip",
     heroTitle: "Where do you live?",
     heroTitleWithCity: "Go to ads for {{city}}",
     heroExploreMoreCities: "Explore ads in more cities",
@@ -24,10 +26,10 @@ const en: Messages = {
     searchAria: "Search city",
     noCountry: "No regions found",
     loadError: "Could not load cities",
-    infoWhatTitle: "What is Divaro?",
+    infoWhatTitle: "What is Persiana?",
     infoWhatBody:
-      "Divaro is your marketplace where you can buy or sell goods directly. Divaro is also a broad directory for Iranian businesses abroad and locally, making it easy to discover the services you need with a simple, comfortable experience.",
-    infoHowTitle: "How does Divaro work?",
+      "Persiana is your marketplace where you can buy or sell goods directly. Persiana is also a broad directory for Iranian businesses abroad and locally, making it easy to discover the services you need with a simple, comfortable experience.",
+    infoHowTitle: "How does Persiana work?",
     infoHowBody:
       "Find businesses and services in a few clicks. The experience is designed to be fast and clear for everyone.",
     cardSearchTitle: "Find businesses",
@@ -53,6 +55,7 @@ const en: Messages = {
     menuAria: "Menu",
     menuTitle: "Menu",
     changeCity: "Change city",
+    switchCityMenuTitle: "Other cities",
     about: "About",
     help: "Help",
     clearFiltersAria: "Clear filters",
@@ -94,16 +97,16 @@ const en: Messages = {
     filterNegotiableOnly: "Negotiable only",
     filterPromotions: "Promotions",
     filterPromoAny: "Any promoted ad",
-    brand: "Divaro",
+    brand: "Persiana",
     deptQuickAria: "Departments",
     priorityStripAria: "Featured listings carousel",
     priorityStripPrevAria: "Previous featured listings",
     priorityStripNextAria: "Next featured listings",
     relatedAds: "Related listings",
     introPrefix:
-      "On Divaro we gather a broad directory of Iranian community businesses and services in {{city}} — doctors, restaurants, salons, legal help, schools, shops, and more. If you run a business in {{city}}, you can add your details and reach thousands of Iranians living in {{country}}.",
+      "On Persiana we gather a broad directory of Iranian community businesses and services in {{city}} — doctors, restaurants, salons, legal help, schools, shops, and more. If you run a business in {{city}}, you can add your details and reach thousands of Iranians living in {{country}}.",
     introPrefixNoCountry:
-      "On Divaro we gather a broad directory of Iranian community businesses and services in {{city}} — doctors, restaurants, salons, legal help, schools, shops, and more. If you run a business in {{city}}, you can add your details and reach more people.",
+      "On Persiana we gather a broad directory of Iranian community businesses and services in {{city}} — doctors, restaurants, salons, legal help, schools, shops, and more. If you run a business in {{city}}, you can add your details and reach more people.",
     emptyTitle: "No listings found",
     emptyBody: "Nothing matches the current filters.",
     adsPaginationAria: "Listing pages",
@@ -118,7 +121,7 @@ const en: Messages = {
       "These ads appear in a rotated slot at the top of their category for 3, 7, or 14 days, significantly increasing visibility.",
     promoteSpotlightTitle: "Spotlight listing",
     promoteSpotlightBody:
-      "Your listing can be featured on the Divaro home page, reaching people beyond your category.",
+      "Your listing can be featured on the Persiana home page, reaching people beyond your category.",
     promoteBumpTitle: "Bump up",
     promoteBumpBody:
       "Moves your listing back toward the top of results, as if you just posted — useful when views slow down.",
@@ -192,7 +195,7 @@ const en: Messages = {
     helpPageDismiss: "Close walkthrough",
     helpTourMenuTitle: "City and help icons",
     helpTourMenuText:
-      "The first hamburger (☰) opens the city switcher when several cities are available. The ? button opens this page tour. The Divaro + city line and logo return home. Site-wide About and Help are on the home page.",
+      "The first hamburger (☰) opens the city switcher when several cities are available. The ? button opens this page tour. The Persiana + city line and logo return home. Site-wide About and Help are on the home page.",
     helpTourListMapTitle: "List and Map (phones)",
     helpTourListMapText:
       "On smaller screens, use these tabs to switch between the scrollable list of ads and the map of pins.",
@@ -235,7 +238,7 @@ const en: Messages = {
   },
   addAd: {
     notConfigured: "Firebase is not configured on the client.",
-    brand: "Divaro",
+    brand: "Persiana",
     sub: "New listing",
     backHome: "← Back to home",
     kicker: "Your listing",
@@ -333,8 +336,8 @@ const en: Messages = {
     errCities: "Could not load cities",
     errDept: "Could not load categories",
     errLoad: "Load error",
-    metaTitle: "New listing - Divaro",
-    metaDesc: "Post a new business listing on Divaro.",
+    metaTitle: "New listing - Persiana",
+    metaDesc: "Post a new business listing on Persiana.",
     modePickTitle: "How do you want to start?",
     modePickLead:
       "Pick manual if you already know every field, or AI assist to pre-fill section, category, title, English name, and description from a short description.",
@@ -432,8 +435,8 @@ const en: Messages = {
     galleryHint: "Click an image to enlarge",
     galleryListAria: "Listing photos",
     galleryOpenImage: "Enlarge image {{n}} of {{total}}",
-    metaTitleSuffix: " - Divaro",
-    metaDescFallback: "Ad details on Divaro.",
+    metaTitleSuffix: " - Persiana",
+    metaDescFallback: "Ad details on Persiana.",
     reviewsTitle: "Customer reviews",
     reviewsSubtitle: "Ratings from signed-in users",
     reviewsLoading: "Loading reviews…",
@@ -465,7 +468,7 @@ const en: Messages = {
       "Sign-in is not available in this build, so you cannot post a review here. You can still read reviews below.",
   },
   admin: {
-    metaTitle: "System Admin - Divaro",
+    metaTitle: "System Admin - Persiana",
     metaDesc: "Manage directory departments and categories.",
     title: "Admin Panel",
     sub: "System management",

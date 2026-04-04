@@ -11,7 +11,8 @@ import {
 } from "../../../lib/firebaseClient";
 import { getCitiesCached } from "../../../lib/citiesClientCache";
 import { useI18n, useLocalizedHref } from "../../../i18n/client";
-import { telHref, type Locale } from "@koochly/shared";
+import { logoPublicPath, telHref, type Locale } from "@koochly/shared";
+import { useDocumentTheme } from "../../../lib/useDocumentTheme";
 import cityStyles from "../city/[cityId]/CityAdsViewClient.module.css";
 import styles from "./ProfilePage.module.css";
 
@@ -338,6 +339,7 @@ const EMPTY_PROFILE: ProfileRow = {
 
 export default function ProfileClient({ showWorkspaceHeader = false }: { showWorkspaceHeader?: boolean }) {
   const { t, locale } = useI18n();
+  const docTheme = useDocumentTheme();
   const loc = useLocalizedHref();
   const router = useRouter();
   const configured = isFirebaseClientConfigured();
@@ -660,7 +662,7 @@ export default function ProfileClient({ showWorkspaceHeader = false }: { showWor
         <header className={styles.workspaceHeader}>
           <Link href={loc("/")} className={styles.workspaceBrand}>
             <img
-              src="/divaro.png"
+              src={logoPublicPath(locale, docTheme)}
               alt={t("home.brand")}
               className={styles.workspaceLogo}
               decoding="async"

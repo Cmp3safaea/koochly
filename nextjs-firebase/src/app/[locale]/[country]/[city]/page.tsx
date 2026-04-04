@@ -638,7 +638,7 @@ export default async function CityAdsByCountryPage({
       {
         "@type": "ListItem",
         position: 1,
-        name: "Divaro",
+        name: "Persiana",
         item: `${getSiteBaseUrl()}/${uiLocale}`,
       },
       {
@@ -657,7 +657,7 @@ export default async function CityAdsByCountryPage({
   const collectionJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: `${pageTitle} - Divaro`,
+    name: `${pageTitle} - Persiana`,
     url: canonicalUrl,
     inLanguage: uiLocale,
     description: `Business listings for ${pageTitle}.`,
@@ -722,7 +722,7 @@ export async function generateMetadata({
   const locale = resolveLocale(localeRaw);
   const countryParam = toNonEmptyString(country);
   const cityParam = toNonEmptyString(city);
-  if (!countryParam || !cityParam) return { title: "Divaro" };
+  if (!countryParam || !cityParam) return { title: "Persiana" };
 
   const db = getFirestoreAdmin();
   const countryKey = sanitizeCityToken(countryParam);
@@ -741,7 +741,7 @@ export async function generateMetadata({
     }) ?? null;
 
   const citySnap = match ?? (cityEngQ.empty ? null : cityEngQ.docs[0] ?? null);
-  if (!citySnap) return { title: "Divaro" };
+  if (!citySnap) return { title: "Persiana" };
 
   const cityData = citySnap.data() as Record<string, unknown>;
   const cityEng = sanitizeCityToken(cityData.city_eng);
@@ -754,7 +754,7 @@ export async function generateMetadata({
   const canonicalPath = withLocale(locale, pathWithinLocale);
 
   return {
-    title: countryFa ? `${seoCity} - Divaro Ads (${countryFa})` : `${seoCity} - Divaro Ads`,
+    title: countryFa ? `${seoCity} - Persiana Ads (${countryFa})` : `${seoCity} - Persiana Ads`,
     description: countryFa
       ? `Explore business listings and ads for ${seoCity} in ${countryFa}.`
       : `Explore business listings and ads for ${seoCity}.`,
@@ -767,7 +767,7 @@ export async function generateMetadata({
       },
     },
     openGraph: {
-      title: countryFa ? `${seoCity} Ads - Divaro` : `${seoCity} Ads - Divaro`,
+      title: countryFa ? `${seoCity} Ads - Persiana` : `${seoCity} Ads - Persiana`,
     },
   };
 }

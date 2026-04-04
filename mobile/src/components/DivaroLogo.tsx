@@ -1,6 +1,6 @@
 import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
-/** Rose-gold mark; pair with `BrandTitle` for localized name (دیوارو / Divaro). */
+/** Rose-gold mark; pair with `BrandTitle` for localized name (پرشیانا / Persiana). */
 export function DivaroLogo({
   width = 200,
   height = 54,
@@ -9,7 +9,7 @@ export function DivaroLogo({
   height?: number;
 }) {
   return (
-    <Svg width={width} height={height} viewBox="0 0 360 96" accessibilityLabel="Divaro">
+    <Svg width={width} height={height} viewBox="0 0 360 96" accessibilityLabel="Persiana">
       <Defs>
         <LinearGradient id="divaroGoldMobile" x1="0%" y1="0%" x2="100%" y2="100%">
           <Stop offset="0%" stopColor="#d4a574" />

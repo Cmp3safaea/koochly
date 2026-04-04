@@ -1,5 +1,5 @@
 /**
- * Indexable URL policy (sitemap + robots) for Divaro.
+ * Indexable URL policy (sitemap + robots) for Persiana.
  *
  * **Included in sitemap**
  * - `/` — home

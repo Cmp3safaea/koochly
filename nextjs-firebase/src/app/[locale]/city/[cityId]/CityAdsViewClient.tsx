@@ -8,7 +8,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { recordAdVisit } from "../../../../lib/recordAdVisit";
-import { telHref, type Locale } from "@koochly/shared";
+import { logoPublicPath, telHref, type Locale } from "@koochly/shared";
+import { useDocumentTheme } from "../../../../lib/useDocumentTheme";
 import { getAuthClientOrNull, getGoogleProvider } from "../../../../lib/firebaseClient";
 import { useI18n, useLocalizedHref } from "../../../../i18n/client";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
@@ -801,6 +802,7 @@ export default function CityAdsViewClient({
   const router = useRouter();
   const pathname = usePathname();
   const { t, locale } = useI18n();
+  const docTheme = useDocumentTheme();
   const loc = useLocalizedHref();
   const [mobileMode, setMobileMode] = useState<"list" | "map">("list");
   const [selectedAdId, setSelectedAdId] = useState<string | null>(null);
@@ -1846,35 +1848,78 @@ export default function CityAdsViewClient({
           >
             <button
               type="button"
-              className={styles.menuIconBtn}
+              className={`${styles.cityPickerTrigger} ${
+                cityPickerOpen ? styles.cityPickerTriggerOpen : ""
+              }`}
               aria-label={t("city.changeCity")}
               aria-expanded={cityPickerOpen}
+              aria-haspopup="listbox"
               title={t("city.changeCity")}
               onClick={() => setCityPickerOpen((v) => !v)}
             >
-              <span className={styles.menuIcon} aria-hidden="true">
-                ☰
-              </span>
+              <svg
+                className={styles.cityPickerPin}
+                viewBox="0 0 24 24"
+                width={20}
+                height={20}
+                aria-hidden
+                focusable="false"
+              >
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 21s7-4.35 7-11a7 7 0 10-14 0c0 6.65 7 11 7 11z"
+                />
+                <circle cx="12" cy="10" r="2.5" fill="currentColor" stroke="none" />
+              </svg>
+              <span className={styles.cityPickerLabel}>{t("city.changeCity")}</span>
+              <svg
+                className={`${styles.cityPickerChevron} ${
+                  cityPickerOpen ? styles.cityPickerChevronOpen : ""
+                }`}
+                viewBox="0 0 20 20"
+                width={16}
+                height={16}
+                aria-hidden
+                focusable="false"
+              >
+                <path
+                  fill="currentColor"
+                  d="M5.2 7.35L10 12.15l4.8-4.8 1.06 1.06L10 14.27 4.14 8.41 5.2 7.35z"
+                />
+              </svg>
             </button>
             {cityPickerOpen ? (
-              <div className={styles.cityQuickMenu}>
-                {cityOptions.map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    className={`${styles.cityQuickItem} ${
-                      opt.id === cityJumpId ? styles.cityQuickItemActive : ""
-                    }`}
-                    onClick={() => {
-                      setCityPickerOpen(false);
-                      setCityJumpId(opt.id);
-                      if (!opt.id || opt.id === currentCityId) return;
-                      router.push(loc(`/city/${encodeURIComponent(opt.id)}`));
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+              <div
+                className={styles.cityQuickMenu}
+                role="listbox"
+                aria-label={t("city.switchCityMenuTitle")}
+              >
+                <div className={styles.cityQuickMenuHeader}>{t("city.switchCityMenuTitle")}</div>
+                <div className={styles.cityQuickMenuList}>
+                  {cityOptions.map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      role="option"
+                      aria-selected={opt.id === currentCityId}
+                      className={`${styles.cityQuickItem} ${
+                        opt.id === cityJumpId ? styles.cityQuickItemActive : ""
+                      }`}
+                      onClick={() => {
+                        setCityPickerOpen(false);
+                        setCityJumpId(opt.id);
+                        if (!opt.id || opt.id === currentCityId) return;
+                        router.push(loc(`/city/${encodeURIComponent(opt.id)}`));
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : null}
           </div>
@@ -2061,7 +2106,7 @@ export default function CityAdsViewClient({
         <div className={styles.filterLogoWrap}>
           <Link href={loc("/")}>
             <img
-              src="/divaro.png"
+              src={logoPublicPath(locale, docTheme)}
               alt={t("city.brand")}
               className={styles.filterLogo}
               decoding="async"

@@ -384,7 +384,7 @@ export default async function CityCategoryLandingPage({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Divaro", item: `${getSiteBaseUrl()}/${locale}` },
+      { "@type": "ListItem", position: 1, name: "Persiana", item: `${getSiteBaseUrl()}/${locale}` },
       { "@type": "ListItem", position: 2, name: cityName, item: `${getSiteBaseUrl()}${cityHubPath}` },
       { "@type": "ListItem", position: 3, name: categoryLabel, item: canonicalUrl },
     ],
@@ -392,7 +392,7 @@ export default async function CityCategoryLandingPage({
   const collectionJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: `${pageTitle} - Divaro`,
+    name: `${pageTitle} - Persiana`,
     url: canonicalUrl,
     inLanguage: locale,
   };
@@ -440,12 +440,12 @@ export async function generateMetadata({
   const countryParam = toNonEmptyString(country);
   const cityParam = toNonEmptyString(city);
   const catCodeParam = toNonEmptyString(catCode);
-  if (!countryParam || !cityParam || !catCodeParam) return { title: "Divaro" };
+  if (!countryParam || !cityParam || !catCodeParam) return { title: "Persiana" };
 
   const pathWithinLocale = `/${countryParam}/${cityParam}/category/${catCodeParam}/`;
   return {
-    title: `${catCodeParam} in ${cityParam} - Divaro`,
-    description: `Browse ${catCodeParam} listings in ${cityParam} on Divaro.`,
+    title: `${catCodeParam} in ${cityParam} - Persiana`,
+    description: `Browse ${catCodeParam} listings in ${cityParam} on Persiana.`,
     alternates: {
       canonical: withLocale(locale, pathWithinLocale),
       languages: {

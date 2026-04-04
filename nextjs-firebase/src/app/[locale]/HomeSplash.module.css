@@ -1,0 +1,192 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 4500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--surface);
+  opacity: 1;
+  transition:
+    opacity 0.75s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 0s;
+  visibility: visible;
+}
+
+.rootExit {
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 0.7s;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 100% 80% at 50% 20%, rgba(15, 118, 110, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 70% at 80% 60%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(15, 23, 42, 0.35) 45%,
+      rgba(15, 23, 42, 0.55) 100%
+    );
+  pointer-events: none;
+}
+
+:global(html[data-theme="dark"]) .scrim {
+  background:
+    radial-gradient(ellipse 100% 80% at 50% 18%, rgba(45, 212, 191, 0.12) 0%, transparent 52%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.5) 0%, rgba(2, 6, 23, 0.82) 100%);
+}
+
+.shine {
+  position: absolute;
+  inset: -50%;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.06) 48%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.06) 52%,
+    transparent 60%
+  );
+  animation: splashShine 5.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes splashShine {
+  0% {
+    transform: translateX(-35%) rotate(12deg);
+  }
+  100% {
+    transform: translateX(35%) rotate(12deg);
+  }
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: min(calc(100vw - 20px), 720px);
+  padding: max(1rem, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px))
+    max(5.5rem, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+  text-align: center;
+  animation: splashContentIn 1s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+@keyframes splashContentIn {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.94);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.logo {
+  display: block;
+  width: auto;
+  max-width: min(96vw, 680px);
+  height: auto;
+  /* Larger on narrow phones (vw), capped by dynamic viewport so notches / short screens fit */
+  max-height: clamp(9.5rem, min(58vw, 44dvh), 20rem);
+  object-fit: contain;
+  filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.35));
+  animation: splashLogoFloat 3.2s ease-in-out infinite alternate;
+}
+
+@media (min-width: 480px) {
+  .logo {
+    max-height: clamp(10rem, min(36vw, 50dvh), 22rem);
+  }
+}
+
+@media (min-width: 768px) {
+  .logo {
+    max-width: min(88vw, 720px);
+    max-height: clamp(11rem, 28vw, 24rem);
+  }
+}
+
+@keyframes splashLogoFloat {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-6px);
+  }
+}
+
+.skip {
+  position: absolute;
+  bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  margin: 0;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.skip:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.skip:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shine {
+    animation: none;
+    opacity: 0;
+  }
+
+  .content {
+    animation: splashContentInReduced 0.35s ease-out 0s both;
+  }
+
+  @keyframes splashContentInReduced {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .logo {
+    animation: none;
+  }
+
+  .rootExit {
+    transition-duration: 0.2s;
+  }
+}

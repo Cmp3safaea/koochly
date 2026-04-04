@@ -230,7 +230,7 @@ export async function POST(request: Request) {
       ? "Use English for title and details. engName should be a clear English business or listing name (can match title if appropriate)."
       : "Use Persian (Farsi) for title and details. engName must be a short English name or transliteration suitable for URLs and international readers.";
 
-  const systemPrompt = `You help users create a classified listing on Divaro (local businesses and goods).
+  const systemPrompt = `You help users create a classified listing on Persiana (local businesses and goods).
 
 You receive:
 1) A JSON "taxonomy": array of departments. Each has id, label, and categories: { code, label, subcategories[] }.

@@ -5,11 +5,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import styles from "./page.module.css";
-import IranBg from "../images/iran.jpg";
 import { AuthWelcome } from "../AuthWelcome";
 import { useI18n, useLocalizedHref } from "../../i18n/client";
+import { logoPublicPath } from "@koochly/shared";
 import { getAuthClientOrNull, isFirebaseClientConfigured } from "../../lib/firebaseClient";
+import { useDocumentTheme } from "../../lib/useDocumentTheme";
 import { getCitiesCached } from "../../lib/citiesClientCache";
+import { HomeSplash } from "./HomeSplash";
 
 type City = {
   id: string;
@@ -30,6 +32,7 @@ type EventItem = {
 
 export default function HomePage() {
   const { t, locale } = useI18n();
+  const docTheme = useDocumentTheme();
   const loc = useLocalizedHref();
   const [cities, setCities] = useState<City[]>([]);
   const [citiesStatus, setCitiesStatus] = useState<string | null>(null);
@@ -276,11 +279,6 @@ export default function HomePage() {
   }, [events]);
 
   useEffect(() => {
-    // Open the first country by default (nice UX), but don't keep overriding user choice.
-    if (!openCountry && countries.length > 0) setOpenCountry(countries[0].country);
-  }, [countries, openCountry]);
-
-  useEffect(() => {
     if (!authConfigured) return;
     const auth = getAuthClientOrNull();
     if (!auth) return;
@@ -321,15 +319,16 @@ export default function HomePage() {
     }
 
     if (openCountry && !countries.some((c) => c.country === openCountry)) {
-      setOpenCountry(countries[0].country);
+      setOpenCountry(null);
     }
   }, [countries, openCountry]);
 
   return (
     <>
+      <HomeSplash />
       <div
         className={styles.pageBackground}
-        style={{ backgroundImage: `url(${IranBg.src})` }}
+        style={{ backgroundImage: "url(/background.png)" }}
         aria-hidden="true"
       />
       <header className={styles.topBar}>
@@ -337,7 +336,7 @@ export default function HomePage() {
           <div className={styles.brandLockup}>
             <div className={styles.brandRow}>
               <img
-                src="/divaro.png"
+                src={logoPublicPath(locale, docTheme)}
                 alt={t("home.brand")}
                 className={styles.logo}
                 decoding="async"
@@ -486,7 +485,7 @@ export default function HomePage() {
           <p className={styles.infoParagraph}>
             {t("home.infoWhatBody")}
           </p>
-          <section className={styles.eventsPanel} aria-label="Divaro events">
+          <section className={styles.eventsPanel} aria-label="Persiana events">
             <h3 className={styles.eventsHeading}>Events</h3>
             {eventsStatus ? <p className={styles.eventsStatus}>{eventsStatus}</p> : null}
             {!eventsStatus && events.length === 0 ? (

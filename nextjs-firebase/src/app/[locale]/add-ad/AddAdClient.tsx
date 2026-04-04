@@ -12,6 +12,8 @@ import {
   isFirebaseClientConfigured,
 } from "../../../lib/firebaseClient";
 import { getCitiesCached } from "../../../lib/citiesClientCache";
+import { logoPublicPath } from "@koochly/shared";
+import { useDocumentTheme } from "../../../lib/useDocumentTheme";
 import { useI18n, useLocalizedHref } from "../../../i18n/client";
 import { CustomSelect } from "./CustomSelect";
 import styles from "./AddAdForm.module.css";
@@ -116,6 +118,7 @@ export default function AddAdClient({
   googleMapsApiKey?: string;
 } = {}) {
   const { t, locale } = useI18n();
+  const docTheme = useDocumentTheme();
   const loc = useLocalizedHref();
   const searchParams = useSearchParams();
   const editParam = (searchParams.get("edit") ?? "").trim();
@@ -854,7 +857,7 @@ export default function AddAdClient({
         <div className={styles.topBar}>
           <Link href={loc("/")} className={styles.brand}>
             <img
-              src="/divaro.png"
+              src={logoPublicPath(locale, docTheme)}
               alt={t("addAd.brand")}
               className={styles.logo}
               decoding="async"

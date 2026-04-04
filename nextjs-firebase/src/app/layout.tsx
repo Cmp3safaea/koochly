@@ -2,43 +2,33 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import "./globals.css";
 import { getSiteBaseUrl } from "../lib/siteUrl";
-import { defaultLocale, isLocale, type Locale } from "@koochly/shared";
-
-/** Full-resolution asset: `public/divaro.png` (served as-is, no image optimizer). */
-const divaroLogoPath = "/divaro.png";
+import { defaultLocale, isLocale, logoPublicPath, type Locale } from "@koochly/shared";
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteBaseUrl()),
   title: {
-    default: "Divaro",
-    template: "%s | Divaro",
+    default: "Persiana",
+    template: "%s | Persiana",
   },
   description:
-    "Find Iranian businesses, services, and local ads by city and category on Divaro.",
+    "Find Iranian businesses, services, and local ads by city and category on Persiana.",
   robots: {
     index: true,
     follow: true,
   },
   openGraph: {
     type: "website",
-    siteName: "Divaro",
-    title: "Divaro",
+    siteName: "Persiana",
+    title: "Persiana",
     description:
-      "Find Iranian businesses, services, and local ads by city and category on Divaro.",
+      "Find Iranian businesses, services, and local ads by city and category on Persiana.",
     url: getSiteBaseUrl(),
-    images: [{ url: divaroLogoPath, alt: "Divaro" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Divaro",
+    title: "Persiana",
     description:
-      "Find Iranian businesses, services, and local ads by city and category on Divaro.",
-    images: [divaroLogoPath],
-  },
-  icons: {
-    icon: divaroLogoPath,
-    shortcut: divaroLogoPath,
-    apple: divaroLogoPath,
+      "Find Iranian businesses, services, and local ads by city and category on Persiana.",
   },
 };
 
@@ -59,17 +49,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const dir = locale === "en" ? "ltr" : "rtl";
   const lang = locale === "en" ? "en" : "fa-IR";
   const siteBaseUrl = getSiteBaseUrl();
+  const logoPath = logoPublicPath(locale);
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Divaro",
+    name: "Persiana",
     url: siteBaseUrl,
-    logo: `${siteBaseUrl}${divaroLogoPath}`,
+    logo: `${siteBaseUrl}${logoPath}`,
   };
   const siteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Divaro",
+    name: "Persiana",
     url: siteBaseUrl,
     potentialAction: {
       "@type": "SearchAction",
