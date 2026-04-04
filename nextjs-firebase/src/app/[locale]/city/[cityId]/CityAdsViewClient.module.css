@@ -200,23 +200,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 0;
   padding: 0 4px;
 }
 
 .filterLogo {
   width: auto;
-  height: 34px;
-}
-
-.filterWordmark {
-  font-family: "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
-  font-weight: 800;
-  font-size: 1.02rem;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  color: var(--text-strong);
-  white-space: nowrap;
+  height: clamp(64px, 11vw, 100px);
+  max-width: min(420px, 58vw);
+  object-fit: contain;
 }
 
 .filterBlock {
@@ -2449,14 +2441,8 @@
   }
 
   .filterLogo {
-    height: 40px;
-  }
-
-  .filterWordmark {
-    font-size: 0.96rem;
-    max-width: min(200px, 58vw);
-    overflow: hidden;
-    text-overflow: ellipsis;
+    height: clamp(58px, 16vw, 92px);
+    max-width: min(380px, 92vw);
   }
 
   .filterBarHasCityPicker > .filterBarCityPicker {

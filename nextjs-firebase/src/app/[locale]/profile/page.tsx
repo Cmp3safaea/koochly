@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import ProfileClient from "./ProfileClient";
 
 export const metadata: Metadata = {
-  title: "Profile - Koochly",
+  title: "Profile - Divaro",
   robots: { index: false, follow: false },
 };
 

@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import {
-  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -17,6 +16,7 @@ import {
   locales,
 } from "@koochly/shared";
 import { BrandTitle } from "@koochly/ui";
+import { DivaroLogo } from "../components/DivaroLogo";
 import { PriorityAdsCarousel } from "../components/PriorityAdsCarousel";
 
 const accent = "#0f766e";
@@ -66,11 +66,7 @@ export function HomeScreen() {
         </View>
 
         <View style={[styles.brandRow, isRtl && styles.rowRtl]}>
-          <Image
-            source={require("../../assets/koochly-logo.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <DivaroLogo width={160} height={44} />
           <View style={styles.brandTextWrap}>
             <BrandTitle style={[styles.brandWordmark, isRtl && styles.textRtl]}>
               {t("home.brand")}
@@ -246,11 +242,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 14,
     marginBottom: 22,
-  },
-  logo: {
-    width: 72,
-    height: 72,
-    borderRadius: 18,
   },
   brandTextWrap: {
     flex: 1,

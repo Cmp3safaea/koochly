@@ -27,20 +27,17 @@
 .workspaceBrand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 0;
   text-decoration: none;
   color: inherit;
 }
 
 .workspaceLogo {
-  width: 38px;
-  height: 38px;
+  width: auto;
+  height: clamp(44px, 8vw, 64px);
+  max-width: min(260px, 70vw);
+  object-fit: contain;
   border-radius: 10px;
-}
-
-.workspaceBrandText {
-  font-weight: 800;
-  letter-spacing: -0.02em;
 }
 
 .workspaceBackLink {

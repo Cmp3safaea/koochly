@@ -384,7 +384,7 @@ export default async function CityCategoryLandingPage({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Koochly", item: `${getSiteBaseUrl()}/${locale}` },
+      { "@type": "ListItem", position: 1, name: "Divaro", item: `${getSiteBaseUrl()}/${locale}` },
       { "@type": "ListItem", position: 2, name: cityName, item: `${getSiteBaseUrl()}${cityHubPath}` },
       { "@type": "ListItem", position: 3, name: categoryLabel, item: canonicalUrl },
     ],
@@ -392,7 +392,7 @@ export default async function CityCategoryLandingPage({
   const collectionJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: `${pageTitle} - Koochly`,
+    name: `${pageTitle} - Divaro`,
     url: canonicalUrl,
     inLanguage: locale,
   };
@@ -440,12 +440,12 @@ export async function generateMetadata({
   const countryParam = toNonEmptyString(country);
   const cityParam = toNonEmptyString(city);
   const catCodeParam = toNonEmptyString(catCode);
-  if (!countryParam || !cityParam || !catCodeParam) return { title: "Koochly" };
+  if (!countryParam || !cityParam || !catCodeParam) return { title: "Divaro" };
 
   const pathWithinLocale = `/${countryParam}/${cityParam}/category/${catCodeParam}/`;
   return {
-    title: `${catCodeParam} in ${cityParam} - Koochly`,
-    description: `Browse ${catCodeParam} listings in ${cityParam} on Koochly.`,
+    title: `${catCodeParam} in ${cityParam} - Divaro`,
+    description: `Browse ${catCodeParam} listings in ${cityParam} on Divaro.`,
     alternates: {
       canonical: withLocale(locale, pathWithinLocale),
       languages: {

@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import styles from "./page.module.css";
-import KoochlyLogo from "../images/Koochly-Logo.png";
 import IranBg from "../images/iran.jpg";
 import { AuthWelcome } from "../AuthWelcome";
 import { useI18n, useLocalizedHref } from "../../i18n/client";
@@ -337,15 +336,13 @@ export default function HomePage() {
         <div className={styles.brand}>
           <div className={styles.brandLockup}>
             <div className={styles.brandRow}>
-              <Image
-                src={KoochlyLogo}
-                alt=""
+              <img
+                src="/divaro.png"
+                alt={t("home.brand")}
                 className={styles.logo}
-                priority
+                decoding="async"
+                fetchPriority="high"
               />
-              <span className={styles.brandWordmark} lang={locale === "fa" ? "fa" : "en"}>
-                {t("home.brand")}
-              </span>
             </div>
             <AuthWelcome />
           </div>
@@ -489,7 +486,7 @@ export default function HomePage() {
           <p className={styles.infoParagraph}>
             {t("home.infoWhatBody")}
           </p>
-          <section className={styles.eventsPanel} aria-label="Koochly events">
+          <section className={styles.eventsPanel} aria-label="Divaro events">
             <h3 className={styles.eventsHeading}>Events</h3>
             {eventsStatus ? <p className={styles.eventsStatus}>{eventsStatus}</p> : null}
             {!eventsStatus && events.length === 0 ? (

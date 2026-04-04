@@ -685,7 +685,7 @@ export async function generateMetadata({
   const locale = resolveLocale(localeRaw);
   const cityKeyRaw = toNonEmptyString(cityId);
   const cityKey = cityKeyRaw ? sanitizeCityToken(cityKeyRaw) : null;
-  if (!cityKey) return { title: "Koochly" };
+  if (!cityKey) return { title: "Divaro" };
 
   const db = getFirestoreAdmin();
   let citySnap: any = null;
@@ -714,7 +714,7 @@ export async function generateMetadata({
     if (docSnap.exists) citySnap = docSnap;
   }
 
-  if (!citySnap) return { title: "Koochly" };
+  if (!citySnap) return { title: "Divaro" };
 
   const cityData = citySnap.data() as Record<string, unknown>;
   const cityFa = sanitizeCityToken(cityData.city_fa);
@@ -730,8 +730,8 @@ export async function generateMetadata({
 
   return {
     title: countryFa
-      ? `${seoCity} - Koochly Ads (${countryFa})`
-      : `${seoCity} - Koochly Ads`,
+      ? `${seoCity} - Divaro Ads (${countryFa})`
+      : `${seoCity} - Divaro Ads`,
     description: countryFa
       ? `Explore business listings and ads for ${seoCity} in ${countryFa}.`
       : `Explore business listings and ads for ${seoCity}.`,
@@ -744,7 +744,7 @@ export async function generateMetadata({
       },
     },
     openGraph: {
-      title: countryFa ? `${seoCity} Ads - Koochly` : `${seoCity} Ads - Koochly`,
+      title: countryFa ? `${seoCity} Ads - Divaro` : `${seoCity} Ads - Divaro`,
     },
   };
 }

@@ -30,29 +30,11 @@
 }
 
 .logo {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+  width: auto;
+  height: clamp(56px, 10vw, 80px);
+  max-width: min(320px, 88vw);
+  border-radius: 12px;
   object-fit: contain;
-}
-
-.brandText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.brandTitle {
-  font-weight: 800;
-  font-size: 1.15rem;
-  color: var(--text-strong);
-  letter-spacing: -0.02em;
-}
-
-.brandSub {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--text-muted);
 }
 
 .backLink {
@@ -94,10 +76,6 @@
     flex-direction: column;
     gap: 10px;
     text-align: center;
-  }
-
-  .brandText {
-    align-items: center;
   }
 
   .actions {

@@ -7,7 +7,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
-import KoochlyLogo from "../../../images/Koochly-Logo.png";
 import { recordAdVisit } from "../../../../lib/recordAdVisit";
 import { telHref, type Locale } from "@koochly/shared";
 import { getAuthClientOrNull, getGoogleProvider } from "../../../../lib/firebaseClient";
@@ -2061,16 +2060,14 @@ export default function CityAdsViewClient({
 
         <div className={styles.filterLogoWrap}>
           <Link href={loc("/")}>
-            <Image
-              src={KoochlyLogo}
-              alt=""
+            <img
+              src="/divaro.png"
+              alt={t("city.brand")}
               className={styles.filterLogo}
-              priority
+              decoding="async"
+              fetchPriority="high"
             />
           </Link>
-          <span className={styles.filterWordmark} lang={locale === "fa" ? "fa" : "en"}>
-            {`${t("city.brand")} · ${introCityName}`}
-          </span>
         </div>
         </div>
 

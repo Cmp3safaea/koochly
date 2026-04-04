@@ -1,5 +1,5 @@
 /**
- * Indexable URL policy (sitemap + robots) for Koochly.
+ * Indexable URL policy (sitemap + robots) for Divaro.
  *
  * **Included in sitemap**
  * - `/` — home

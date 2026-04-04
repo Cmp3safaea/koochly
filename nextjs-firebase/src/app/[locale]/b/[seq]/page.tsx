@@ -492,9 +492,9 @@ export async function generateMetadata({
   const locale = resolveLocale(localeRaw);
   const t = getTranslator(localeRaw);
   const seqNum = Number(seq);
-  if (!Number.isFinite(seqNum)) return { title: "Koochly" };
+  if (!Number.isFinite(seqNum)) return { title: "Divaro" };
   const ad = await loadAdBySeq(seqNum);
-  if (!ad) return { title: "Koochly" };
+  if (!ad) return { title: "Divaro" };
   const title =
     (typeof ad.title === "string" && ad.title.trim()) ||
     (typeof ad.engName === "string" && ad.engName.trim()) ||

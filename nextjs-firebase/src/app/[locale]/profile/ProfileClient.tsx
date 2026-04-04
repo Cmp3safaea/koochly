@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { onAuthStateChanged, signInWithPopup, type User } from "firebase/auth";
 import {
   getAuthClientOrNull,
@@ -15,7 +14,6 @@ import { useI18n, useLocalizedHref } from "../../../i18n/client";
 import { telHref, type Locale } from "@koochly/shared";
 import cityStyles from "../city/[cityId]/CityAdsViewClient.module.css";
 import styles from "./ProfilePage.module.css";
-import KoochlyLogo from "../../images/Koochly-Logo.png";
 
 type RecentVisitRow = {
   adId: string;
@@ -661,8 +659,12 @@ export default function ProfileClient({ showWorkspaceHeader = false }: { showWor
       {showWorkspaceHeader ? (
         <header className={styles.workspaceHeader}>
           <Link href={loc("/")} className={styles.workspaceBrand}>
-            <Image src={KoochlyLogo} alt="" className={styles.workspaceLogo} />
-            <span className={styles.workspaceBrandText}>Koochly</span>
+            <img
+              src="/divaro.png"
+              alt={t("home.brand")}
+              className={styles.workspaceLogo}
+              decoding="async"
+            />
           </Link>
           <Link href={loc(workspaceBackPath)} className={styles.workspaceBackLink}>
             {t("admin.backHome")}

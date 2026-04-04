@@ -233,15 +233,6 @@
   gap: clamp(10px, 2.2vw, 18px);
 }
 
-.brandWordmark {
-  font-family: "Vazirmatn", ui-sans-serif, system-ui, sans-serif;
-  font-weight: 800;
-  font-size: clamp(1.45rem, 3.2vw, 2rem);
-  letter-spacing: -0.03em;
-  line-height: 1.05;
-  color: var(--text-strong);
-}
-
 .brandText {
   display: flex;
   flex-direction: column;
@@ -259,9 +250,10 @@
 }
 
 .logo {
-  width: 64px;
-  height: 64px;
-  border-radius: 20px;
+  width: auto;
+  height: clamp(96px, 16vw, 148px);
+  max-width: min(580px, 96vw);
+  border-radius: 16px;
   object-fit: contain;
 }
 
@@ -634,8 +626,9 @@
   }
 
   .logo {
-    width: 52px;
-    height: 52px;
+    width: auto;
+    height: clamp(84px, 24vw, 128px);
+    max-width: min(480px, 96vw);
   }
 
   .brand {
@@ -648,13 +641,9 @@
   }
 
   .brandRow {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .brandWordmark {
-    font-size: clamp(1.15rem, 4.5vw, 1.45rem);
-    text-align: center;
+    flex-direction: row;
+    justify-content: center;
+    gap: 0;
   }
 
   .infoSection {

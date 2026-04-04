@@ -3,40 +3,42 @@ import { headers } from "next/headers";
 import "./globals.css";
 import { getSiteBaseUrl } from "../lib/siteUrl";
 import { defaultLocale, isLocale, type Locale } from "@koochly/shared";
-import KoochlyLogo from "./images/Koochly-Logo.png";
+
+/** Full-resolution asset: `public/divaro.png` (served as-is, no image optimizer). */
+const divaroLogoPath = "/divaro.png";
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteBaseUrl()),
   title: {
-    default: "Koochly",
-    template: "%s | Koochly",
+    default: "Divaro",
+    template: "%s | Divaro",
   },
   description:
-    "Find Iranian businesses, services, and local ads by city and category on Koochly.",
+    "Find Iranian businesses, services, and local ads by city and category on Divaro.",
   robots: {
     index: true,
     follow: true,
   },
   openGraph: {
     type: "website",
-    siteName: "Koochly",
-    title: "Koochly",
+    siteName: "Divaro",
+    title: "Divaro",
     description:
-      "Find Iranian businesses, services, and local ads by city and category on Koochly.",
+      "Find Iranian businesses, services, and local ads by city and category on Divaro.",
     url: getSiteBaseUrl(),
-    images: [{ url: KoochlyLogo.src, alt: "Koochly" }],
+    images: [{ url: divaroLogoPath, alt: "Divaro" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Koochly",
+    title: "Divaro",
     description:
-      "Find Iranian businesses, services, and local ads by city and category on Koochly.",
-    images: [KoochlyLogo.src],
+      "Find Iranian businesses, services, and local ads by city and category on Divaro.",
+    images: [divaroLogoPath],
   },
   icons: {
-    icon: KoochlyLogo.src,
-    shortcut: KoochlyLogo.src,
-    apple: KoochlyLogo.src,
+    icon: divaroLogoPath,
+    shortcut: divaroLogoPath,
+    apple: divaroLogoPath,
   },
 };
 
@@ -60,14 +62,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Koochly",
+    name: "Divaro",
     url: siteBaseUrl,
-    logo: `${siteBaseUrl}${KoochlyLogo.src}`,
+    logo: `${siteBaseUrl}${divaroLogoPath}`,
   };
   const siteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Koochly",
+    name: "Divaro",
     url: siteBaseUrl,
     potentialAction: {
       "@type": "SearchAction",

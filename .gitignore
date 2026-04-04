@@ -22,6 +22,9 @@ build-out.txt
 # Common local filename for downloaded GCP service account keys (do not commit).
 service.json
 
+# Local Places import drafts (may contain POI dumps)
+nextjs-firebase/tmp/places-import-draft.json
+
 # Dependencies
 node_modules/
 

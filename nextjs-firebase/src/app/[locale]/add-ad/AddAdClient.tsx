@@ -13,7 +13,6 @@ import {
 } from "../../../lib/firebaseClient";
 import { getCitiesCached } from "../../../lib/citiesClientCache";
 import { useI18n, useLocalizedHref } from "../../../i18n/client";
-import KoochlyLogo from "../../images/Koochly-Logo.png";
 import { CustomSelect } from "./CustomSelect";
 import styles from "./AddAdForm.module.css";
 import {
@@ -854,13 +853,12 @@ export default function AddAdClient({
       <div className={styles.shell}>
         <div className={styles.topBar}>
           <Link href={loc("/")} className={styles.brand}>
-            <Image src={KoochlyLogo} alt="" className={styles.logo} width={52} height={52} />
-            <div className={styles.brandText}>
-              <span className={styles.brandTitle}>{t("addAd.brand")}</span>
-              {submitted ? null : (
-                <span className={styles.brandSub}>{t("addAd.sub")}</span>
-              )}
-            </div>
+            <img
+              src="/divaro.png"
+              alt={t("addAd.brand")}
+              className={styles.logo}
+              decoding="async"
+            />
           </Link>
           {submitted ? null : (
             <Link href={loc("/")} className={styles.backLink}>
