@@ -110,3 +110,46 @@ export function getFirebaseStorageBucket(): Bucket {
   return storageBucket;
 }
 
+type AdminAdDoc = Record<string, unknown> & { url?: string };
+
+/** Ad row from Firestore plus stable document `id` (used by `/b/[seq]` and `/ad/[adId]`). */
+export type AdminLoadedAd = Record<string, unknown> & {
+  id: string;
+  url?: string;
+  approved?: boolean;
+  seq?: number | string;
+  title?: string;
+  engName?: string;
+  details?: string;
+};
+
+function toLoadedAd(docId: string, data: Record<string, unknown>): AdminLoadedAd {
+  return { id: docId, ...data } as AdminLoadedAd;
+}
+
+export async function loadAdBySeq(seq: number): Promise<AdminLoadedAd | null> {
+  const db = getFirestoreAdmin();
+  const q = await db.collection("ad").where("seq", "==", seq).limit(1).get();
+  if (!q.empty) {
+    const d = q.docs[0];
+    return toLoadedAd(d.id, d.data() as Record<string, unknown>);
+  }
+
+  const subset = await db.collection("ad").limit(800).get();
+  const doc = subset.docs.find((d) => {
+    const data = d.data() as AdminAdDoc;
+    return typeof data.url === "string" && data.url.includes(`/b/${seq}`);
+  });
+  if (!doc) return null;
+  return toLoadedAd(doc.id, doc.data() as Record<string, unknown>);
+}
+
+export async function loadAdByDocId(docId: string): Promise<AdminLoadedAd | null> {
+  const id = docId.trim();
+  if (!id) return null;
+  const db = getFirestoreAdmin();
+  const snap = await db.collection("ad").doc(id).get();
+  if (!snap.exists) return null;
+  return toLoadedAd(snap.id, snap.data() as Record<string, unknown>);
+}
+

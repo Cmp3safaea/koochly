@@ -13,7 +13,7 @@ export async function POST(
 
   try {
     const db = getFirestoreAdmin();
-    await db.collection("ads").doc(id.trim()).update({
+    await db.collection("ad").doc(id.trim()).update({
       visits: FieldValue.increment(1),
     });
     return NextResponse.json({ ok: true });

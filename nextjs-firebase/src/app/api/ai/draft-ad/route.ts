@@ -55,7 +55,7 @@ type TaxonomyDept = {
 
 async function loadTaxonomy(locale: DirectoryLocale): Promise<TaxonomyDept[]> {
   const db = getFirestoreAdmin();
-  const snap = await db.collection("directory").limit(200).get();
+  const snap = await db.collection("dir").limit(200).get();
   const sortLocale = locale === "en" ? "en" : "fa";
 
   const rows = await Promise.all(
@@ -64,7 +64,7 @@ async function loadTaxonomy(locale: DirectoryLocale): Promise<TaxonomyDept[]> {
       const label = directoryDepartmentDisplayLabel(data, doc.id, locale);
       const base = await resolveDirectoryCategoriesForAdmin(db, doc.id, data);
       const subSnap = await db
-        .collection("directory")
+        .collection("dir")
         .doc(doc.id)
         .collection("categories")
         .limit(500)

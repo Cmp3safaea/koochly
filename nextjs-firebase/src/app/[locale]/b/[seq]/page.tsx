@@ -4,7 +4,10 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
-import { reviewSummaryFromAdData } from "../../../../lib/adReviewSummary";
+import {
+  isGoogleImportPlaceholderDescription,
+  reviewSummaryFromAdData,
+} from "../../../../lib/adReviewSummary";
 import { getMapsBrowserApiKey } from "../../../../lib/mapsBrowserKey";
 import { isAdDocIndexable } from "../../../../lib/seoIndexable";
 import { telHref } from "@koochly/shared";
@@ -28,7 +31,11 @@ type AdDoc = {
   dept?: string;
   cat?: string;
   cat_code?: string;
+  dir_category_slug?: string;
   departmentID?: unknown;
+  /** Firestore `dir/{dir_id}` document id (same role as `dir_department_slug`). */
+  dir_id?: string;
+  dir_department_slug?: string;
   country_eng?: string;
   address?: string;
   phone?: string;
@@ -47,6 +54,9 @@ type AdDoc = {
   approved?: boolean;
   subcat?: unknown;
   selectedCategoryTags?: unknown;
+  /** Google Places `weekday_text` lines or `{ weekday_text: string[] }`. */
+  opening_hours?: unknown;
+  openingHours?: unknown;
 };
 
 function toFiniteNumber(value: unknown): number | null {
@@ -146,6 +156,67 @@ function normalizeSubcats(value: unknown): string[] {
     .slice(0, 8);
 }
 
+/** Narrow spaces often returned by Google Places `weekday_text`. */
+function tidyOpeningHoursLine(s: string): string {
+  return s
+    .replace(/[\u00a0\u2009\u202f\u2007]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeOpeningHours(raw: unknown): string[] {
+  if (raw == null) return [];
+  if (Array.isArray(raw)) {
+    return raw
+      .map((x) => (typeof x === "string" ? tidyOpeningHoursLine(x) : ""))
+      .filter((s) => s.length > 0);
+  }
+  if (typeof raw === "object") {
+    const o = raw as { weekday_text?: unknown; weekdayText?: unknown };
+    const wt = o.weekday_text ?? o.weekdayText;
+    if (Array.isArray(wt)) {
+      return wt
+        .map((x) => (typeof x === "string" ? tidyOpeningHoursLine(x) : ""))
+        .filter((s) => s.length > 0);
+    }
+  }
+  if (typeof raw === "string") {
+    const t = tidyOpeningHoursLine(raw);
+    if (!t) return [];
+    return t
+      .split(/\r?\n/)
+      .map((line) => tidyOpeningHoursLine(line))
+      .filter((s) => s.length > 0);
+  }
+  return [];
+}
+
+function parseWeekdayTimeLine(line: string): { day: string; time: string } | null {
+  const normalized = line.replace(/[\u00a0\u202f]/g, " ").trim();
+  const idx = normalized.indexOf(":");
+  if (idx <= 0) return null;
+  const day = normalized.slice(0, idx).trim();
+  const time = normalized.slice(idx + 1).trim();
+  if (!day || !time) return null;
+  return { day, time };
+}
+
+type AdDetailOpeningHoursRow =
+  | { key: number; kind: "raw"; text: string }
+  | { key: number; kind: "split"; day: string; time: string; isToday: boolean };
+
+function adDetailOpeningHoursRows(lines: string[]): AdDetailOpeningHoursRow[] {
+  const todayEn = new Date().toLocaleDateString("en-US", { weekday: "long" });
+  return lines.map((line, i) => {
+    const parsed = parseWeekdayTimeLine(line);
+    if (!parsed) {
+      return { key: i, kind: "raw" as const, text: line };
+    }
+    const isToday = parsed.day.toLowerCase() === todayEn.toLowerCase();
+    return { key: i, kind: "split" as const, ...parsed, isToday };
+  });
+}
+
 async function resolveCityAdsPath(
   db: Firestore,
   cityEng: string | null | undefined,
@@ -192,11 +263,11 @@ function getImages(ad: AdDoc): string[] {
 
 async function loadAdBySeq(seq: number) {
   const db = getFirestoreAdmin();
-  const q = await db.collection("ads").where("seq", "==", seq).limit(1).get();
+  const q = await db.collection("ad").where("seq", "==", seq).limit(1).get();
   if (!q.empty) return { id: q.docs[0].id, ...(q.docs[0].data() as AdDoc) };
 
   // Fallback: match by URL suffix if seq query misses.
-  const subset = await db.collection("ads").limit(800).get();
+  const subset = await db.collection("ad").limit(800).get();
   const doc = subset.docs.find((d) => {
     const data = d.data() as AdDoc;
     return typeof data.url === "string" && data.url.includes(`/b/${seq}`);
@@ -239,9 +310,18 @@ export default async function AdDetailsPage({
     typeof ad.city_eng === "string" && ad.city_eng.trim()
       ? await resolveCityAdsPath(db, ad.city_eng, ad.country_eng)
       : null;
-  const deptId = toDepartmentId(ad.departmentID);
+  const deptId =
+    toDepartmentId(ad.departmentID) ||
+    (typeof ad.dir_id === "string" && ad.dir_id.trim() ? ad.dir_id.trim() : null) ||
+    (typeof ad.dir_department_slug === "string" && ad.dir_department_slug.trim()
+      ? ad.dir_department_slug.trim()
+      : null);
   const catCode =
-    typeof ad.cat_code === "string" && ad.cat_code.trim() ? ad.cat_code.trim() : null;
+    typeof ad.dir_category_slug === "string" && ad.dir_category_slug.trim()
+      ? ad.dir_category_slug.trim()
+      : typeof ad.cat_code === "string" && ad.cat_code.trim()
+        ? ad.cat_code.trim()
+        : null;
   let sameCategoryHref: string | null = null;
   if (cityPath && catCode) {
     const qs = new URLSearchParams();
@@ -260,11 +340,14 @@ export default async function AdDetailsPage({
   const qrSrc =
     typeof ad.qr_code === "string" && ad.qr_code.trim()
       ? `data:image/png;base64,${ad.qr_code.trim()}`
-      : `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(pageUrl)}`;
+      : `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(pageUrl)}`;
 
   const initialReviewSummary = reviewSummaryFromAdData(ad as Record<string, unknown>);
 
   const instagram = parseInstagram(ad, t);
+  const openingHourLines = normalizeOpeningHours(ad.opening_hours ?? ad.openingHours);
+  const openingHourRows =
+    openingHourLines.length > 0 ? adDetailOpeningHoursRows(openingHourLines) : [];
   const subcats = normalizeSubcats(ad.subcat).length
     ? normalizeSubcats(ad.subcat)
     : normalizeSubcats(ad.selectedCategoryTags);
@@ -275,7 +358,10 @@ export default async function AdDetailsPage({
           "@context": "https://schema.org",
           "@type": "LocalBusiness",
           name: title,
-          description: typeof ad.details === "string" ? ad.details.slice(0, 320) : undefined,
+          description:
+            typeof ad.details === "string" && !isGoogleImportPlaceholderDescription(ad.details)
+              ? ad.details.slice(0, 320)
+              : undefined,
           url: pageUrl,
           image: images.slice(0, 6),
           telephone: typeof ad.phone === "string" ? ad.phone : undefined,
@@ -365,7 +451,9 @@ export default async function AdDetailsPage({
 
           <GalleryStripLightbox images={images} title={title} />
 
-          {ad.details ? <p className={styles.details}>{ad.details}</p> : null}
+          {ad.details && !isGoogleImportPlaceholderDescription(ad.details) ? (
+            <p className={styles.details}>{ad.details}</p>
+          ) : null}
 
           <div className={styles.contactGrid}>
             {ad.address ? (
@@ -450,7 +538,11 @@ export default async function AdDetailsPage({
             ) : null}
           </div>
 
-          <div className={styles.mapQrGrid}>
+          <div
+            className={
+              openingHourLines.length > 0 ? styles.mapSideGrid : styles.mapSideGridMapOnly
+            }
+          >
             <div className={styles.mapPanel}>
               <div className={styles.mapPanelHead}>{t("adDetail.mapHead")}</div>
               {lat !== null && lon !== null ? (
@@ -468,15 +560,67 @@ export default async function AdDetailsPage({
               )}
             </div>
 
-            <div className={styles.qrPanel}>
-              <div className={styles.qrTitle}>{t("adDetail.qrTitle")}</div>
-              <img src={qrSrc} alt="QR code" className={styles.qrImg} loading="lazy" />
-              <div className={styles.qrUrl}>{pageUrl}</div>
-            </div>
+            {openingHourLines.length > 0 ? (
+              <div
+                className={`${styles.hoursPanel} ${styles.hoursPanelCompact}`}
+                role="region"
+                aria-label={t("adDetail.openingHours")}
+              >
+                <div className={styles.hoursHead}>
+                  <span className={styles.hoursIconWrap} aria-hidden>
+                    <svg className={styles.hoursIconSvg} viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="8.25" stroke="currentColor" strokeWidth="1.5" />
+                      <path
+                        d="M12 7.25v5l3.25 2"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span className={styles.hoursTitle}>{t("adDetail.openingHours")}</span>
+                </div>
+                <ul className={styles.hoursList}>
+                  {openingHourRows.map((r) => (
+                    <li
+                      key={r.key}
+                      className={`${styles.hoursRow} ${r.kind === "split" && r.isToday ? styles.hoursRowToday : ""}`}
+                    >
+                      {r.kind === "raw" ? (
+                        <span className={styles.hoursFullLine} dir="auto">
+                          {r.text}
+                        </span>
+                      ) : (
+                        <>
+                          <span className={styles.hoursDay}>
+                            {r.day}
+                            {r.isToday ? (
+                              <span className={styles.hoursTodayBadge}>
+                                {t("adDetail.openingHoursToday")}
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className={styles.hoursTime} dir="ltr" lang="en">
+                            {r.time}
+                          </span>
+                        </>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
 
           <ClaimBusinessPanel adId={ad.id} />
           <AdReviewsSection adId={ad.id} initialSummary={initialReviewSummary} />
+
+          <div className={styles.qrFooter}>
+            <div className={styles.qrTitle}>{t("adDetail.qrTitle")}</div>
+            <img src={qrSrc} alt="QR code" className={styles.qrImgFooter} loading="lazy" />
+            <div className={styles.qrUrl}>{pageUrl}</div>
+          </div>
         </section>
       </div>
     </main>
@@ -502,10 +646,11 @@ export async function generateMetadata({
   const indexable = isAdDocIndexable(ad as Record<string, unknown>);
   return {
     title: `${title}${t("adDetail.metaTitleSuffix")}`,
-    description:
-      typeof ad.details === "string" && ad.details.trim()
-        ? ad.details.slice(0, 160)
-        : t("adDetail.metaDescFallback"),
+    description: (() => {
+      const d = typeof ad.details === "string" ? ad.details.trim() : "";
+      if (d && !isGoogleImportPlaceholderDescription(d)) return d.slice(0, 160);
+      return t("adDetail.metaDescFallback");
+    })(),
     alternates: indexable
       ? {
           canonical: withLocale(locale, `/b/${seqNum}`),

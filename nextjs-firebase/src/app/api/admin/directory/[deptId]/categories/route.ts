@@ -69,7 +69,7 @@ export async function PUT(
     const categories = normalizeCategories(body.categories);
 
     const db = getFirestoreAdmin();
-    const deptRef = db.collection("directory").doc(deptId);
+    const deptRef = db.collection("dir").doc(deptId);
     const deptSnap = await deptRef.get();
     if (!deptSnap.exists) {
       return NextResponse.json({ error: "Department not found" }, { status: 404 });
@@ -81,7 +81,7 @@ export async function PUT(
     const removedCodes = Array.from(existingCodes).filter((code) => !nextCodes.has(code));
 
     if (removedCodes.length > 0) {
-      const adsSnap = await db.collection("ads").limit(ADS_SCAN_CAP).get();
+      const adsSnap = await db.collection("ad").limit(ADS_SCAN_CAP).get();
       const blocked = new Set<string>();
       for (const doc of adsSnap.docs) {
         const ad = doc.data() as Record<string, unknown>;

@@ -17,7 +17,7 @@ export async function PATCH(
     const adId = asString(raw);
     if (!adId) return NextResponse.json({ error: "Invalid ad id" }, { status: 400 });
     const db = getFirestoreAdmin();
-    const ref = db.collection("ads").doc(adId);
+    const ref = db.collection("ad").doc(adId);
     const snap = await ref.get();
     if (!snap.exists) return NextResponse.json({ error: "Ad not found" }, { status: 404 });
     await ref.set(

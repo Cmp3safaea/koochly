@@ -1,0 +1,2 @@
+﻿Parsed 15 departments from c:\Users\cmp3safaea\koochly\koochly\nextjs-firebase\scripts\data\koochly_taxonomy_300_clean_tags.json
+Dry run: would write 15 docs to collection "dir" (300 category rows total).

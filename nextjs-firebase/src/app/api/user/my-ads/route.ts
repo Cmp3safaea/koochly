@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getFirebaseAuthAdmin, getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
+import { firstAdImageUrl } from "@koochly/shared";
 
 export const runtime = "nodejs";
 
@@ -30,16 +31,6 @@ function atToMs(at: unknown): number {
   return 0;
 }
 
-function getFirstImage(data: Record<string, unknown>): string | null {
-  const imgs = data.images;
-  if (Array.isArray(imgs) && imgs.length > 0 && typeof imgs[0] === "string") {
-    const u = imgs[0].trim();
-    return u.length > 0 ? u : null;
-  }
-  const single = asString(data.image);
-  return single || null;
-}
-
 async function uidFromRequest(request: Request): Promise<string | null> {
   const authHeader = request.headers.get("authorization") ?? "";
   const token = authHeader.toLowerCase().startsWith("bearer ")
@@ -66,7 +57,7 @@ export async function GET(request: Request) {
 
     const db = getFirestoreAdmin();
     const userRef = db.collection("users").doc(uid);
-    const snap = await db.collection("ads").where("user", "==", userRef).limit(200).get();
+    const snap = await db.collection("ad").where("user", "==", userRef).limit(200).get();
 
     const rows = snap.docs.map((d) => {
       const data = d.data() as Record<string, unknown>;
@@ -88,7 +79,10 @@ export async function GET(request: Request) {
         seq,
         title: titleRaw,
         approved: data.approved === true,
-        image: getFirstImage(data),
+        image: firstAdImageUrl({
+          images: data.images,
+          image: data.image,
+        }),
         city,
       };
     });

@@ -85,7 +85,7 @@ export async function buildSitemapEntries(): Promise<{
   const batchSize = 500;
 
   for (;;) {
-    let q = db.collection("ads").orderBy(FieldPath.documentId()).limit(batchSize);
+    let q = db.collection("ad").orderBy(FieldPath.documentId()).limit(batchSize);
     if (lastDoc) q = q.startAfter(lastDoc);
     const snap = await q.get();
     if (snap.empty) break;

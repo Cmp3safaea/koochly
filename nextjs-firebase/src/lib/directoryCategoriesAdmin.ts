@@ -1,4 +1,5 @@
 import type { Firestore } from "firebase-admin/firestore";
+import type { DirectoryLocale } from "./directoryDepartmentLabel";
 import {
   categoriesFromDirectoryData,
   displayLabelForCategoryFirestoreDoc,
@@ -11,8 +12,9 @@ export async function resolveDirectoryCategoriesForAdmin(
   db: Firestore,
   directoryDocId: string,
   data: Record<string, unknown>,
+  locale: DirectoryLocale = "fa",
 ): Promise<{ code: string; label: string }[]> {
-  let categories = categoriesFromDirectoryData(data);
+  let categories = categoriesFromDirectoryData(data, locale);
   if (categories.length > 0) return categories;
 
   for (const name of [
@@ -27,7 +29,7 @@ export async function resolveDirectoryCategoriesForAdmin(
     "types",
   ]) {
     const sub = await db
-      .collection("directory")
+      .collection("dir")
       .doc(directoryDocId)
       .collection(name)
       .limit(400)
@@ -35,11 +37,12 @@ export async function resolveDirectoryCategoriesForAdmin(
     if (sub.empty) continue;
     const rows = sub.docs.map((d) => {
       const dt = d.data() as Record<string, unknown>;
-      const label = displayLabelForCategoryFirestoreDoc(dt, d.id);
+      const label = displayLabelForCategoryFirestoreDoc(dt, d.id, locale);
       return { code: d.id, label };
     });
     if (rows.length > 0) {
-      return rows.sort((a, b) => a.label.localeCompare(b.label, "fa"));
+      const sortLoc = locale === "en" ? "en" : "fa";
+      return rows.sort((a, b) => a.label.localeCompare(b.label, sortLoc));
     }
   }
   return [];

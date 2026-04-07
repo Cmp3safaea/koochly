@@ -2,12 +2,21 @@ type CitiesResponse = {
   cities: Array<Record<string, unknown>>;
 };
 
-let cacheData: CitiesResponse | null = null;
-let cacheAt = 0;
-let inflight: Promise<CitiesResponse> | null = null;
+type CitiesCacheVariant = "all" | "withAds";
 
-async function fetchCities(): Promise<CitiesResponse> {
-  const res = await fetch("/api/cities", { method: "GET" });
+const cacheData: Record<CitiesCacheVariant, CitiesResponse | null> = {
+  all: null,
+  withAds: null,
+};
+const cacheAt: Record<CitiesCacheVariant, number> = {
+  all: 0,
+  withAds: 0,
+};
+const inflight: Partial<Record<CitiesCacheVariant, Promise<CitiesResponse>>> = {};
+
+async function fetchCities(variant: CitiesCacheVariant): Promise<CitiesResponse> {
+  const q = variant === "withAds" ? "?onlyWithAds=1" : "";
+  const res = await fetch(`/api/cities${q}`, { method: "GET" });
   const data = (await res.json().catch(() => ({}))) as Partial<CitiesResponse> & {
     error?: string;
   };
@@ -17,27 +26,36 @@ async function fetchCities(): Promise<CitiesResponse> {
   return { cities: Array.isArray(data.cities) ? data.cities : [] };
 }
 
-export async function getCitiesCached(ttlMs = 5 * 60 * 1000): Promise<CitiesResponse> {
+/**
+ * @param variant `withAds` — home / discovery: cities that have at least one approved ad.
+ * `all` — forms (add-ad, profile): full active city list.
+ */
+export async function getCitiesCached(
+  ttlMs = 5 * 60 * 1000,
+  variant: CitiesCacheVariant = "all",
+): Promise<CitiesResponse> {
   const now = Date.now();
-  if (cacheData && now - cacheAt < ttlMs) {
-    return cacheData;
+  if (cacheData[variant] && now - cacheAt[variant] < ttlMs) {
+    return cacheData[variant]!;
   }
-  if (inflight) return inflight;
+  if (inflight[variant]) return inflight[variant]!;
 
-  inflight = fetchCities()
+  inflight[variant] = fetchCities(variant)
     .then((data) => {
-      cacheData = data;
-      cacheAt = Date.now();
+      cacheData[variant] = data;
+      cacheAt[variant] = Date.now();
       return data;
     })
     .finally(() => {
-      inflight = null;
+      delete inflight[variant];
     });
 
-  return inflight;
+  return inflight[variant]!;
 }
 
 export function clearCitiesCache() {
-  cacheData = null;
-  cacheAt = 0;
+  cacheData.all = null;
+  cacheData.withAds = null;
+  cacheAt.all = 0;
+  cacheAt.withAds = 0;
 }

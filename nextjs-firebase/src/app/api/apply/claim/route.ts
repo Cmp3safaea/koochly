@@ -83,7 +83,7 @@ export async function POST(req: Request) {
   }
 
   const db = getFirestoreAdmin();
-  const adSnap = await db.collection("ads").doc(adId).get();
+  const adSnap = await db.collection("ad").doc(adId).get();
   if (!adSnap.exists) {
     return NextResponse.json({ error: "آگهی پیدا نشد" }, { status: 404 });
   }
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
   const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${token}`;
 
   const applyRef = db.collection("apply").doc();
-  const adRef = db.collection("ads").doc(adId);
+  const adRef = db.collection("ad").doc(adId);
   const userRef = db.collection("users").doc(uid);
 
   await applyRef.set({

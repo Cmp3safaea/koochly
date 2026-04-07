@@ -46,7 +46,7 @@ async function readDepartmentCategories(
   deptId: string,
   deptData: Record<string, unknown>,
 ): Promise<Array<{ code: string; label: string; engName: string; subcategories: string[] }>> {
-  const sub = await db.collection("directory").doc(deptId).collection("categories").limit(500).get();
+  const sub = await db.collection("dir").doc(deptId).collection("categories").limit(500).get();
   if (!sub.empty) {
     const rows = sub.docs.map((d) => {
       const data = d.data() as Record<string, unknown>;
@@ -102,8 +102,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const locale = searchParams.get("locale") === "en" ? "en" : defaultLocale;
     const [snap, adsSnap] = await Promise.all([
-      db.collection("directory").limit(300).get(),
-      db.collection("ads").limit(ADS_SCAN_CAP).get(),
+      db.collection("dir").limit(300).get(),
+      db.collection("ad").limit(ADS_SCAN_CAP).get(),
     ]);
 
     const deptUsageMap = new Map<string, number>();
@@ -177,8 +177,8 @@ export async function POST(request: Request) {
 
     const db = getFirestoreAdmin();
     const ref = requestedId
-      ? db.collection("directory").doc(requestedId)
-      : db.collection("directory").doc();
+      ? db.collection("dir").doc(requestedId)
+      : db.collection("dir").doc();
 
     await ref.set(
       {

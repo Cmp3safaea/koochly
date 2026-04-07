@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     const sortLocale = locale === "en" ? "en" : "fa";
 
     const db = getFirestoreAdmin();
-    const snap = await db.collection("directory").limit(200).get();
+    const snap = await db.collection("dir").limit(200).get();
     const departments = snap.docs.map((doc) => {
       const data = doc.data() as Record<string, unknown>;
       const label = directoryDepartmentDisplayLabel(data, doc.id, locale);

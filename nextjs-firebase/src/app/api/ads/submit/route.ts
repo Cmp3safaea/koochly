@@ -85,7 +85,7 @@ function parseImageUploadSpecs(b: Record<string, unknown>): { error?: string; sp
 async function nextAdSeq(): Promise<number> {
   const db = getFirestoreAdmin();
   try {
-    const snap = await db.collection("ads").orderBy("seq", "desc").limit(1).get();
+    const snap = await db.collection("ad").orderBy("seq", "desc").limit(1).get();
     if (snap.empty) return 10000;
     const s = snap.docs[0].data().seq;
     return typeof s === "number" && Number.isFinite(s) ? Math.floor(s) + 1 : 10000;
@@ -185,7 +185,7 @@ export async function POST(req: Request) {
       ? cityData.city_eng.trim()
       : "";
 
-  const dirSnap = await db.collection("directory").doc(departmentId).get();
+  const dirSnap = await db.collection("dir").doc(departmentId).get();
   if (!dirSnap.exists) {
     return NextResponse.json({ error: "بخش پیدا نشد" }, { status: 404 });
   }
@@ -205,11 +205,17 @@ export async function POST(req: Request) {
   }
 
   const catDoc = await db
-    .collection("directory")
+    .collection("dir")
     .doc(departmentId)
     .collection("categories")
     .doc(catCode)
     .get();
+  const catDocData = catDoc.exists
+    ? (catDoc.data() as Record<string, unknown>)
+    : null;
+  const slugFromDoc =
+    catDocData && typeof catDocData.slug === "string" ? catDocData.slug.trim() : "";
+  const dirCategorySlug = slugFromDoc || catCode;
   const allowedTagsRaw = catDoc.exists
     ? (((catDoc.data() as Record<string, unknown>).subcategories as unknown[]) ?? [])
     : [];
@@ -286,8 +292,8 @@ export async function POST(req: Request) {
   const baseUrl = getSiteBaseUrl();
   const url = `${baseUrl}/b/${seq}`;
 
-  const adsRef = db.collection("ads").doc();
-  const dirRef = db.collection("directory").doc(departmentId);
+  const adsRef = db.collection("ad").doc();
+  const dirRef = db.collection("dir").doc(departmentId);
   const userRef = db.collection("users").doc(uid);
 
   const location =
@@ -309,6 +315,9 @@ export async function POST(req: Request) {
     approved: false,
     cat: catRow.label,
     cat_code: catCode,
+    dir_id: departmentId,
+    dir_department_slug: departmentId,
+    dir_category_slug: dirCategorySlug,
     city: cityFa || cityEng || "",
     city_eng: cityEng || cityFa || "",
     dateTime: FieldValue.serverTimestamp(),

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getFirebaseAuthAdmin, getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
+import { firstAdImageUrl } from "@koochly/shared";
 
 export const runtime = "nodejs";
 
@@ -36,16 +37,6 @@ function normalizeSubcats(value: unknown): string[] {
     .map((v) => (typeof v === "string" ? v.trim() : ""))
     .filter((v, i, arr) => v.length > 0 && arr.indexOf(v) === i)
     .slice(0, 8);
-}
-
-function getFirstImage(data: Record<string, unknown>): string | null {
-  const imgs = data.images;
-  if (Array.isArray(imgs) && imgs.length > 0 && typeof imgs[0] === "string") {
-    const u = imgs[0].trim();
-    return u.length > 0 ? u : null;
-  }
-  const single = asString(data.image);
-  return single || null;
 }
 
 function normalizeBookmarkIds(value: unknown): string[] {
@@ -97,7 +88,7 @@ export async function GET(request: Request) {
 
     const ads = await Promise.all(
       ordered.map(async (adId) => {
-        const adSnap = await db.collection("ads").doc(adId).get();
+        const adSnap = await db.collection("ad").doc(adId).get();
         let seq: number | null = null;
         let title = "";
         let engName: string | null = null;
@@ -130,7 +121,10 @@ export async function GET(request: Request) {
           subcats = normalizeSubcats(data.subcat).length
             ? normalizeSubcats(data.subcat)
             : normalizeSubcats(data.selectedCategoryTags);
-          image = getFirstImage(data);
+          image = firstAdImageUrl({
+            images: data.images,
+            image: data.image,
+          });
           const ph = asString(data.phone);
           phone = ph.length > 0 ? ph : null;
           city = asString(data.city_eng) || asString(data.city_fa) || asString(data.city) || "";

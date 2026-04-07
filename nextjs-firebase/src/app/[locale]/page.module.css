@@ -632,17 +632,17 @@
   }
 
   .brand {
-    justify-content: center;
+    justify-content: flex-end;
   }
 
   .brandLockup {
-    align-items: center;
+    align-items: flex-end;
     width: 100%;
   }
 
   .brandRow {
     flex-direction: row;
-    justify-content: center;
+    justify-content: start;
     gap: 0;
   }
 

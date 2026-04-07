@@ -1,0 +1,50 @@
+{
+  "scanned": 3000,
+  "hasCatCode": 3000,
+  "hasDirCat": 3000,
+  "hasDepartmentID": 0,
+  "hasDirDept": 0,
+  "approved": 3000,
+  "topCities": [
+    {
+      "city": "Dubai",
+      "count": 411
+    },
+    {
+      "city": "Toronto",
+      "count": 395
+    },
+    {
+      "city": "Los Angeles",
+      "count": 366
+    },
+    {
+      "city": "New York",
+      "count": 360
+    },
+    {
+      "city": "London",
+      "count": 296
+    },
+    {
+      "city": "Vancouver",
+      "count": 279
+    },
+    {
+      "city": "Berlin",
+      "count": 255
+    },
+    {
+      "city": "Paris",
+      "count": 218
+    },
+    {
+      "city": "Istanbul",
+      "count": 212
+    },
+    {
+      "city": "Sydney",
+      "count": 208
+    }
+  ]
+}

@@ -23,6 +23,14 @@
  *   for hubs so legitimate cities are not dropped from discovery.
  */
 
+/**
+ * City listing pages (`/city/...`, `/{country}/{city}`, category hubs) should not be shown when
+ * the city doc is explicitly deactivated. Missing `active` stays visible (legacy data).
+ */
+export function isCityActiveForPublicPages(data: Record<string, unknown>): boolean {
+  return data.active !== false;
+}
+
 export function isCityDocIndexable(data: Record<string, unknown>): boolean {
   if (data.active === false) return false;
   const country =
@@ -51,4 +59,50 @@ export function hubPathForCityDoc(data: Record<string, unknown>): string | null 
   const city = typeof data.city_eng === "string" ? data.city_eng.trim() : "";
   if (!country || !city) return null;
   return `/${encodeURIComponent(country)}/${encodeURIComponent(city)}/`;
+}
+
+/** Normalized listing `seq` for URLs (Firestore may store number or numeric string). */
+export function coerceAdSeq(seq: unknown): number | null {
+  if (typeof seq === "number" && Number.isFinite(seq) && seq > 0) {
+    return Math.floor(seq);
+  }
+  if (typeof seq === "string") {
+    const n = Number(seq.trim());
+    if (Number.isFinite(n) && n > 0) return Math.floor(n);
+  }
+  return null;
+}
+
+function matchBPathSegment(haystack: string): string | null {
+  const m = haystack.match(/\/b\/(\d+)/);
+  return m?.[1] ?? null;
+}
+
+/**
+ * Internal path for city listing cards (App Router navigation only).
+ * Never returns external URLs.
+ */
+export function adListingPathFromAd(ad: {
+  id?: string;
+  url?: string;
+  website?: string;
+  seq?: unknown;
+}): string | null {
+  const url = typeof ad.url === "string" ? ad.url.trim() : "";
+  if (url) {
+    const n = matchBPathSegment(url);
+    if (n) return `/b/${n}`;
+  }
+  const sn = coerceAdSeq(ad.seq);
+  if (sn !== null) return `/b/${sn}`;
+  const web = typeof ad.website === "string" ? ad.website.trim() : "";
+  if (web) {
+    const n = matchBPathSegment(web);
+    if (n) return `/b/${n}`;
+  }
+  const id = typeof ad.id === "string" ? ad.id.trim() : "";
+  if (id.length > 0 && !id.includes("/")) {
+    return `/ad/${encodeURIComponent(id)}`;
+  }
+  return null;
 }

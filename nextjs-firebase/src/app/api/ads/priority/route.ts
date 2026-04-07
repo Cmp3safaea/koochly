@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
 import { isAdDocIndexable } from "../../../../lib/seoIndexable";
+import { firstAdImageUrl } from "@koochly/shared";
 
 /** Max ads returned for mobile “priority” carousel */
 const LIMIT = 35;
@@ -11,15 +12,6 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
 };
-
-function getFirstImage(data: Record<string, unknown>): string | null {
-  const imgs = data.images;
-  if (Array.isArray(imgs) && imgs.length > 0 && typeof imgs[0] === "string") {
-    return imgs[0];
-  }
-  if (typeof data.image === "string") return data.image;
-  return null;
-}
 
 /** Higher = more important: boolean `priority`, or numeric `priority` */
 function priorityScore(data: Record<string, unknown>): number {
@@ -56,7 +48,7 @@ export async function OPTIONS() {
 export async function GET() {
   try {
     const db = getFirestoreAdmin();
-    const snap = await db.collection("ads").limit(SCAN_CAP).get();
+    const snap = await db.collection("ad").limit(SCAN_CAP).get();
 
     const rows: Array<Record<string, unknown> & { id: string }> = snap.docs.map((d) => {
       const data = d.data() as Record<string, unknown>;
@@ -95,7 +87,10 @@ export async function GET() {
         category,
         cityFa: typeof data.city_fa === "string" ? data.city_fa : "",
         cityEng: typeof data.city_eng === "string" ? data.city_eng : "",
-        image: getFirstImage(data),
+        image: firstAdImageUrl({
+          images: data.images,
+          image: data.image,
+        }),
         isPriority: priorityScore(data) > 0,
       };
     });

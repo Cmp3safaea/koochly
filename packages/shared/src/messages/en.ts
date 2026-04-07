@@ -12,6 +12,8 @@ const en: Messages = {
     userFallback: "User",
     welcome: "Welcome, {{name}}",
     addYourAd: "Post your listing",
+    signInWithGoogle: "Sign in with Google",
+    signingIn: "Signing in…",
   },
   home: {
     brand: "Persiana",
@@ -429,6 +431,8 @@ const en: Messages = {
     websiteFallback: "Website",
     websiteView: "Visit website",
     instagram: "Instagram",
+    openingHours: "Opening hours",
+    openingHoursToday: "Today",
     mapHead: "Location on map",
     noCoords: "No coordinates for this listing.",
     qrTitle: "Page QR code",
@@ -438,7 +442,8 @@ const en: Messages = {
     metaTitleSuffix: " - Persiana",
     metaDescFallback: "Ad details on Persiana.",
     reviewsTitle: "Customer reviews",
-    reviewsSubtitle: "Ratings from signed-in users",
+    reviewsSubtitle:
+      "Average combines public ratings (for example from Google) with reviews from signed-in Persiana users.",
     reviewsLoading: "Loading reviews…",
     reviewsEmpty: "No reviews yet. Be the first to rate this listing.",
     reviewsCount: "{{count}} ratings",

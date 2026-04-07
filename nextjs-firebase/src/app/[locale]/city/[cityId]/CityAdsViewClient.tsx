@@ -8,13 +8,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { recordAdVisit } from "../../../../lib/recordAdVisit";
-import { logoPublicPath, telHref, type Locale } from "@koochly/shared";
+import { firstAdImageUrl, logoPublicPath, telHref, type Locale } from "@koochly/shared";
 import { useDocumentTheme } from "../../../../lib/useDocumentTheme";
 import { getAuthClientOrNull, getGoogleProvider } from "../../../../lib/firebaseClient";
 import { useI18n, useLocalizedHref } from "../../../../i18n/client";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 import ActivityLogClient from "../../activity/ActivityLogClient";
 import StarRating from "../../../../components/StarRating";
+import { isGoogleImportPlaceholderDescription } from "../../../../lib/adReviewSummary";
 import type { AdPromotionType } from "../../../../lib/adPromotions";
 
 // Google Maps is client-only and loads external scripts, so we disable SSR.
@@ -39,7 +40,7 @@ export type CityAdCard = {
   paidAds?: boolean;
   paidAdsExpiresAtMs?: number | null;
   visits?: number;
-  /** From `ads.reviewRatingSum` / `reviewCount` (see ad reviews API). */
+  /** Combined display average: Google/Places-style fields + Persiana `reviewRatingSum` / `reviewCount`. */
   reviewAvg?: number | null;
   reviewCount?: number;
   /** Set for goods listings with a numeric price; null/omitted for services or unset. */
@@ -188,12 +189,12 @@ type PriorityApiAd = {
   title: string;
   category: string;
   isPriority: boolean;
-  image: string | null;
+  image: string;
 };
 
 type PriorityStripSlide = PriorityApiAd & {
   link: string;
-  displayImage: string | null;
+  displayImage: string;
 };
 
 function parsePriorityApiAds(json: unknown): PriorityApiAd[] {
@@ -219,7 +220,10 @@ function parsePriorityApiAds(json: unknown): PriorityApiAd[] {
       title: typeof o.title === "string" ? o.title : "",
       category: typeof o.category === "string" ? o.category : "",
       isPriority: o.isPriority === true,
-      image: typeof o.image === "string" && o.image.trim() ? o.image.trim() : null,
+      image: firstAdImageUrl({
+        image: o.image,
+        images: o.images,
+      }),
     });
   }
   return out;
@@ -832,6 +836,8 @@ export default function CityAdsViewClient({
   );
   const [revealedPhones, setRevealedPhones] = useState<Record<string, boolean>>({});
   const [authLoading, setAuthLoading] = useState(true);
+  /** Google popup in progress — do not toggle global `authLoading` or the map bar flashes "Checking…". */
+  const [googleSignInBusy, setGoogleSignInBusy] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [authConfigured, setAuthConfigured] = useState(false);
   const [userDisplayName, setUserDisplayName] = useState<string | null>(null);
@@ -1187,19 +1193,19 @@ export default function CityAdsViewClient({
   }, []);
 
   const handleLoginWithGmail = async () => {
-    setAuthLoading(true);
+    setGoogleSignInBusy(true);
     try {
       const auth = getAuthClientOrNull();
       if (!auth) {
         setAuthConfigured(false);
-        setAuthLoading(false);
         return;
       }
       const provider = getGoogleProvider();
       await signInWithPopup(auth, provider);
     } catch (e) {
       console.error(e);
-      setAuthLoading(false);
+    } finally {
+      setGoogleSignInBusy(false);
     }
   };
 
@@ -1441,7 +1447,7 @@ export default function CityAdsViewClient({
       out.push({
         ...p,
         link: link.trim(),
-        displayImage: card?.image ?? p.image,
+        displayImage: firstAdImageUrl({ image: card?.image ?? p.image }),
       });
       if (out.length >= PRIORITY_STRIP_LIMIT) break;
     }
@@ -1693,7 +1699,7 @@ export default function CityAdsViewClient({
         title: string;
         category: string | null;
         link: string | null;
-        image: string | null;
+        image: string;
         lat: number;
         lon: number;
       }> = [];
@@ -1716,7 +1722,7 @@ export default function CityAdsViewClient({
           title: a.title,
           category: cat,
           link: a.link ?? null,
-          image: a.image ?? null,
+          image: firstAdImageUrl({ image: a.image }),
           lat: a.location.lat,
           lon: a.location.lon,
         });
@@ -2545,19 +2551,13 @@ export default function CityAdsViewClient({
                   lang={locale === "fa" ? "fa" : "en"}
                 >
                   <div className={styles.priorityStripImgWrap}>
-                    {item.displayImage ? (
-                      <img
-                        src={item.displayImage}
-                        alt=""
-                        className={styles.priorityStripImg}
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    ) : (
-                      <span className={styles.priorityStripPlaceholder} aria-hidden>
-                        {item.title.trim().slice(0, 1) || "?"}
-                      </span>
-                    )}
+                    <img
+                      src={item.displayImage}
+                      alt=""
+                      className={styles.priorityStripImg}
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </div>
                   <div className={styles.priorityStripBody}>
                     {item.isPriority ? (
@@ -2801,16 +2801,12 @@ export default function CityAdsViewClient({
                         <CardPromoTypeIcon type={topPromotionType} />
                       </span>
                     ) : null}
-                    {ad.image ? (
-                      <img
-                        className={styles.cardImg}
-                        src={ad.image}
-                        alt={ad.title}
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className={styles.cardImgPlaceholder} />
-                    )}
+                    <img
+                      className={styles.cardImg}
+                      src={firstAdImageUrl({ image: ad.image })}
+                      alt={ad.title}
+                      loading="lazy"
+                    />
                   </div>
                   <div className={styles.cardBody}>
                     <h3 className={styles.cardTitle}>{ad.title}</h3>
@@ -2837,12 +2833,12 @@ export default function CityAdsViewClient({
                             n: ad.reviewAvg.toFixed(1),
                           })}
                         />
-                        <span className={styles.cardReviewCount}>
-                          {(ad.reviewCount ?? 0) === 1
-                            ? t("adDetail.reviewsCountOne")
-                            : t("adDetail.reviewsCount", {
-                                count: String(ad.reviewCount ?? 0),
-                              })}
+                        <span
+                          className={styles.cardReviewCount}
+                          dir="ltr"
+                          lang="en"
+                        >
+                          ({ad.reviewCount ?? 0})
                         </span>
                       </div>
                     ) : null}
@@ -2855,7 +2851,7 @@ export default function CityAdsViewClient({
                         ))}
                       </div>
                     ) : null}
-                    {ad.description ? (
+                    {ad.description && !isGoogleImportPlaceholderDescription(ad.description) ? (
                       <p className={styles.cardDesc}>{ad.description}</p>
                     ) : null}
                   </div>
@@ -3134,12 +3130,17 @@ export default function CityAdsViewClient({
                 </Link>
                 <button
                   type="button"
-                  className={styles.mapAuthIconBtn}
+                  className={styles.mapAuthSignInBtn}
                   onClick={handleLoginWithGmail}
-                  aria-label={t("city.signInAria")}
+                  disabled={googleSignInBusy}
+                  aria-busy={googleSignInBusy}
+                  aria-label={t("auth.signInWithGoogle")}
                   title={t("city.signInTitle")}
                 >
-                  <MapSignInIcon className={styles.mapAuthIconGlyph} />
+                  <MapSignInIcon className={styles.mapAuthSignInGlyph} />
+                  <span className={styles.mapAuthSignInLabel}>
+                    {googleSignInBusy ? t("auth.signingIn") : t("auth.signInWithGoogle")}
+                  </span>
                 </button>
               </div>
             )}

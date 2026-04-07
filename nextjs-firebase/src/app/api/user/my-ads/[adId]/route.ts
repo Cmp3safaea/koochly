@@ -140,7 +140,7 @@ function normalizeSubcats(value: unknown): string[] {
 }
 
 async function loadOwnedAd(db: Firestore, uid: string, adId: string) {
-  const ref = db.collection("ads").doc(adId);
+  const ref = db.collection("ad").doc(adId);
   const snap = await ref.get();
   if (!snap.exists) return { error: "آگهی پیدا نشد" as const, status: 404 as const };
   const data = snap.data() as Record<string, unknown>;
@@ -363,7 +363,7 @@ export async function PATCH(request: Request, context: RouteCtx) {
       ? cityData.city_eng.trim()
       : "";
 
-  const dirSnap = await db.collection("directory").doc(departmentId).get();
+  const dirSnap = await db.collection("dir").doc(departmentId).get();
   if (!dirSnap.exists) {
     return NextResponse.json({ error: "بخش پیدا نشد" }, { status: 404 });
   }
@@ -383,11 +383,17 @@ export async function PATCH(request: Request, context: RouteCtx) {
   }
 
   const catDoc = await db
-    .collection("directory")
+    .collection("dir")
     .doc(departmentId)
     .collection("categories")
     .doc(catCode)
     .get();
+  const catDocData = catDoc.exists
+    ? (catDoc.data() as Record<string, unknown>)
+    : null;
+  const slugFromDoc =
+    catDocData && typeof catDocData.slug === "string" ? catDocData.slug.trim() : "";
+  const dirCategorySlug = slugFromDoc || catCode;
   const allowedTagsRaw = catDoc.exists
     ? (((catDoc.data() as Record<string, unknown>).subcategories as unknown[]) ?? [])
     : [];
@@ -469,7 +475,7 @@ export async function PATCH(request: Request, context: RouteCtx) {
     );
   }
 
-  const dirRef = db.collection("directory").doc(departmentId);
+  const dirRef = db.collection("dir").doc(departmentId);
   const location =
     lat !== null && lon !== null
       ? { lat, lon }
@@ -489,6 +495,9 @@ export async function PATCH(request: Request, context: RouteCtx) {
     approved: false,
     cat: catRow.label,
     cat_code: catCode,
+    dir_id: departmentId,
+    dir_department_slug: departmentId,
+    dir_category_slug: dirCategorySlug,
     city: cityFa || cityEng || "",
     city_eng: cityEng || cityFa || "",
     dateTime: FieldValue.serverTimestamp(),

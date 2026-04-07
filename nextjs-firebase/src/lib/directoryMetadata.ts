@@ -2,6 +2,7 @@
  * Walks nested `directory.categories` trees (and similar) and collects code → label pairs.
  * Supports: JSON strings, UUID-keyed maps ({ [uuid]: { name } }), alternate field names, subcollections (via API).
  */
+import type { DirectoryLocale } from "./directoryDepartmentLabel";
 
 function parseCategoriesField(raw: unknown): unknown {
   if (raw == null) return null;
@@ -37,6 +38,7 @@ function isLikelyCategoryMapKey(key: string): boolean {
 
 function categoryCodeFrom(obj: Record<string, unknown>): string | null {
   const c = stringFrom(obj, [
+    "slug",
     "code",
     "cat_code",
     "catCode",
@@ -54,17 +56,42 @@ function categoryCodeFrom(obj: Record<string, unknown>): string | null {
   return null;
 }
 
-function categoryLabelFrom(obj: Record<string, unknown>): string | null {
+/** Prefer English vs Farsi labels to match UI locale (city filters, add-ad, etc.). */
+export function categoryLabelFromDirectoryEntry(
+  obj: Record<string, unknown>,
+  locale: DirectoryLocale,
+): string | null {
+  if (locale === "en") {
+    const s = stringFrom(obj, [
+      "name_en",
+      "engName",
+      "Category",
+      "name",
+      "category",
+      "displayName",
+      "title",
+      "label",
+      "name_fa",
+      "category_fa",
+      "faName",
+      "persianName",
+      "groupName",
+      "subcategory",
+    ]);
+    return s || null;
+  }
   const s = stringFrom(obj, [
-    "category",
+    "name_fa",
     "category_fa",
-    "Category",
+    "faName",
+    "persianName",
+    "name_en",
     "engName",
+    "Category",
+    "category",
     "name",
     "title",
     "label",
-    "faName",
-    "persianName",
     "displayName",
     "groupName",
     "subcategory",
@@ -76,8 +103,9 @@ function categoryLabelFrom(obj: Record<string, unknown>): string | null {
 export function displayLabelForCategoryFirestoreDoc(
   data: Record<string, unknown>,
   fallbackId: string,
+  locale: DirectoryLocale = "fa",
 ): string {
-  return categoryLabelFrom(data) || fallbackId;
+  return categoryLabelFromDirectoryEntry(data, locale) || fallbackId;
 }
 
 /**
@@ -87,6 +115,7 @@ export function displayLabelForCategoryFirestoreDoc(
 function collectFromKeyedCategoryMap(
   obj: Record<string, unknown>,
   output: Map<string, string>,
+  locale: DirectoryLocale,
 ) {
   for (const [k, v] of Object.entries(obj)) {
     if (!isLikelyCategoryMapKey(k)) continue;
@@ -97,7 +126,7 @@ function collectFromKeyedCategoryMap(
     }
     if (v && typeof v === "object" && !Array.isArray(v)) {
       const inner = v as Record<string, unknown>;
-      const lbl = categoryLabelFrom(inner);
+      const lbl = categoryLabelFromDirectoryEntry(inner, locale);
       const innerCode = categoryCodeFrom(inner);
       const code = innerCode ?? k.trim();
       if (lbl && code) output.set(code, lbl);
@@ -108,29 +137,31 @@ function collectFromKeyedCategoryMap(
 export function collectCategoryCodes(
   node: unknown,
   output: Map<string, string>,
+  locale: DirectoryLocale = "fa",
 ) {
   if (node == null) return;
   if (typeof node !== "object") return;
 
   if (Array.isArray(node)) {
-    node.forEach((item) => collectCategoryCodes(item, output));
+    node.forEach((item) => collectCategoryCodes(item, output, locale));
     return;
   }
 
   const obj = node as Record<string, unknown>;
-  collectFromKeyedCategoryMap(obj, output);
+  collectFromKeyedCategoryMap(obj, output, locale);
 
   const code = categoryCodeFrom(obj);
-  const label = categoryLabelFrom(obj);
+  const label = categoryLabelFromDirectoryEntry(obj, locale);
   if (code && label) {
     output.set(code, label);
   }
 
-  Object.values(obj).forEach((v) => collectCategoryCodes(v, output));
+  Object.values(obj).forEach((v) => collectCategoryCodes(v, output, locale));
 }
 
 export function categoriesFromDirectoryData(
   data: Record<string, unknown>,
+  locale: DirectoryLocale = "fa",
 ): { code: string; label: string }[] {
   const map = new Map<string, string>();
   const d = data as Record<string, unknown>;
@@ -150,16 +181,17 @@ export function categoriesFromDirectoryData(
   ];
 
   for (const root of candidateRoots) {
-    if (root != null) collectCategoryCodes(root, map);
+    if (root != null) collectCategoryCodes(root, map, locale);
   }
 
-  collectFromKeyedCategoryMap(d, map);
+  collectFromKeyedCategoryMap(d, map, locale);
 
   if (map.size === 0) {
-    collectCategoryCodes(d, map);
+    collectCategoryCodes(d, map, locale);
   }
 
+  const sortLocale = locale === "en" ? "en" : "fa";
   return Array.from(map.entries())
     .map(([code, label]) => ({ code, label }))
-    .sort((a, b) => a.label.localeCompare(b.label, "fa"));
+    .sort((a, b) => a.label.localeCompare(b.label, sortLocale));
 }

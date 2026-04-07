@@ -1,9 +1,25 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import type { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
-import { withLocale } from "@koochly/shared";
+import { firstAdImageUrl, withLocale } from "@koochly/shared";
 import { resolveLocale } from "../../../../i18n/server";
-import { directoryDepartmentDisplayLabel } from "../../../../lib/directoryDepartmentLabel";
+import {
+  directoryDepartmentDisplayLabel,
+  type DirectoryLocale,
+} from "../../../../lib/directoryDepartmentLabel";
+import {
+  firstPersianAdCatForCatCode,
+  resolveDirCategoryLabelPreferPersianCatField,
+} from "../../../../lib/dirCategoryLabelResolve";
+import {
+  cityDocHasApprovedAds,
+  getApprovedAdCityKeysCached,
+} from "../../../../lib/citiesWithApprovedAds";
+import {
+  collectCategoryCodes,
+  categoriesFromDirectoryData,
+} from "../../../../lib/directoryMetadata";
 import { getSiteBaseUrl } from "../../../../lib/siteUrl";
 import { getMapsBrowserApiKey } from "../../../../lib/mapsBrowserKey";
 import { reviewSummaryFromAdData } from "../../../../lib/adReviewSummary";
@@ -12,6 +28,10 @@ import {
   AD_PROMOTION_TYPES,
   type AdPromotionType,
 } from "../../../../lib/adPromotions";
+import {
+  adListingPathFromAd,
+  isCityActiveForPublicPages,
+} from "../../../../lib/seoIndexable";
 import CityAdsViewClient, {
   type CityJumpOption,
   type CityAdCard,
@@ -31,7 +51,10 @@ type AdDoc = {
   website?: string;
   cat?: string;
   cat_code?: string;
+  dir_category_slug?: string;
   departmentID?: unknown;
+  dir_id?: string;
+  dir_department_slug?: string;
   city?: string;
   city_eng?: string;
   dept?: string;
@@ -210,7 +233,7 @@ async function promotionTypesFromSubcollections(
   await Promise.all(
     adIds.map(async (id) => {
       try {
-        const snap = await db.collection("ads").doc(id).collection("promotions").get();
+        const snap = await db.collection("ad").doc(id).collection("promotions").get();
         const found = new Set<string>();
         for (const doc of snap.docs) {
           const d = doc.data() as Record<string, unknown>;
@@ -233,59 +256,6 @@ async function promotionTypesFromSubcollections(
     }),
   );
   return out;
-}
-
-function collectCategoryCodes(
-  node: unknown,
-  output: Map<string, string>,
-) {
-  if (!node || typeof node !== "object") return;
-
-  if (Array.isArray(node)) {
-    node.forEach((item) => collectCategoryCodes(item, output));
-    return;
-  }
-
-  const obj = node as Record<string, unknown>;
-  const code = obj.code;
-  const label =
-    typeof obj.category === "string" && obj.category.trim()
-      ? obj.category
-      : typeof obj.engName === "string" && obj.engName.trim()
-        ? obj.engName
-        : null;
-
-  if (typeof code === "string" && code && label) {
-    output.set(code, label);
-  }
-
-  Object.values(obj).forEach((v) => collectCategoryCodes(v, output));
-}
-
-function getFirstImage(ad: AdDoc): string | null {
-  const imgs = ad.images;
-  if (Array.isArray(imgs) && imgs.length > 0 && typeof imgs[0] === "string") {
-    return imgs[0];
-  }
-  if (typeof ad.image === "string") return ad.image;
-  return null;
-}
-
-function normalizeLink(ad: AdDoc): string | null {
-  if (typeof ad.url === "string" && ad.url.trim()) return ad.url;
-  if (typeof ad.website === "string" && ad.website.trim()) return ad.website;
-  return null;
-}
-
-function deriveAdDetailPath(ad: AdDoc): string | null {
-  if (typeof ad.url === "string" && ad.url.trim()) {
-    const m = ad.url.match(/\/b\/(\d+)/);
-    if (m?.[1]) return `/b/${m[1]}`;
-  }
-  if (typeof ad.seq === "number" && Number.isFinite(ad.seq)) {
-    return `/b/${ad.seq}`;
-  }
-  return null;
 }
 
 export default async function CityAdsByCountryPage({
@@ -316,15 +286,18 @@ export default async function CityAdsByCountryPage({
   let citySnap: any = null;
 
   const pickByCountryOrFirst = (docs: any[]) => {
-    if (docs.length === 0) return null;
+    const activeDocs = docs.filter((d) =>
+      isCityActiveForPublicPages(d.data() as Record<string, unknown>),
+    );
+    if (activeDocs.length === 0) return null;
     const matchByCountry =
-      docs.find((d) => {
+      activeDocs.find((d) => {
         const data = d.data() as Record<string, unknown>;
         const ce = data.country_eng;
         if (typeof ce !== "string") return false;
         return ce.toLowerCase() === countryLower;
       }) ?? null;
-    return matchByCountry ?? docs[0] ?? null;
+    return matchByCountry ?? activeDocs[0] ?? null;
   };
 
   const cityEngQ = await db
@@ -363,6 +336,8 @@ export default async function CityAdsByCountryPage({
   if (!citySnap) return notFound();
 
   const cityData = citySnap.data() as Record<string, unknown>;
+  if (!isCityActiveForPublicPages(cityData)) return notFound();
+
   const cityFa = sanitizeCityToken(cityData.city_fa);
   const cityEng = sanitizeCityToken(cityData.city_eng);
   const countryFa =
@@ -389,40 +364,33 @@ export default async function CityAdsByCountryPage({
       ? { lat: cityCenterLat, lon: cityCenterLon }
       : null;
 
-  // Query ads: prefer city_eng. Fallback to subset + filter.
+  // Query ads with one equality per query (uses automatic single-field indexes).
+  // Filtering `approved` in memory avoids composite-index requirements that often break
+  // in dev / new projects and triggered a useless 500-doc fallback (empty hubs).
   const mergedAds = new Map<string, any>();
+  const cityAdFetchLimit = 2500;
 
-  try {
-    // 1) city_eng matches
-    if (cityEng) {
-      const engAds = await db
-        .collection("ads")
-        .where("city_eng", "==", cityEng)
-        .where("approved", "==", true)
-        .limit(100)
-        .get();
-      engAds.docs.forEach((doc) => mergedAds.set(doc.id, doc));
-    }
+  const pushApproved = (doc: QueryDocumentSnapshot) => {
+    const data = doc.data() as Record<string, unknown>;
+    if (data.approved !== true) return;
+    mergedAds.set(doc.id, doc);
+  };
 
-    // 2) city_fa matches (covers the case where some ads use `city_fa` only)
-    if (cityFa) {
-      const faAds = await db
-        .collection("ads")
-        .where("city_fa", "==", cityFa)
-        .where("approved", "==", true)
-        .limit(100)
-        .get();
-      faAds.docs.forEach((doc) => mergedAds.set(doc.id, doc));
-    }
-  } catch {
-    // Last resort: pull a subset and filter client-side.
-    const subset = await db.collection("ads").limit(500).get();
-    subset.docs.forEach((d) => {
-      const data = d.data() as Record<string, unknown>;
-      if (data.approved !== true) return;
-      if (cityEng && data.city_eng === cityEng) mergedAds.set(d.id, d);
-      if (cityFa && data.city_fa === cityFa) mergedAds.set(d.id, d);
-    });
+  if (cityEng) {
+    const engAds = await db
+      .collection("ad")
+      .where("city_eng", "==", cityEng)
+      .limit(cityAdFetchLimit)
+      .get();
+    engAds.docs.forEach(pushApproved);
+  }
+  if (cityFa) {
+    const faAds = await db
+      .collection("ad")
+      .where("city_fa", "==", cityFa)
+      .limit(cityAdFetchLimit)
+      .get();
+    faAds.docs.forEach(pushApproved);
   }
 
   const adsDocs = Array.from(mergedAds.values());
@@ -437,6 +405,33 @@ export default async function CityAdsByCountryPage({
     const ao = typeof a.seq === "number" ? a.seq : Number.MAX_SAFE_INTEGER;
     const bo = typeof b.seq === "number" ? b.seq : Number.MAX_SAFE_INTEGER;
     return ao - bo;
+  });
+
+  const dirLocale: DirectoryLocale = uiLocale === "en" ? "en" : "fa";
+  const directorySnap = await db.collection("dir").get();
+  const departmentMap = new Map<string, string>();
+  const departmentImageMap = new Map<string, string>();
+  const categoryMap = new Map<string, string>();
+  const categoryToDepartmentMap = new Map<string, string>();
+
+  directorySnap.docs.forEach((doc) => {
+    const data = doc.data() as Record<string, unknown>;
+    const deptLabel = directoryDepartmentDisplayLabel(data, doc.id, uiLocale);
+    departmentMap.set(doc.id, deptLabel);
+    const deptImg = data.image;
+    if (typeof deptImg === "string" && deptImg.trim()) {
+      departmentImageMap.set(doc.id, deptImg.trim());
+    }
+
+    collectCategoryCodes(data.categories, categoryMap, dirLocale);
+    for (const c of categoriesFromDirectoryData(data, dirLocale)) {
+      if (!categoryMap.has(c.code)) {
+        categoryMap.set(c.code, c.label);
+      }
+      if (!categoryToDepartmentMap.has(c.code)) {
+        categoryToDepartmentMap.set(c.code, doc.id);
+      }
+    }
   });
 
   const pageTitle =
@@ -471,8 +466,25 @@ export default async function CityAdsByCountryPage({
       typeof ad.engName === "string" && ad.engName.trim() ? ad.engName.trim() : null;
     const engName = engRaw && engRaw !== title ? engRaw : null;
 
+    const catCode =
+      typeof ad.dir_category_slug === "string" && ad.dir_category_slug.trim()
+        ? ad.dir_category_slug.trim()
+        : typeof ad.cat_code === "string" && ad.cat_code.trim()
+          ? ad.cat_code.trim()
+          : null;
+
+    const rawAdCat =
+      typeof ad.cat === "string" && ad.cat.trim() ? ad.cat.trim() : null;
     const category =
-      (typeof ad.cat === "string" && ad.cat.trim() ? ad.cat.trim() : null) ??
+      (catCode
+        ? resolveDirCategoryLabelPreferPersianCatField(
+            catCode,
+            dirLocale,
+            categoryMap,
+            rawAdCat,
+          )
+        : null) ??
+      rawAdCat ??
       (typeof ad.dept === "string" && ad.dept.trim() ? ad.dept.trim() : null);
 
     const description =
@@ -523,12 +535,17 @@ export default async function CityAdsByCountryPage({
       engName,
       category,
       description,
-      image: getFirstImage(ad),
-      link: deriveAdDetailPath(ad) ?? normalizeLink(ad),
+      image: firstAdImageUrl({ images: ad.images, image: ad.image }),
+      link: adListingPathFromAd(ad),
       phone,
       location,
-      departmentId: toDepartmentId(ad.departmentID),
-      catCode: typeof ad.cat_code === "string" ? ad.cat_code : null,
+      departmentId:
+        toDepartmentId(ad.departmentID) ||
+        (typeof ad.dir_id === "string" && ad.dir_id.trim() ? ad.dir_id.trim() : null) ||
+        (typeof ad.dir_department_slug === "string" && ad.dir_department_slug.trim()
+          ? ad.dir_department_slug.trim()
+          : null),
+      catCode,
       subcats,
       createdAtMs: toDateTimeMs(ad.dateTime),
       visits,
@@ -547,63 +564,47 @@ export default async function CityAdsByCountryPage({
     };
   });
 
-  const directorySnap = await db.collection("directory").get();
-  const departmentMap = new Map<string, string>();
-  const departmentImageMap = new Map<string, string>();
-  const categoryMap = new Map<string, string>();
-  const adCategoryLabelMap = new Map<string, string>();
-
-  directorySnap.docs.forEach((doc) => {
-    const data = doc.data() as Record<string, unknown>;
-    const deptLabel = directoryDepartmentDisplayLabel(data, doc.id, uiLocale);
-    departmentMap.set(doc.id, deptLabel);
-    const deptImg = data.image;
-    if (typeof deptImg === "string" && deptImg.trim()) {
-      departmentImageMap.set(doc.id, deptImg.trim());
-    }
-
-    collectCategoryCodes(data.categories, categoryMap);
-  });
-
-  ads.forEach((ad) => {
-    if (
-      typeof ad.cat_code === "string" &&
-      ad.cat_code &&
-      typeof ad.cat === "string" &&
-      ad.cat.trim()
-    ) {
-      adCategoryLabelMap.set(ad.cat_code, ad.cat.trim());
-    }
+  const adsForFilter = adsForClient.map((a) => {
+    if (a.departmentId) return a;
+    if (!a.catCode) return a;
+    const inferredDept = categoryToDepartmentMap.get(a.catCode);
+    return inferredDept ? { ...a, departmentId: inferredDept } : a;
   });
 
   const departmentOptions: SelectOption[] = Array.from(
-    new Set(adsForClient.map((a) => a.departmentId).filter(Boolean) as string[]),
+    new Set(adsForFilter.map((a) => a.departmentId).filter(Boolean) as string[]),
   )
     .map((id) => ({
       value: id,
       label: departmentMap.get(id) ?? id,
     }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .sort((a, b) => a.label.localeCompare(b.label, uiLocale));
 
   const categoryOptions: SelectOption[] = Array.from(
-    new Set(adsForClient.map((a) => a.catCode).filter(Boolean) as string[]),
+    new Set(adsForFilter.map((a) => a.catCode).filter(Boolean) as string[]),
   )
     .map((code) => ({
       value: code,
-      label: adCategoryLabelMap.get(code) ?? categoryMap.get(code) ?? code,
+      label: resolveDirCategoryLabelPreferPersianCatField(
+        code,
+        dirLocale,
+        categoryMap,
+        firstPersianAdCatForCatCode(ads, code),
+      ),
     }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .sort((a, b) => a.label.localeCompare(b.label, uiLocale));
 
   const departmentQuickFilters: DepartmentQuickItem[] = Array.from(
-    new Set(adsForClient.map((a) => a.departmentId).filter(Boolean) as string[]),
+    new Set(adsForFilter.map((a) => a.departmentId).filter(Boolean) as string[]),
   )
     .map((id) => ({
       id,
       label: departmentMap.get(id) ?? id,
       imageUrl: departmentImageMap.get(id) ?? null,
     }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .sort((a, b) => a.label.localeCompare(b.label, uiLocale));
 
+  const adCityKeys = await getApprovedAdCityKeysCached();
   let citiesSnap;
   try {
     citiesSnap = await db
@@ -616,16 +617,19 @@ export default async function CityAdsByCountryPage({
     citiesSnap = await db.collection("cities").limit(300).get();
   }
   const cityOptions: CityJumpOption[] = citiesSnap.docs
+    .filter((doc) => {
+      const c = doc.data() as Record<string, unknown>;
+      if (c.active !== true) return false;
+      return cityDocHasApprovedAds(c, adCityKeys);
+    })
     .map((doc) => {
       const c = doc.data() as Record<string, unknown>;
-      if (c.active !== true) return null;
       const fa = sanitizeCityToken(c.city_fa);
       const en = sanitizeCityToken(c.city_eng);
       const cityPath = en || fa || doc.id;
       const label = fa && en ? `${fa} · ${en}` : fa || en || doc.id;
       return { id: cityPath, label };
     })
-    .filter((x): x is CityJumpOption => x !== null)
     .sort((a, b) => a.label.localeCompare(b.label, uiLocale));
 
   const pathWithinLocale = `/${encodeURIComponent(countryParam)}/${encodeURIComponent(cityParam)}/`;
@@ -691,7 +695,7 @@ export default async function CityAdsByCountryPage({
         countryEng={countryEng}
         flagUrl={flagUrl}
         cityCurrencySymbol={cityCurrencySymbol}
-        ads={adsForClient}
+        ads={adsForFilter}
         cityCenter={cityCenter}
         departmentOptions={departmentOptions}
         categoryOptions={categoryOptions}
@@ -733,14 +737,17 @@ export async function generateMetadata({
     .where("city_eng", "==", cityKey)
     .limit(20)
     .get();
+  const activeDocs = cityEngQ.docs.filter((d) =>
+    isCityActiveForPublicPages(d.data() as Record<string, unknown>),
+  );
   const match =
-    cityEngQ.docs.find((d) => {
+    activeDocs.find((d) => {
       const data = d.data() as Record<string, unknown>;
       const ce = data.country_eng;
       return typeof ce === "string" && ce === countryKey;
     }) ?? null;
 
-  const citySnap = match ?? (cityEngQ.empty ? null : cityEngQ.docs[0] ?? null);
+  const citySnap = match ?? activeDocs[0] ?? null;
   if (!citySnap) return { title: "Persiana" };
 
   const cityData = citySnap.data() as Record<string, unknown>;

@@ -96,7 +96,7 @@ export async function GET(
 
   try {
     const db = getFirestoreAdmin();
-    const adRef = db.collection("ads").doc(adId);
+    const adRef = db.collection("ad").doc(adId);
     const adSnap = await adRef.get();
     if (!adSnap.exists) {
       return NextResponse.json({ error: "not_found" }, { status: 404 });
@@ -210,7 +210,7 @@ export async function POST(
   if (text.length > MAX_TEXT) text = text.slice(0, MAX_TEXT);
 
   const db = getFirestoreAdmin();
-  const adRef = db.collection("ads").doc(adId);
+  const adRef = db.collection("ad").doc(adId);
   const revRef = adRef.collection("reviews").doc(uid);
 
   try {

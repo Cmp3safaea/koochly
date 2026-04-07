@@ -52,7 +52,7 @@ export async function PATCH(
     }
 
     const db = getFirestoreAdmin();
-    await db.collection("directory").doc(deptId).set(
+    await db.collection("dir").doc(deptId).set(
       {
         department,
         engName,
@@ -82,7 +82,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Invalid department id" }, { status: 400 });
     }
     const db = getFirestoreAdmin();
-    const adsSnap = await db.collection("ads").limit(ADS_SCAN_CAP).get();
+    const adsSnap = await db.collection("ad").limit(ADS_SCAN_CAP).get();
     const usedBy = adsSnap.docs.find((doc) => {
       const data = doc.data() as Record<string, unknown>;
       return departmentIdFromAd(data) === deptId;
@@ -93,7 +93,7 @@ export async function DELETE(
         { status: 409 },
       );
     }
-    await db.collection("directory").doc(deptId).delete();
+    await db.collection("dir").doc(deptId).delete();
     return NextResponse.json({ ok: true, id: deptId });
   } catch (e) {
     return NextResponse.json(

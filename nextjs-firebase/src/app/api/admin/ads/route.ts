@@ -80,7 +80,7 @@ export async function GET(request: Request) {
 
     let docs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
     if (seq !== null) {
-      const bySeq = await db.collection("ads").where("seq", "==", seq).limit(30).get();
+      const bySeq = await db.collection("ad").where("seq", "==", seq).limit(30).get();
       docs = bySeq.docs;
     } else {
       // For dashboard/manage use-cases, prefer ordering by Firestore timestamp.
@@ -91,9 +91,9 @@ export async function GET(request: Request) {
       const dbQueryLimit = wantsSearchScan ? Math.max(limit, SCAN_CAP_FOR_SEARCH) : limit;
       const fallbackCap = wantsSearchScan ? dbQueryLimit : Math.max(limit, Math.min(SCAN_CAP, 1200));
       try {
-        snap = await db.collection("ads").orderBy("dateTime", "desc").limit(dbQueryLimit).get();
+        snap = await db.collection("ad").orderBy("dateTime", "desc").limit(dbQueryLimit).get();
       } catch {
-        snap = await db.collection("ads").limit(fallbackCap).get();
+        snap = await db.collection("ad").limit(fallbackCap).get();
       }
       docs = snap.docs;
     }

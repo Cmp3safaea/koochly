@@ -10,7 +10,10 @@
     "lint": "next lint",
     "seo:verify": "node ./scripts/seo-verify.mjs",
     "seo:priority-urls": "node ./scripts/seo-priority-urls.mjs",
-    "import:places-draft": "node ./scripts/import-places-draft.mjs"
+    "import:places-draft": "node ./scripts/import-places-draft.mjs",
+    "import:dir-taxonomy": "node ./scripts/import-dir-taxonomy.mjs",
+    "sync:myads": "node ./scripts/sync-myads-from-ads.mjs",
+    "backfill:ad-dir-slugs": "node ./scripts/backfill-ad-dir-slugs.mjs"
   },
   "keywords": [],
   "author": "",

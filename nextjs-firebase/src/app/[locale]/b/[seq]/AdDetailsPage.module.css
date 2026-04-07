@@ -70,10 +70,11 @@
   margin-top: 12px;
 }
 
-.detailReviewMeta {
-  font-size: 0.9rem;
+.detailReviewCount {
+  font-size: 0.72rem;
   color: var(--text-muted);
   font-weight: 600;
+  line-height: 1;
 }
 
 .chips {
@@ -494,16 +495,25 @@
   color: #9b2662;
 }
 
-.mapQrGrid {
+.mapSideGrid {
   margin-top: 22px;
   display: grid;
-  grid-template-columns: 1.7fr 1fr;
+  grid-template-columns: 1.7fr minmax(200px, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.mapSideGridMapOnly {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 14px;
   align-items: start;
 }
 
 @media (max-width: 768px) {
-  .mapQrGrid {
+  .mapSideGrid,
+  .mapSideGridMapOnly {
     grid-template-columns: 1fr;
   }
 
@@ -601,14 +611,6 @@
   font-size: 0.9rem;
 }
 
-.qrPanel {
-  border: 1px solid var(--border-contact);
-  border-radius: 16px;
-  padding: 16px;
-  background: var(--contact-card-bg);
-  box-shadow: 0 2px 10px var(--shadow-xs);
-}
-
 .qrTitle {
   font-weight: 700;
   margin-bottom: 12px;
@@ -616,9 +618,25 @@
   font-size: 0.82rem;
 }
 
-.qrImg {
-  width: 100%;
-  max-width: 216px;
+.qrFooter {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border-sheet);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.qrFooter .qrTitle {
+  margin-bottom: 10px;
+}
+
+.qrImgFooter {
+  width: 140px;
+  height: 140px;
+  max-width: 100%;
+  object-fit: contain;
   border-radius: 12px;
   border: 1px solid var(--border-gallery);
   display: block;
@@ -630,4 +648,163 @@
   color: var(--text-slate-400);
   word-break: break-all;
   line-height: 1.45;
+  max-width: 420px;
+}
+
+/* Opening hours (Google weekday_text–style lines) */
+.hoursPanel {
+  margin-top: 22px;
+  padding: 18px 18px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border-contact);
+  background: var(--contact-card-bg);
+  box-shadow: 0 2px 12px var(--shadow-xs);
+}
+
+.hoursHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-sheet);
+}
+
+.hoursIconWrap {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--icon-wrap-bg);
+  color: var(--accent-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hoursIconSvg {
+  width: 21px;
+  height: 21px;
+}
+
+.hoursTitle {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--text-slate-700);
+  letter-spacing: -0.02em;
+}
+
+.hoursList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hoursRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 6px;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  border-bottom: 1px solid var(--border-sheet);
+}
+
+.hoursRow:last-child {
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+
+.hoursRowToday {
+  background: linear-gradient(120deg, var(--accent-soft-12), var(--accent-soft-08));
+  box-shadow: inset 0 0 0 1px var(--accent-border-20);
+  margin: 2px 0;
+  padding-left: 10px;
+  padding-right: 10px;
+  border-bottom-color: transparent;
+}
+
+.hoursDay {
+  font-weight: 600;
+  color: var(--text-strong);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.hoursTime {
+  color: var(--text-muted);
+  font-weight: 500;
+  text-align: end;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.hoursTodayBadge {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--accent-hover-deep);
+  background: var(--accent-soft-12);
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-border-20);
+}
+
+.hoursFullLine {
+  color: var(--text-slate);
+  width: 100%;
+  font-size: 0.86rem;
+}
+
+.hoursPanelCompact {
+  margin-top: 0;
+  padding: 11px 12px 8px;
+  border-radius: 14px;
+  align-self: start;
+  max-height: min(320px, 52vh);
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.hoursPanelCompact .hoursHead {
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+}
+
+.hoursPanelCompact .hoursIconWrap {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+}
+
+.hoursPanelCompact .hoursIconSvg {
+  width: 17px;
+  height: 17px;
+}
+
+.hoursPanelCompact .hoursTitle {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.hoursPanelCompact .hoursRow {
+  padding: 5px 4px;
+  font-size: 0.74rem;
+  gap: 10px;
+}
+
+.hoursPanelCompact .hoursTodayBadge {
+  font-size: 0.55rem;
+  padding: 2px 6px;
+}
+
+.hoursPanelCompact .hoursFullLine {
+  font-size: 0.74rem;
 }

@@ -10,6 +10,8 @@ const fa = {
     userFallback: "کاربر",
     welcome: "خوش آمدید، {{name}}",
     addYourAd: "ثبت آگهی شما",
+    signInWithGoogle: "ورود با گوگل",
+    signingIn: "در حال ورود…",
   },
   home: {
     brand: "پرشیانا",
@@ -432,6 +434,8 @@ const fa = {
     websiteFallback: "وب‌سایت",
     websiteView: "مشاهده وب‌سایت",
     instagram: "اینستاگرام",
+    openingHours: "ساعات کاری",
+    openingHoursToday: "امروز",
     mapHead: "موقعیت آگهی روی نقشه",
     noCoords: "مختصات این آگهی موجود نیست.",
     qrTitle: "QR صفحه آگهی",
@@ -441,7 +445,8 @@ const fa = {
     metaTitleSuffix: " - پرشیانا",
     metaDescFallback: "جزئیات آگهی در پرشیانا.",
     reviewsTitle: "نظرات مشتریان",
-    reviewsSubtitle: "امتیازها از کاربران واردشده",
+    reviewsSubtitle:
+      "میانگین ترکیبی از امتیازهای عمومی (مثلاً گوگل) و نظر کاربران واردشده به پرشیانا است.",
     reviewsLoading: "در حال بارگذاری نظرات…",
     reviewsEmpty: "هنوز نظری ثبت نشده. اولین نفری باشید که به این آگهی امتیاز می‌دهد.",
     reviewsCount: "{{count}} امتیاز",

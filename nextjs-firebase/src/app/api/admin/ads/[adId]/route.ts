@@ -49,7 +49,7 @@ export async function PATCH(
 
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
     const db = getFirestoreAdmin();
-    const ref = db.collection("ads").doc(adId);
+    const ref = db.collection("ad").doc(adId);
     const snap = await ref.get();
     if (!snap.exists) return NextResponse.json({ error: "Ad not found" }, { status: 404 });
 
@@ -112,7 +112,7 @@ export async function DELETE(
     const adId = asString(raw);
     if (!adId) return NextResponse.json({ error: "Invalid ad id" }, { status: 400 });
     const db = getFirestoreAdmin();
-    await db.collection("ads").doc(adId).delete();
+    await db.collection("ad").doc(adId).delete();
     return NextResponse.json({ ok: true, id: adId });
   } catch (e) {
     return NextResponse.json(

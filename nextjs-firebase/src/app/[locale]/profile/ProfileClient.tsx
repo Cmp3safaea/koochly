@@ -11,7 +11,7 @@ import {
 } from "../../../lib/firebaseClient";
 import { getCitiesCached } from "../../../lib/citiesClientCache";
 import { useI18n, useLocalizedHref } from "../../../i18n/client";
-import { logoPublicPath, telHref, type Locale } from "@koochly/shared";
+import { firstAdImageUrl, logoPublicPath, telHref, type Locale } from "@koochly/shared";
 import { useDocumentTheme } from "../../../lib/useDocumentTheme";
 import cityStyles from "../city/[cityId]/CityAdsViewClient.module.css";
 import styles from "./ProfilePage.module.css";
@@ -173,10 +173,10 @@ function WorkspaceAdCard({
     >
       <div className={cityStyles.cardTop}>
         <div className={cityStyles.cardThumb}>
-          {row.image && !row.missing ? (
+          {!row.missing ? (
             <img
               className={cityStyles.cardImg}
-              src={row.image}
+              src={firstAdImageUrl({ image: row.image })}
               alt={row.title}
               loading="lazy"
             />

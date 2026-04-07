@@ -1,11 +1,23 @@
+import type { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { collectCategoryCodes } from "../../../../lib/directoryMetadata";
+import { categoriesFromDirectoryData, collectCategoryCodes } from "../../../../lib/directoryMetadata";
 import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
-import { hubPathForCityDoc } from "../../../../lib/seoIndexable";
-import { withLocale } from "@koochly/shared";
+import { hubPathForCityDoc, isCityActiveForPublicPages } from "../../../../lib/seoIndexable";
+import { firstAdImageUrl, withLocale } from "@koochly/shared";
 import { resolveLocale } from "../../../../i18n/server";
-import { directoryDepartmentDisplayLabel } from "../../../../lib/directoryDepartmentLabel";
+import {
+  directoryDepartmentDisplayLabel,
+  type DirectoryLocale,
+} from "../../../../lib/directoryDepartmentLabel";
+import {
+  firstPersianAdCatForCatCode,
+  resolveDirCategoryLabelPreferPersianCatField,
+} from "../../../../lib/dirCategoryLabelResolve";
+import {
+  cityDocHasApprovedAds,
+  getApprovedAdCityKeysCached,
+} from "../../../../lib/citiesWithApprovedAds";
 import { getMapsBrowserApiKey } from "../../../../lib/mapsBrowserKey";
 import { reviewSummaryFromAdData } from "../../../../lib/adReviewSummary";
 import { resolveCityFlagUrl } from "../../../../lib/cityFlagUrl";
@@ -13,6 +25,7 @@ import {
   AD_PROMOTION_TYPES,
   type AdPromotionType,
 } from "../../../../lib/adPromotions";
+import { adListingPathFromAd } from "../../../../lib/seoIndexable";
 import CityAdsViewClient, {
   type CityJumpOption,
   type CityAdCard,
@@ -32,7 +45,10 @@ type AdDoc = {
   website?: string;
   cat?: string;
   cat_code?: string;
+  dir_category_slug?: string;
   departmentID?: unknown;
+  dir_id?: string;
+  dir_department_slug?: string;
   city?: string;
   city_eng?: string;
   dept?: string;
@@ -62,32 +78,6 @@ type SelectOption = {
   value: string;
   label: string;
 };
-
-function getFirstImage(ad: AdDoc): string | null {
-  const imgs = ad.images;
-  if (Array.isArray(imgs) && imgs.length > 0 && typeof imgs[0] === "string") {
-    return imgs[0];
-  }
-  if (typeof ad.image === "string") return ad.image;
-  return null;
-}
-
-function normalizeLink(ad: AdDoc): string | null {
-  if (typeof ad.url === "string" && ad.url.trim()) return ad.url;
-  if (typeof ad.website === "string" && ad.website.trim()) return ad.website;
-  return null;
-}
-
-function deriveAdDetailPath(ad: AdDoc): string | null {
-  if (typeof ad.url === "string" && ad.url.trim()) {
-    const m = ad.url.match(/\/b\/(\d+)/);
-    if (m?.[1]) return `/b/${m[1]}`;
-  }
-  if (typeof ad.seq === "number" && Number.isFinite(ad.seq)) {
-    return `/b/${ad.seq}`;
-  }
-  return null;
-}
 
 function toNonEmptyString(id: unknown): string | null {
   if (typeof id !== "string") return null;
@@ -284,7 +274,7 @@ async function promotionTypesFromSubcollections(
   await Promise.all(
     adIds.map(async (id) => {
       try {
-        const snap = await db.collection("ads").doc(id).collection("promotions").get();
+        const snap = await db.collection("ad").doc(id).collection("promotions").get();
         const found = new Set<string>();
         for (const doc of snap.docs) {
           const d = doc.data() as Record<string, unknown>;
@@ -329,30 +319,38 @@ export default async function CityAdsPage({
   const db = getFirestoreAdmin();
   // Prefer matching by `cities.city_eng` (new behavior).
   // Fallbacks: `cities.city_fa`, then old behavior using the doc id.
+  // Skip `active === false` cities; if several rows match, prefer the first active one.
   let citySnap: any = null;
 
-  // 1) city_eng
+  const firstActiveCityDoc = (docs: QueryDocumentSnapshot[]) =>
+    docs.find((d) => isCityActiveForPublicPages(d.data() as Record<string, unknown>)) ?? null;
+
   const byCityEng = await db
     .collection("cities")
     .where("city_eng", "==", cityKey)
-    .limit(1)
+    .limit(20)
     .get();
-  if (!byCityEng.empty) citySnap = byCityEng.docs[0];
+  const engPick = firstActiveCityDoc(byCityEng.docs);
+  if (engPick) citySnap = engPick;
 
-  // 2) city_fa
   if (!citySnap) {
     const byCityFa = await db
       .collection("cities")
       .where("city_fa", "==", cityKey)
-      .limit(1)
+      .limit(20)
       .get();
-    if (!byCityFa.empty) citySnap = byCityFa.docs[0];
+    const faPick = firstActiveCityDoc(byCityFa.docs);
+    if (faPick) citySnap = faPick;
   }
 
-  // 3) legacy doc id
   if (!citySnap) {
     const docSnap = await db.collection("cities").doc(cityKey).get();
-    if (docSnap.exists) citySnap = docSnap;
+    if (
+      docSnap.exists &&
+      isCityActiveForPublicPages(docSnap.data() as Record<string, unknown>)
+    ) {
+      citySnap = docSnap;
+    }
   }
 
   if (!citySnap) return notFound();
@@ -389,38 +387,31 @@ export default async function CityAdsPage({
       ? { lat: cityCenterLat, lon: cityCenterLon }
       : null;
 
-  // Try to query ads by whichever city field exists.
-  let adsSnap;
-  try {
-    if (cityEng) {
-      adsSnap = await db
-        .collection("ads")
-        .where("city_eng", "==", cityEng)
-        .where("approved", "==", true)
-        .limit(100)
-        .get();
-    } else {
-      adsSnap = await db
-        .collection("ads")
-        .where("city_fa", "==", cityFa)
-        .where("approved", "==", true)
-        .limit(100)
-        .get();
-    }
-  } catch {
-    // Fallback: fetch a subset and filter client-side (avoids missing index crashes).
-    const subset = await db.collection("ads").limit(500).get();
-    const filtered = subset.docs.filter((d) => {
-      const data = d.data() as Record<string, unknown>;
-      if (cityEng && data.city_eng === cityEng) return true;
-      if (cityFa && data.city_fa === cityFa) return true;
-      return false;
-    }).filter((d) => (d.data() as Record<string, unknown>).approved === true);
-
-    adsSnap = {
-      docs: filtered,
-    } as unknown as { docs: typeof filtered };
+  // One equality per query (automatic indexes); filter `approved` in memory.
+  const mergedAdDocs = new Map<string, QueryDocumentSnapshot>();
+  const cityAdFetchLimit = 2500;
+  const pushApproved = (doc: QueryDocumentSnapshot) => {
+    const data = doc.data() as Record<string, unknown>;
+    if (data.approved !== true) return;
+    mergedAdDocs.set(doc.id, doc);
+  };
+  if (cityEng) {
+    const engSnap = await db
+      .collection("ad")
+      .where("city_eng", "==", cityEng)
+      .limit(cityAdFetchLimit)
+      .get();
+    engSnap.docs.forEach(pushApproved);
   }
+  if (cityFa) {
+    const faSnap = await db
+      .collection("ad")
+      .where("city_fa", "==", cityFa)
+      .limit(cityAdFetchLimit)
+      .get();
+    faSnap.docs.forEach(pushApproved);
+  }
+  const adsSnap = { docs: Array.from(mergedAdDocs.values()) };
 
   const ads: AdDoc[] = adsSnap.docs.map((d) => {
     const data = d.data() as AdDoc;
@@ -433,6 +424,33 @@ export default async function CityAdsPage({
     const ao = typeof a.seq === "number" ? a.seq : Number.MAX_SAFE_INTEGER;
     const bo = typeof b.seq === "number" ? b.seq : Number.MAX_SAFE_INTEGER;
     return ao - bo;
+  });
+
+  const dirLocale: DirectoryLocale = uiLocale === "en" ? "en" : "fa";
+  const directorySnap = await db.collection("dir").get();
+  const departmentMap = new Map<string, string>();
+  const departmentImageMap = new Map<string, string>();
+  const categoryMap = new Map<string, string>();
+  const categoryToDepartmentMap = new Map<string, string>();
+
+  directorySnap.docs.forEach((doc) => {
+    const data = doc.data() as Record<string, unknown>;
+    const deptLabel = directoryDepartmentDisplayLabel(data, doc.id, uiLocale);
+    departmentMap.set(doc.id, deptLabel);
+    const deptImg = data.image;
+    if (typeof deptImg === "string" && deptImg.trim()) {
+      departmentImageMap.set(doc.id, deptImg.trim());
+    }
+
+    collectCategoryCodes(data.categories, categoryMap, dirLocale);
+    for (const c of categoriesFromDirectoryData(data, dirLocale)) {
+      if (!categoryMap.has(c.code)) {
+        categoryMap.set(c.code, c.label);
+      }
+      if (!categoryToDepartmentMap.has(c.code)) {
+        categoryToDepartmentMap.set(c.code, doc.id);
+      }
+    }
   });
 
   // SEO + heading: always prefer city_eng.
@@ -476,8 +494,31 @@ export default async function CityAdsPage({
       typeof ad.engName === "string" && ad.engName.trim() ? ad.engName.trim() : null;
     const engName = engRaw && engRaw !== title ? engRaw : null;
 
+    const departmentId =
+      toDepartmentId(ad.departmentID) ||
+      (typeof ad.dir_id === "string" && ad.dir_id.trim() ? ad.dir_id.trim() : null) ||
+      (typeof ad.dir_department_slug === "string" && ad.dir_department_slug.trim()
+        ? ad.dir_department_slug.trim()
+        : null);
+    const catCode =
+      typeof ad.dir_category_slug === "string" && ad.dir_category_slug.trim()
+        ? ad.dir_category_slug.trim()
+        : typeof ad.cat_code === "string" && ad.cat_code.trim()
+          ? ad.cat_code.trim()
+          : null;
+
+    const rawAdCat =
+      typeof ad.cat === "string" && ad.cat.trim() ? ad.cat.trim() : null;
     const category =
-      (typeof ad.cat === "string" && ad.cat.trim() ? ad.cat.trim() : null) ??
+      (catCode
+        ? resolveDirCategoryLabelPreferPersianCatField(
+            catCode,
+            dirLocale,
+            categoryMap,
+            rawAdCat,
+          )
+        : null) ??
+      rawAdCat ??
       (typeof ad.dept === "string" && ad.dept.trim() ? ad.dept.trim() : null);
 
     const description =
@@ -485,10 +526,8 @@ export default async function CityAdsPage({
         ? ad.details.trim()
         : null;
 
-    const image = getFirstImage(ad);
-    const link = deriveAdDetailPath(ad) ?? normalizeLink(ad);
-    const departmentId = toDepartmentId(ad.departmentID);
-    const catCode = typeof ad.cat_code === "string" ? ad.cat_code : null;
+    const image = firstAdImageUrl({ images: ad.images, image: ad.image });
+    const link = adListingPathFromAd(ad);
     const createdAtMs = toDateTimeMs(ad.dateTime);
 
     const approved = ad.approved === true;
@@ -562,54 +601,36 @@ export default async function CityAdsPage({
     };
   });
 
-  // Build filter options from directory collection structure.
-  const directorySnap = await db.collection("directory").get();
-  const departmentMap = new Map<string, string>();
-  const departmentImageMap = new Map<string, string>();
-  const categoryMap = new Map<string, string>();
-  const adCategoryLabelMap = new Map<string, string>();
-
-  directorySnap.docs.forEach((doc) => {
-    const data = doc.data() as Record<string, unknown>;
-    const deptLabel = directoryDepartmentDisplayLabel(data, doc.id, uiLocale);
-    departmentMap.set(doc.id, deptLabel);
-    const deptImg = data.image;
-    if (typeof deptImg === "string" && deptImg.trim()) {
-      departmentImageMap.set(doc.id, deptImg.trim());
-    }
-
-    collectCategoryCodes(data.categories, categoryMap);
-  });
-
-  ads.forEach((ad) => {
-    if (
-      typeof ad.cat_code === "string" &&
-      ad.cat_code &&
-      typeof ad.cat === "string" &&
-      ad.cat.trim()
-    ) {
-      adCategoryLabelMap.set(ad.cat_code, ad.cat.trim());
-    }
+  const adsForFilter = adsForClient.map((a) => {
+    if (a.departmentId) return a;
+    if (!a.catCode) return a;
+    const inferredDept = categoryToDepartmentMap.get(a.catCode);
+    return inferredDept ? { ...a, departmentId: inferredDept } : a;
   });
 
   // Only include options that exist in the current city's ads.
   const departmentOptions: SelectOption[] = Array.from(
-    new Set(adsForClient.map((a) => a.departmentId).filter(Boolean) as string[]),
+    new Set(adsForFilter.map((a) => a.departmentId).filter(Boolean) as string[]),
   )
     .map((id) => ({
       value: id,
       label: departmentMap.get(id) ?? id,
     }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .sort((a, b) => a.label.localeCompare(b.label, uiLocale));
 
   const categoryOptions: SelectOption[] = Array.from(
-    new Set(adsForClient.map((a) => a.catCode).filter(Boolean) as string[]),
+    new Set(adsForFilter.map((a) => a.catCode).filter(Boolean) as string[]),
   )
     .map((code) => ({
       value: code,
-      label: adCategoryLabelMap.get(code) ?? categoryMap.get(code) ?? code,
+      label: resolveDirCategoryLabelPreferPersianCatField(
+        code,
+        dirLocale,
+        categoryMap,
+        firstPersianAdCatForCatCode(ads, code),
+      ),
     }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .sort((a, b) => a.label.localeCompare(b.label, uiLocale));
 
   const hubPath = hubPathForCityDoc(cityData);
   const popularCategories: PopularCategoryLink[] = categoryOptions.map(
@@ -626,27 +647,31 @@ export default async function CityAdsPage({
   );
 
   const departmentQuickFilters: DepartmentQuickItem[] = Array.from(
-    new Set(adsForClient.map((a) => a.departmentId).filter(Boolean) as string[]),
+    new Set(adsForFilter.map((a) => a.departmentId).filter(Boolean) as string[]),
   )
     .map((id) => ({
       id,
       label: departmentMap.get(id) ?? id,
       imageUrl: departmentImageMap.get(id) ?? null,
     }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .sort((a, b) => a.label.localeCompare(b.label, uiLocale));
 
+  const adCityKeys = await getApprovedAdCityKeysCached();
   const citiesSnap = await db.collection("cities").limit(300).get();
   const cityOptions: CityJumpOption[] = citiesSnap.docs
+    .filter((doc) => {
+      const c = doc.data() as Record<string, unknown>;
+      if (c.active !== true) return false;
+      return cityDocHasApprovedAds(c, adCityKeys);
+    })
     .map((doc) => {
       const c = doc.data() as Record<string, unknown>;
-      if (c.active !== true) return null;
       const fa = sanitizeCityToken(c.city_fa);
       const en = sanitizeCityToken(c.city_eng);
       const cityPath = en || fa || doc.id;
       const label = fa && en ? `${fa} · ${en}` : fa || en || doc.id;
       return { id: cityPath, label };
     })
-    .filter((x): x is CityJumpOption => x !== null)
     .sort((a, b) => a.label.localeCompare(b.label, uiLocale));
 
   const googleMapsApiKey = getMapsBrowserApiKey();
@@ -661,7 +686,7 @@ export default async function CityAdsPage({
         countryEng={countryEng}
         flagUrl={flagUrl}
         cityCurrencySymbol={cityCurrencySymbol}
-        ads={adsForClient}
+        ads={adsForFilter}
         cityCenter={cityCenter}
         departmentOptions={departmentOptions}
         categoryOptions={categoryOptions}
@@ -690,33 +715,41 @@ export async function generateMetadata({
   const db = getFirestoreAdmin();
   let citySnap: any = null;
 
-  // 1) city_eng
+  const firstActiveCityDoc = (docs: QueryDocumentSnapshot[]) =>
+    docs.find((d) => isCityActiveForPublicPages(d.data() as Record<string, unknown>)) ?? null;
+
   const byCityEng = await db
     .collection("cities")
     .where("city_eng", "==", cityKey)
-    .limit(1)
+    .limit(20)
     .get();
-  if (!byCityEng.empty) citySnap = byCityEng.docs[0];
+  const engPick = firstActiveCityDoc(byCityEng.docs);
+  if (engPick) citySnap = engPick;
 
-  // 2) city_fa
   if (!citySnap) {
     const byCityFa = await db
       .collection("cities")
       .where("city_fa", "==", cityKey)
-      .limit(1)
+      .limit(20)
       .get();
-    if (!byCityFa.empty) citySnap = byCityFa.docs[0];
+    const faPick = firstActiveCityDoc(byCityFa.docs);
+    if (faPick) citySnap = faPick;
   }
 
-  // 3) legacy doc id
   if (!citySnap) {
     const docSnap = await db.collection("cities").doc(cityKey).get();
-    if (docSnap.exists) citySnap = docSnap;
+    if (
+      docSnap.exists &&
+      isCityActiveForPublicPages(docSnap.data() as Record<string, unknown>)
+    ) {
+      citySnap = docSnap;
+    }
   }
 
   if (!citySnap) return { title: "Persiana" };
 
   const cityData = citySnap.data() as Record<string, unknown>;
+
   const cityFa = sanitizeCityToken(cityData.city_fa);
   const cityEng = sanitizeCityToken(cityData.city_eng);
   const countryFa =

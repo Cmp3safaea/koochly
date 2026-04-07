@@ -1,0 +1,6979 @@
+[
+  {
+    "department_en": "Experts & Consultants",
+    "department_fa": "متخصصان و مشاوران",
+    "slug": "experts_consultants",
+    "categories": [
+      {
+        "name_en": "Accountants",
+        "name_fa": "حسابداران رسمی",
+        "slug": "accountants",
+        "tags_en": [
+          "accounting",
+          "tax filing",
+          "bookkeeping",
+          "corporate tax",
+          "personal tax",
+          "payroll",
+          "financial statements",
+          "audit"
+        ],
+        "tags_fa": [
+          "حسابداری",
+          "اظهارنامه مالیاتی",
+          "دفتر‌داری",
+          "مالیات شرکت",
+          "مالیات شخصی",
+          "حقوق و دستمزد",
+          "صورت‌های مالی",
+          "حسابرسی"
+        ]
+      },
+      {
+        "name_en": "Tax Consultants",
+        "name_fa": "مشاوران مالیاتی",
+        "slug": "tax_consultants",
+        "tags_en": [
+          "accounting",
+          "tax filing",
+          "bookkeeping",
+          "corporate tax",
+          "personal tax",
+          "payroll",
+          "financial statements",
+          "audit"
+        ],
+        "tags_fa": [
+          "حسابداری",
+          "اظهارنامه مالیاتی",
+          "دفتر‌داری",
+          "مالیات شرکت",
+          "مالیات شخصی",
+          "حقوق و دستمزد",
+          "صورت‌های مالی",
+          "حسابرسی"
+        ]
+      },
+      {
+        "name_en": "Lawyers",
+        "name_fa": "وکلای حقوقی",
+        "slug": "lawyers",
+        "tags_en": [
+          "legal advice",
+          "family law",
+          "contract law",
+          "business law",
+          "immigration law",
+          "litigation",
+          "notary"
+        ],
+        "tags_fa": [
+          "مشاوره حقوقی",
+          "حقوق خانواده",
+          "قراردادها",
+          "حقوق کسب‌وکار",
+          "دعاوی حقوقی",
+          "حقوق مهاجرت",
+          "تنظیم قرارداد",
+          "وکالت"
+        ]
+      },
+      {
+        "name_en": "Immigration Consultants",
+        "name_fa": "مشاوران امور مهاجرت",
+        "slug": "immigration_consultants",
+        "tags_en": [
+          "visa application",
+          "student visa",
+          "work visa",
+          "permanent residency",
+          "citizenship",
+          "immigration advice",
+          "document preparation"
+        ],
+        "tags_fa": [
+          "درخواست ویزا",
+          "ویزای تحصیلی",
+          "ویزای کاری",
+          "اقامت دائم",
+          "شهروندی",
+          "مشاوره مهاجرت",
+          "تکمیل مدارک",
+          "وقت سفارت"
+        ]
+      },
+      {
+        "name_en": "Financial Advisors",
+        "name_fa": "مشاوران مالی",
+        "slug": "financial_advisors",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Insurance Advisors",
+        "name_fa": "مشاوران بیمه",
+        "slug": "insurance_advisors",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Business Consultants",
+        "name_fa": "مشاوران کسب‌وکار",
+        "slug": "business_consultants",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Management Consultants",
+        "name_fa": "مشاوران مدیریت",
+        "slug": "management_consultants",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Auditors",
+        "name_fa": "حسابرسان",
+        "slug": "auditors",
+        "tags_en": [],
+        "tags_fa": [
+          "حسابداری",
+          "اظهارنامه مالیاتی",
+          "دفتر‌داری",
+          "مالیات شرکت",
+          "مالیات شخصی",
+          "حقوق و دستمزد",
+          "صورت‌های مالی",
+          "حسابرسی"
+        ]
+      },
+      {
+        "name_en": "Notaries",
+        "name_fa": "دفاتر اسناد رسمی",
+        "slug": "notaries",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "HR Consultants",
+        "name_fa": "مشاوران منابع انسانی",
+        "slug": "hr_consultants",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Legal Advisors",
+        "name_fa": "مشاوران حقوقی",
+        "slug": "legal_advisors",
+        "tags_en": [
+          "legal advice",
+          "family law",
+          "contract law",
+          "business law",
+          "immigration law",
+          "litigation",
+          "notary"
+        ],
+        "tags_fa": [
+          "مشاوره حقوقی",
+          "حقوق خانواده",
+          "قراردادها",
+          "حقوق کسب‌وکار",
+          "دعاوی حقوقی",
+          "حقوق مهاجرت",
+          "تنظیم قرارداد",
+          "وکالت"
+        ]
+      },
+      {
+        "name_en": "Investment Advisors",
+        "name_fa": "مشاوران سرمایه‌گذاری",
+        "slug": "investment_advisors",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Startup Consultants",
+        "name_fa": "مشاوران استارتاپ",
+        "slug": "startup_consultants",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Career Coaches",
+        "name_fa": "مربیان شغلی",
+        "slug": "career_coaches",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Market Analysts",
+        "name_fa": "تحلیلگران بازار",
+        "slug": "market_analysts",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Risk Consultants",
+        "name_fa": "مشاوران ریسک",
+        "slug": "risk_consultants",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Compliance Consultants",
+        "name_fa": "مشاوران انطباق",
+        "slug": "compliance_consultants",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Project Consultants",
+        "name_fa": "مشاوران پروژه",
+        "slug": "project_consultants",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Strategy Consultants",
+        "name_fa": "مشاوران استراتژی",
+        "slug": "strategy_consultants",
+        "tags_en": [],
+        "tags_fa": []
+      }
+    ]
+  },
+  {
+    "department_en": "Health & Wellness",
+    "department_fa": "سلامت و درمان",
+    "slug": "health_wellness",
+    "categories": [
+      {
+        "name_en": "General Practitioners",
+        "name_fa": "پزشکان عمومی",
+        "slug": "general_practitioners",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Dentists",
+        "name_fa": "دندان‌پزشکان",
+        "slug": "dentists",
+        "tags_en": [
+          "dental implant",
+          "teeth whitening",
+          "orthodontics",
+          "root canal",
+          "teeth cleaning",
+          "cosmetic dentistry",
+          "tooth extraction",
+          "fillings"
+        ],
+        "tags_fa": [
+          "ایمپلنت دندان",
+          "سفید کردن دندان",
+          "ارتودنسی",
+          "عصب‌کشی",
+          "جرم‌گیری",
+          "دندانپزشکی زیبایی",
+          "کشیدن دندان",
+          "ترمیم دندان"
+        ]
+      },
+      {
+        "name_en": "Psychologists",
+        "name_fa": "روانشناسان و مشاوران",
+        "slug": "psychologists",
+        "tags_en": [
+          "therapy",
+          "anxiety treatment",
+          "depression support",
+          "counselling",
+          "mental health",
+          "CBT",
+          "family therapy",
+          "stress management"
+        ],
+        "tags_fa": [
+          "درمان اضطراب",
+          "درمان افسردگی",
+          "مشاوره روانشناسی",
+          "سلامت روان",
+          "CBT",
+          "مشاوره فردی",
+          "خانواده درمانی",
+          "مدیریت استرس"
+        ]
+      },
+      {
+        "name_en": "Physiotherapists",
+        "name_fa": "فیزیوتراپیست‌ها",
+        "slug": "physiotherapists",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Nutritionists",
+        "name_fa": "متخصصان تغذیه",
+        "slug": "nutritionists",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Dermatologists",
+        "name_fa": "متخصصان پوست",
+        "slug": "dermatologists",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Pharmacies",
+        "name_fa": "داروخانه‌ها",
+        "slug": "pharmacies",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Opticians",
+        "name_fa": "بینایی‌سنج‌ها",
+        "slug": "opticians",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Chiropractors",
+        "name_fa": "کایروپراکتورها",
+        "slug": "chiropractors",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Mental Health Clinics",
+        "name_fa": "مراکز سلامت روان",
+        "slug": "mental_health_clinics",
+        "tags_en": [],
+        "tags_fa": [
+          "درمان اضطراب",
+          "درمان افسردگی",
+          "مشاوره روانشناسی",
+          "سلامت روان",
+          "CBT",
+          "مشاوره فردی",
+          "خانواده درمانی",
+          "مدیریت استرس"
+        ]
+      },
+      {
+        "name_en": "Cosmetic Clinics",
+        "name_fa": "کلینیک‌های زیبایی",
+        "slug": "cosmetic_clinics",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Gyms",
+        "name_fa": "باشگاه‌های ورزشی",
+        "slug": "gyms",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Yoga Instructors",
+        "name_fa": "مربیان یوگا",
+        "slug": "yoga_instructors",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Massage Therapists",
+        "name_fa": "ماساژ درمانگران",
+        "slug": "massage_therapists",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Pediatricians",
+        "name_fa": "پزشکان کودکان",
+        "slug": "pediatricians",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Cardiologists",
+        "name_fa": "متخصصان قلب",
+        "slug": "cardiologists",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Orthopedic Specialists",
+        "name_fa": "متخصصان ارتوپدی",
+        "slug": "orthopedic_specialists",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Gynecologists",
+        "name_fa": "متخصصان زنان",
+        "slug": "gynecologists",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Health Coaches",
+        "name_fa": "مربیان سلامت",
+        "slug": "health_coaches",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Wellness Centers",
+        "name_fa": "مراکز تندرستی",
+        "slug": "wellness_centers",
+        "tags_en": [],
+        "tags_fa": []
+      }
+    ]
+  },
+  {
+    "department_en": "Education & Learning",
+    "department_fa": "آموزش و یادگیری",
+    "slug": "education_learning",
+    "categories": [
+      {
+        "name_en": "English Teachers",
+        "name_fa": "مدرسین زبان انگلیسی",
+        "slug": "english_teachers",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Math Tutors",
+        "name_fa": "مدرسان ریاضی",
+        "slug": "math_tutors",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Science Tutors",
+        "name_fa": "مدرسان علوم",
+        "slug": "science_tutors",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Programming Courses",
+        "name_fa": "آموزش برنامه‌نویسی",
+        "slug": "programming_courses",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Driving Schools",
+        "name_fa": "آموزشگاه‌های رانندگی",
+        "slug": "driving_schools",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Language Schools",
+        "name_fa": "آموزشگاه‌های زبان",
+        "slug": "language_schools",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Music Teachers",
+        "name_fa": "مدرسان موسیقی",
+        "slug": "music_teachers",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Art Classes",
+        "name_fa": "کلاس‌های هنری",
+        "slug": "art_classes",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Online Courses",
+        "name_fa": "دوره‌های آنلاین",
+        "slug": "online_courses",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "University Prep",
+        "name_fa": "آمادگی دانشگاه",
+        "slug": "university_prep",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Exam Preparation",
+        "name_fa": "آمادگی آزمون‌ها",
+        "slug": "exam_preparation",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Coding Bootcamps",
+        "name_fa": "بوت‌کمپ‌های برنامه‌نویسی",
+        "slug": "coding_bootcamps",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Private Tutors",
+        "name_fa": "مدرسان خصوصی",
+        "slug": "private_tutors",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Public Speaking Coaches",
+        "name_fa": "مربیان سخنرانی",
+        "slug": "public_speaking_coaches",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Study Abroad Advisors",
+        "name_fa": "مشاوران تحصیل در خارج",
+        "slug": "study_abroad_advisors",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "E-learning Platforms",
+        "name_fa": "پلتفرم‌های آموزش آنلاین",
+        "slug": "e-learning_platforms",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Workshops",
+        "name_fa": "کارگاه‌های آموزشی",
+        "slug": "workshops",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Skill Training",
+        "name_fa": "آموزش مهارت",
+        "slug": "skill_training",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Professional Certifications",
+        "name_fa": "مدارک حرفه‌ای",
+        "slug": "professional_certifications",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      },
+      {
+        "name_en": "Early Education",
+        "name_fa": "آموزش ابتدایی",
+        "slug": "early_education",
+        "tags_en": [
+          "IELTS",
+          "TOEFL",
+          "speaking class",
+          "online course",
+          "private tutor",
+          "exam prep",
+          "homework help",
+          "lesson planning"
+        ],
+        "tags_fa": [
+          "آیلتس",
+          "تافل",
+          "کلاس مکالمه",
+          "دوره آنلاین",
+          "معلم خصوصی",
+          "آمادگی آزمون",
+          "کمک درسی",
+          "برنامه‌ریزی درسی"
+        ]
+      }
+    ]
+  },
+  {
+    "department_en": "Digital & Technology",
+    "department_fa": "دیجیتال و فناوری",
+    "slug": "digital_technology",
+    "categories": [
+      {
+        "name_en": "Web Developers",
+        "name_fa": "Web Developers",
+        "slug": "web_developers",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "Mobile App Developers",
+        "name_fa": "Mobile App Developers",
+        "slug": "mobile_app_developers",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "SEO Experts",
+        "name_fa": "SEO Experts",
+        "slug": "seo_experts",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "Graphic Designers",
+        "name_fa": "Graphic Designers",
+        "slug": "graphic_designers",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "UI UX Designers",
+        "name_fa": "UI UX Designers",
+        "slug": "ui_ux_designers",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "IT Support",
+        "name_fa": "IT Support",
+        "slug": "it_support",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "Cybersecurity Experts",
+        "name_fa": "Cybersecurity Experts",
+        "slug": "cybersecurity_experts",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "Cloud Engineers",
+        "name_fa": "Cloud Engineers",
+        "slug": "cloud_engineers",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "Data Analysts",
+        "name_fa": "Data Analysts",
+        "slug": "data_analysts",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "AI Engineers",
+        "name_fa": "AI Engineers",
+        "slug": "ai_engineers",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "DevOps Engineers",
+        "name_fa": "DevOps Engineers",
+        "slug": "devops_engineers",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "Game Developers",
+        "name_fa": "Game Developers",
+        "slug": "game_developers",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "Blockchain Developers",
+        "name_fa": "Blockchain Developers",
+        "slug": "blockchain_developers",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "Software Engineers",
+        "name_fa": "Software Engineers",
+        "slug": "software_engineers",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "QA Testers",
+        "name_fa": "QA Testers",
+        "slug": "qa_testers",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "Tech Consultants",
+        "name_fa": "Tech Consultants",
+        "slug": "tech_consultants",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "Network Engineers",
+        "name_fa": "Network Engineers",
+        "slug": "network_engineers",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "Database Administrators",
+        "name_fa": "Database Administrators",
+        "slug": "database_administrators",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "Automation Experts",
+        "name_fa": "Automation Experts",
+        "slug": "automation_experts",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      },
+      {
+        "name_en": "IoT Developers",
+        "name_fa": "IoT Developers",
+        "slug": "iot_developers",
+        "tags_en": [
+          "website development",
+          "mobile app",
+          "SEO",
+          "UI UX",
+          "backend",
+          "frontend",
+          "API integration",
+          "cloud deployment"
+        ],
+        "tags_fa": [
+          "طراحی سایت",
+          "اپلیکیشن موبایل",
+          "سئو",
+          "رابط کاربری",
+          "بک‌اند",
+          "فرانت‌اند",
+          "یکپارچه‌سازی API",
+          "استقرار کلود"
+        ]
+      }
+    ]
+  },
+  {
+    "department_en": "Business Services",
+    "department_fa": "خدمات کسب‌وکار",
+    "slug": "business_services",
+    "categories": [
+      {
+        "name_en": "Printing Services",
+        "name_fa": "Printing Services",
+        "slug": "printing_services",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Logistics Services",
+        "name_fa": "Logistics Services",
+        "slug": "logistics_services",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Office Supplies",
+        "name_fa": "Office Supplies",
+        "slug": "office_supplies",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Virtual Assistants",
+        "name_fa": "Virtual Assistants",
+        "slug": "virtual_assistants",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Recruitment Agencies",
+        "name_fa": "Recruitment Agencies",
+        "slug": "recruitment_agencies",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Event Planners",
+        "name_fa": "Event Planners",
+        "slug": "event_planners",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Consulting Firms",
+        "name_fa": "Consulting Firms",
+        "slug": "consulting_firms",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Outsourcing Services",
+        "name_fa": "Outsourcing Services",
+        "slug": "outsourcing_services",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Customer Support Services",
+        "name_fa": "Customer Support Services",
+        "slug": "customer_support_services",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "BPO Services",
+        "name_fa": "BPO Services",
+        "slug": "bpo_services",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Marketing Agencies",
+        "name_fa": "Marketing Agencies",
+        "slug": "marketing_agencies",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Branding Services",
+        "name_fa": "Branding Services",
+        "slug": "branding_services",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Accounting Services",
+        "name_fa": "Accounting Services",
+        "slug": "accounting_services",
+        "tags_en": [
+          "accounting",
+          "tax filing",
+          "bookkeeping",
+          "corporate tax",
+          "personal tax",
+          "payroll",
+          "financial statements",
+          "audit"
+        ],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Legal Services",
+        "name_fa": "Legal Services",
+        "slug": "legal_services",
+        "tags_en": [
+          "legal advice",
+          "family law",
+          "contract law",
+          "business law",
+          "immigration law",
+          "litigation",
+          "notary"
+        ],
+        "tags_fa": []
+      },
+      {
+        "name_en": "HR Services",
+        "name_fa": "HR Services",
+        "slug": "hr_services",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Translation Services",
+        "name_fa": "Translation Services",
+        "slug": "translation_services",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Market Research",
+        "name_fa": "Market Research",
+        "slug": "market_research",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Business Coaching",
+        "name_fa": "Business Coaching",
+        "slug": "business_coaching",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Corporate Training",
+        "name_fa": "Corporate Training",
+        "slug": "corporate_training",
+        "tags_en": [],
+        "tags_fa": []
+      },
+      {
+        "name_en": "Lead Generation",
+        "name_fa": "Lead Generation",
+        "slug": "lead_generation",
+        "tags_en": [],
+        "tags_fa": []
+      }
+    ]
+  },
+  {
+    "department_en": "Home Services",
+    "department_fa": "خدمات منزل",
+    "slug": "home_services",
+    "categories": [
+      {
+        "name_en": "Plumbers",
+        "name_fa": "Plumbers",
+        "slug": "plumbers",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Electricians",
+        "name_fa": "Electricians",
+        "slug": "electricians",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Cleaners",
+        "name_fa": "Cleaners",
+        "slug": "cleaners",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Painters",
+        "name_fa": "Painters",
+        "slug": "painters",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Carpenters",
+        "name_fa": "Carpenters",
+        "slug": "carpenters",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Handyman Services",
+        "name_fa": "Handyman Services",
+        "slug": "handyman_services",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Gardeners",
+        "name_fa": "Gardeners",
+        "slug": "gardeners",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Pest Control",
+        "name_fa": "Pest Control",
+        "slug": "pest_control",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "HVAC Services",
+        "name_fa": "HVAC Services",
+        "slug": "hvac_services",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Roofers",
+        "name_fa": "Roofers",
+        "slug": "roofers",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Home Renovation",
+        "name_fa": "Home Renovation",
+        "slug": "home_renovation",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Interior Designers",
+        "name_fa": "Interior Designers",
+        "slug": "interior_designers",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Security Systems",
+        "name_fa": "Security Systems",
+        "slug": "security_systems",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Moving Services",
+        "name_fa": "Moving Services",
+        "slug": "moving_services",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Appliance Repair",
+        "name_fa": "Appliance Repair",
+        "slug": "appliance_repair",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Locksmiths",
+        "name_fa": "Locksmiths",
+        "slug": "locksmiths",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Window Cleaning",
+        "name_fa": "Window Cleaning",
+        "slug": "window_cleaning",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Flooring Services",
+        "name_fa": "Flooring Services",
+        "slug": "flooring_services",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Pool Maintenance",
+        "name_fa": "Pool Maintenance",
+        "slug": "pool_maintenance",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      },
+      {
+        "name_en": "Smart Home Installation",
+        "name_fa": "Smart Home Installation",
+        "slug": "smart_home_installation",
+        "tags_en": [
+          "repair",
+          "installation",
+          "maintenance",
+          "emergency service",
+          "inspection",
+          "upgrade"
+        ],
+        "tags_fa": [
+          "تعمیر",
+          "نصب",
+          "نگهداری",
+          "خدمات فوری",
+          "بازرسی",
+          "ارتقا"
+        ]
+      }
+    ]
+  },
+  {
+    "department_en": "Beauty & Personal Care",
+    "department_fa": "زیبایی و مراقبت شخصی",
+    "slug": "beauty_personal_care",
+    "categories": [
+      {
+        "name_en": "Hair Salons",
+        "name_fa": "آرایشگاه‌ها",
+        "slug": "hair_salons",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Barbers",
+        "name_fa": "Barbers",
+        "slug": "barbers",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Makeup Artists",
+        "name_fa": "Makeup Artists",
+        "slug": "makeup_artists",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Nail Technicians",
+        "name_fa": "Nail Technicians",
+        "slug": "nail_technicians",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Beauty Clinics",
+        "name_fa": "Beauty Clinics",
+        "slug": "beauty_clinics",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Skincare Specialists",
+        "name_fa": "Skincare Specialists",
+        "slug": "skincare_specialists",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Laser Clinics",
+        "name_fa": "Laser Clinics",
+        "slug": "laser_clinics",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Tattoo Artists",
+        "name_fa": "Tattoo Artists",
+        "slug": "tattoo_artists",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Spa Services",
+        "name_fa": "Spa Services",
+        "slug": "spa_services",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Eyebrow Specialists",
+        "name_fa": "Eyebrow Specialists",
+        "slug": "eyebrow_specialists",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Hair Removal",
+        "name_fa": "Hair Removal",
+        "slug": "hair_removal",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Cosmetic Treatments",
+        "name_fa": "Cosmetic Treatments",
+        "slug": "cosmetic_treatments",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Personal Stylists",
+        "name_fa": "Personal Stylists",
+        "slug": "personal_stylists",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Massage Services",
+        "name_fa": "Massage Services",
+        "slug": "massage_services",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Beauty Trainers",
+        "name_fa": "Beauty Trainers",
+        "slug": "beauty_trainers",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Wedding Makeup",
+        "name_fa": "Wedding Makeup",
+        "slug": "wedding_makeup",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Hair Coloring",
+        "name_fa": "Hair Coloring",
+        "slug": "hair_coloring",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Facial Treatments",
+        "name_fa": "Facial Treatments",
+        "slug": "facial_treatments",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Body Care",
+        "name_fa": "Body Care",
+        "slug": "body_care",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      },
+      {
+        "name_en": "Aesthetic Clinics",
+        "name_fa": "Aesthetic Clinics",
+        "slug": "aesthetic_clinics",
+        "tags_en": [
+          "haircut",
+          "hair coloring",
+          "facial",
+          "laser",
+          "skincare",
+          "makeup",
+          "nails",
+          "waxing",
+          "spa",
+          "massage"
+        ],
+        "tags_fa": [
+          "کوتاهی مو",
+          "رنگ مو",
+          "پاکسازی صورت",
+          "لیزر",
+          "مراقبت پوست",
+          "میکاپ",
+          "ناخن",
+          "وکس",
+          "اسپا",
+          "ماساژ"
+        ]
+      }
+    ]
+  },
+  {
+    "department_en": "Travel & Transportation",
+    "department_fa": "سفر و ترابری",
+    "slug": "travel_transportation",
+    "categories": [
+      {
+        "name_en": "Travel Agencies",
+        "name_fa": "Travel Agencies",
+        "slug": "travel_agencies",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Taxi Services",
+        "name_fa": "Taxi Services",
+        "slug": "taxi_services",
+        "tags_en": [
+          "accounting",
+          "tax filing",
+          "bookkeeping",
+          "corporate tax",
+          "personal tax",
+          "payroll",
+          "financial statements",
+          "audit",
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Car Rentals",
+        "name_fa": "Car Rentals",
+        "slug": "car_rentals",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Tour Guides",
+        "name_fa": "Tour Guides",
+        "slug": "tour_guides",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Airport Transfers",
+        "name_fa": "Airport Transfers",
+        "slug": "airport_transfers",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Bus Services",
+        "name_fa": "Bus Services",
+        "slug": "bus_services",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Train Services",
+        "name_fa": "Train Services",
+        "slug": "train_services",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Cruise Services",
+        "name_fa": "Cruise Services",
+        "slug": "cruise_services",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Bike Rentals",
+        "name_fa": "Bike Rentals",
+        "slug": "bike_rentals",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Travel Insurance",
+        "name_fa": "Travel Insurance",
+        "slug": "travel_insurance",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Hotel Booking",
+        "name_fa": "Hotel Booking",
+        "slug": "hotel_booking",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Visa Services",
+        "name_fa": "Visa Services",
+        "slug": "visa_services",
+        "tags_en": [
+          "visa application",
+          "student visa",
+          "work visa",
+          "permanent residency",
+          "citizenship",
+          "immigration advice",
+          "document preparation",
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Holiday Packages",
+        "name_fa": "Holiday Packages",
+        "slug": "holiday_packages",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Camping Services",
+        "name_fa": "Camping Services",
+        "slug": "camping_services",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Tour Operators",
+        "name_fa": "Tour Operators",
+        "slug": "tour_operators",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Luxury Travel",
+        "name_fa": "Luxury Travel",
+        "slug": "luxury_travel",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Budget Travel",
+        "name_fa": "Budget Travel",
+        "slug": "budget_travel",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Group Tours",
+        "name_fa": "Group Tours",
+        "slug": "group_tours",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Local Transport",
+        "name_fa": "Local Transport",
+        "slug": "local_transport",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      },
+      {
+        "name_en": "Private Drivers",
+        "name_fa": "Private Drivers",
+        "slug": "private_drivers",
+        "tags_en": [
+          "flight booking",
+          "tickets",
+          "hotel booking",
+          "tour packages",
+          "airport transfer",
+          "car hire",
+          "insurance",
+          "itinerary"
+        ],
+        "tags_fa": [
+          "رزرو پرواز",
+          "بلیط",
+          "رزرو هتل",
+          "پکیج تور",
+          "ترانسفر فرودگاهی",
+          "اجاره خودرو",
+          "بیمه سفر",
+          "برنامه سفر"
+        ]
+      }
+    ]
+  },
+  {
+    "department_en": "Food & Restaurants",
+    "department_fa": "غذا و رستوران",
+    "slug": "food_restaurants",
+    "categories": [
+      {
+        "name_en": "Restaurants",
+        "name_fa": "رستوران‌ها",
+        "slug": "restaurants",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Cafes",
+        "name_fa": "Cafes",
+        "slug": "cafes",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Fast Food",
+        "name_fa": "Fast Food",
+        "slug": "fast_food",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Bakeries",
+        "name_fa": "Bakeries",
+        "slug": "bakeries",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Catering Services",
+        "name_fa": "Catering Services",
+        "slug": "catering_services",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Food Delivery",
+        "name_fa": "Food Delivery",
+        "slug": "food_delivery",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Ice Cream Shops",
+        "name_fa": "Ice Cream Shops",
+        "slug": "ice_cream_shops",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Dessert Shops",
+        "name_fa": "Dessert Shops",
+        "slug": "dessert_shops",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Juice Bars",
+        "name_fa": "Juice Bars",
+        "slug": "juice_bars",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Coffee Shops",
+        "name_fa": "Coffee Shops",
+        "slug": "coffee_shops",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Food Trucks",
+        "name_fa": "Food Trucks",
+        "slug": "food_trucks",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Fine Dining",
+        "name_fa": "Fine Dining",
+        "slug": "fine_dining",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Street Food",
+        "name_fa": "Street Food",
+        "slug": "street_food",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Vegan Restaurants",
+        "name_fa": "Vegan Restaurants",
+        "slug": "vegan_restaurants",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Halal Restaurants",
+        "name_fa": "Halal Restaurants",
+        "slug": "halal_restaurants",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Seafood Restaurants",
+        "name_fa": "Seafood Restaurants",
+        "slug": "seafood_restaurants",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Steakhouses",
+        "name_fa": "Steakhouses",
+        "slug": "steakhouses",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Buffets",
+        "name_fa": "Buffets",
+        "slug": "buffets",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Takeaway",
+        "name_fa": "Takeaway",
+        "slug": "takeaway",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      },
+      {
+        "name_en": "Meal Prep Services",
+        "name_fa": "Meal Prep Services",
+        "slug": "meal_prep_services",
+        "tags_en": [
+          "dine in",
+          "takeaway",
+          "delivery",
+          "catering",
+          "grill",
+          "dessert",
+          "coffee",
+          "breakfast",
+          "lunch",
+          "dinner"
+        ],
+        "tags_fa": [
+          "سرو در محل",
+          "بیرون‌بر",
+          "ارسال غذا",
+          "کترینگ",
+          "گریل",
+          "دسر",
+          "قهوه",
+          "صبحانه",
+          "ناهار",
+          "شام"
+        ]
+      }
+    ]
+  },
+  {
+    "department_en": "Shopping / Retail",
+    "department_fa": "خرید",
+    "slug": "shopping_retail",
+    "categories": [
+      {
+        "name_en": "Clothing Stores",
+        "name_fa": "Clothing Stores",
+        "slug": "clothing_stores",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Shoe Stores",
+        "name_fa": "Shoe Stores",
+        "slug": "shoe_stores",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Electronics Stores",
+        "name_fa": "Electronics Stores",
+        "slug": "electronics_stores",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Furniture Stores",
+        "name_fa": "Furniture Stores",
+        "slug": "furniture_stores",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Jewelry Stores",
+        "name_fa": "Jewelry Stores",
+        "slug": "jewelry_stores",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Supermarkets",
+        "name_fa": "سوپرمارکت‌ها",
+        "slug": "supermarkets",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Online Shops",
+        "name_fa": "Online Shops",
+        "slug": "online_shops",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Gift Shops",
+        "name_fa": "Gift Shops",
+        "slug": "gift_shops",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Toy Stores",
+        "name_fa": "Toy Stores",
+        "slug": "toy_stores",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Bookstores",
+        "name_fa": "Bookstores",
+        "slug": "bookstores",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Sports Shops",
+        "name_fa": "Sports Shops",
+        "slug": "sports_shops",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Pet Stores",
+        "name_fa": "Pet Stores",
+        "slug": "pet_stores",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Beauty Stores",
+        "name_fa": "Beauty Stores",
+        "slug": "beauty_stores",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Home Decor",
+        "name_fa": "Home Decor",
+        "slug": "home_decor",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Luxury Brands",
+        "name_fa": "Luxury Brands",
+        "slug": "luxury_brands",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Outlet Stores",
+        "name_fa": "Outlet Stores",
+        "slug": "outlet_stores",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Department Stores",
+        "name_fa": "Department Stores",
+        "slug": "department_stores",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Discount Stores",
+        "name_fa": "Discount Stores",
+        "slug": "discount_stores",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Accessories",
+        "name_fa": "Accessories",
+        "slug": "accessories",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      },
+      {
+        "name_en": "Florists",
+        "name_fa": "Florists",
+        "slug": "florists",
+        "tags_en": [
+          "online shopping",
+          "in store",
+          "discounts",
+          "sales",
+          "brands",
+          "delivery",
+          "returns",
+          "gift cards"
+        ],
+        "tags_fa": [
+          "خرید آنلاین",
+          "حضوری",
+          "تخفیف",
+          "فروش ویژه",
+          "برندها",
+          "ارسال",
+          "مرجوعی",
+          "کارت هدیه"
+        ]
+      }
+    ]
+  },
+  {
+    "department_en": "Real Estate",
+    "department_fa": "املاک",
+    "slug": "real_estate",
+    "categories": [
+      {
+        "name_en": "Real Estate Agents",
+        "name_fa": "مشاوران املاک",
+        "slug": "real_estate_agents",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Property Management",
+        "name_fa": "Property Management",
+        "slug": "property_management",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Rental Services",
+        "name_fa": "Rental Services",
+        "slug": "rental_services",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Property Investment",
+        "name_fa": "Property Investment",
+        "slug": "property_investment",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Commercial Real Estate",
+        "name_fa": "Commercial Real Estate",
+        "slug": "commercial_real_estate",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Residential Sales",
+        "name_fa": "Residential Sales",
+        "slug": "residential_sales",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Mortgage Advisors",
+        "name_fa": "Mortgage Advisors",
+        "slug": "mortgage_advisors",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Letting Agents",
+        "name_fa": "Letting Agents",
+        "slug": "letting_agents",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Property Valuation",
+        "name_fa": "Property Valuation",
+        "slug": "property_valuation",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Real Estate Lawyers",
+        "name_fa": "Real Estate Lawyers",
+        "slug": "real_estate_lawyers",
+        "tags_en": [
+          "legal advice",
+          "family law",
+          "contract law",
+          "business law",
+          "immigration law",
+          "litigation",
+          "notary",
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Land Sales",
+        "name_fa": "Land Sales",
+        "slug": "land_sales",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Office Spaces",
+        "name_fa": "Office Spaces",
+        "slug": "office_spaces",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Short Term Rentals",
+        "name_fa": "Short Term Rentals",
+        "slug": "short_term_rentals",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Student Housing",
+        "name_fa": "Student Housing",
+        "slug": "student_housing",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Luxury Properties",
+        "name_fa": "Luxury Properties",
+        "slug": "luxury_properties",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Property Developers",
+        "name_fa": "Property Developers",
+        "slug": "property_developers",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Estate Agencies",
+        "name_fa": "Estate Agencies",
+        "slug": "estate_agencies",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Home Buyers",
+        "name_fa": "Home Buyers",
+        "slug": "home_buyers",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Property Listings",
+        "name_fa": "Property Listings",
+        "slug": "property_listings",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      },
+      {
+        "name_en": "Relocation Services",
+        "name_fa": "Relocation Services",
+        "slug": "relocation_services",
+        "tags_en": [
+          "buy property",
+          "rent property",
+          "property valuation",
+          "mortgage",
+          "lettings",
+          "property management",
+          "listing",
+          "viewing"
+        ],
+        "tags_fa": [
+          "خرید ملک",
+          "اجاره ملک",
+          "ارزیابی ملک",
+          "وام مسکن",
+          "اجاره‌داری",
+          "مدیریت ملک",
+          "آگهی ملک",
+          "بازدید ملک"
+        ]
+      }
+    ]
+  },
+  {
+    "department_en": "Automotive",
+    "department_fa": "خودرو",
+    "slug": "automotive",
+    "categories": [
+      {
+        "name_en": "Car Dealers",
+        "name_fa": "Car Dealers",
+        "slug": "car_dealers",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Mechanics",
+        "name_fa": "Mechanics",
+        "slug": "mechanics",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Car Wash",
+        "name_fa": "Car Wash",
+        "slug": "car_wash",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Auto Parts",
+        "name_fa": "Auto Parts",
+        "slug": "auto_parts",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Car Rentals",
+        "name_fa": "Car Rentals",
+        "slug": "car_rentals",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Body Shops",
+        "name_fa": "Body Shops",
+        "slug": "body_shops",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Tire Services",
+        "name_fa": "Tire Services",
+        "slug": "tire_services",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Oil Change",
+        "name_fa": "Oil Change",
+        "slug": "oil_change",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Vehicle Inspection",
+        "name_fa": "Vehicle Inspection",
+        "slug": "vehicle_inspection",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Car Detailing",
+        "name_fa": "Car Detailing",
+        "slug": "car_detailing",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Electric Vehicles",
+        "name_fa": "Electric Vehicles",
+        "slug": "electric_vehicles",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Motorbike Services",
+        "name_fa": "Motorbike Services",
+        "slug": "motorbike_services",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Driving Schools",
+        "name_fa": "آموزشگاه‌های رانندگی",
+        "slug": "driving_schools",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Roadside Assistance",
+        "name_fa": "Roadside Assistance",
+        "slug": "roadside_assistance",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Auto Insurance",
+        "name_fa": "Auto Insurance",
+        "slug": "auto_insurance",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Fleet Services",
+        "name_fa": "Fleet Services",
+        "slug": "fleet_services",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Vehicle Tracking",
+        "name_fa": "Vehicle Tracking",
+        "slug": "vehicle_tracking",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Used Cars",
+        "name_fa": "Used Cars",
+        "slug": "used_cars",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Car Accessories",
+        "name_fa": "Car Accessories",
+        "slug": "car_accessories",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      },
+      {
+        "name_en": "Garage Services",
+        "name_fa": "Garage Services",
+        "slug": "garage_services",
+        "tags_en": [
+          "car sales",
+          "used cars",
+          "new cars",
+          "car service",
+          "repair",
+          "inspection",
+          "detailing",
+          "tire change",
+          "oil change"
+        ],
+        "tags_fa": [
+          "فروش خودرو",
+          "خودرو دست دوم",
+          "خودرو نو",
+          "سرویس خودرو",
+          "تعمیر",
+          "بازرسی",
+          "دیتیلینگ",
+          "تعویض لاستیک",
+          "تعویض روغن"
+        ]
+      }
+    ]
+  },
+  {
+    "department_en": "Kids & Family",
+    "department_fa": "کودکان و خانواده",
+    "slug": "kids_family",
+    "categories": [
+      {
+        "name_en": "Kindergartens",
+        "name_fa": "Kindergartens",
+        "slug": "kindergartens",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Babysitters",
+        "name_fa": "Babysitters",
+        "slug": "babysitters",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Kids Activities",
+        "name_fa": "Kids Activities",
+        "slug": "kids_activities",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Toy Stores",
+        "name_fa": "Toy Stores",
+        "slug": "toy_stores",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Child Care",
+        "name_fa": "Child Care",
+        "slug": "child_care",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Family Counseling",
+        "name_fa": "Family Counseling",
+        "slug": "family_counseling",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Parenting Classes",
+        "name_fa": "Parenting Classes",
+        "slug": "parenting_classes",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Kids Sports",
+        "name_fa": "Kids Sports",
+        "slug": "kids_sports",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Kids Education",
+        "name_fa": "Kids Education",
+        "slug": "kids_education",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Play Centers",
+        "name_fa": "Play Centers",
+        "slug": "play_centers",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Children Clinics",
+        "name_fa": "Children Clinics",
+        "slug": "children_clinics",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Kids Fashion",
+        "name_fa": "Kids Fashion",
+        "slug": "kids_fashion",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Birthday Services",
+        "name_fa": "Birthday Services",
+        "slug": "birthday_services",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Kids Camps",
+        "name_fa": "Kids Camps",
+        "slug": "kids_camps",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Nurseries",
+        "name_fa": "Nurseries",
+        "slug": "nurseries",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "After School Programs",
+        "name_fa": "After School Programs",
+        "slug": "after_school_programs",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Family Events",
+        "name_fa": "Family Events",
+        "slug": "family_events",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Kids Entertainment",
+        "name_fa": "Kids Entertainment",
+        "slug": "kids_entertainment",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Child Psychology",
+        "name_fa": "Child Psychology",
+        "slug": "child_psychology",
+        "tags_en": [
+          "therapy",
+          "anxiety treatment",
+          "depression support",
+          "counselling",
+          "mental health",
+          "CBT",
+          "family therapy",
+          "stress management",
+          "child care",
+          "daycare",
+          "after school",
+          "activities"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      },
+      {
+        "name_en": "Learning Centers",
+        "name_fa": "Learning Centers",
+        "slug": "learning_centers",
+        "tags_en": [
+          "child care",
+          "daycare",
+          "after school",
+          "activities",
+          "sports",
+          "education",
+          "birthday",
+          "camps",
+          "learning",
+          "play"
+        ],
+        "tags_fa": [
+          "نگهداری کودک",
+          "مهدکودک",
+          "بعد از مدرسه",
+          "فعالیت‌ها",
+          "ورزش",
+          "آموزش",
+          "تولد",
+          "کمپ‌ها",
+          "یادگیری",
+          "بازی"
+        ]
+      }
+    ]
+  },
+  {
+    "department_en": "Events & Entertainment",
+    "department_fa": "رویدادها و سرگرمی",
+    "slug": "events_entertainment",
+    "categories": [
+      {
+        "name_en": "Event Planning",
+        "name_fa": "Event Planning",
+        "slug": "event_planning",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Wedding Services",
+        "name_fa": "Wedding Services",
+        "slug": "wedding_services",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Photography",
+        "name_fa": "Photography",
+        "slug": "photography",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Videography",
+        "name_fa": "Videography",
+        "slug": "videography",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "DJ Services",
+        "name_fa": "DJ Services",
+        "slug": "dj_services",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Live Music",
+        "name_fa": "Live Music",
+        "slug": "live_music",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Party Rentals",
+        "name_fa": "Party Rentals",
+        "slug": "party_rentals",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Catering",
+        "name_fa": "Catering",
+        "slug": "catering",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Event Venues",
+        "name_fa": "Event Venues",
+        "slug": "event_venues",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Decor Services",
+        "name_fa": "Decor Services",
+        "slug": "decor_services",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Entertainment Agencies",
+        "name_fa": "Entertainment Agencies",
+        "slug": "entertainment_agencies",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Festival Services",
+        "name_fa": "Festival Services",
+        "slug": "festival_services",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Corporate Events",
+        "name_fa": "Corporate Events",
+        "slug": "corporate_events",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Birthday Events",
+        "name_fa": "Birthday Events",
+        "slug": "birthday_events",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Concerts",
+        "name_fa": "Concerts",
+        "slug": "concerts",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Theater",
+        "name_fa": "Theater",
+        "slug": "theater",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Cinema",
+        "name_fa": "Cinema",
+        "slug": "cinema",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Stand-up Comedy",
+        "name_fa": "Stand-up Comedy",
+        "slug": "stand-up_comedy",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Nightclubs",
+        "name_fa": "Nightclubs",
+        "slug": "nightclubs",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      },
+      {
+        "name_en": "Karaoke",
+        "name_fa": "Karaoke",
+        "slug": "karaoke",
+        "tags_en": [
+          "event planning",
+          "wedding",
+          "party",
+          "venue",
+          "catering",
+          "music",
+          "DJ",
+          "photography",
+          "videography",
+          "decor"
+        ],
+        "tags_fa": [
+          "برنامه‌ریزی رویداد",
+          "عروسی",
+          "مهمانی",
+          "محل برگزاری",
+          "کترینگ",
+          "موسیقی",
+          "دی‌جی",
+          "عکاسی",
+          "فیلمبرداری",
+          "دکور"
+        ]
+      }
+    ]
+  },
+  {
+    "department_en": "Social & Community",
+    "department_fa": "اجتماعی و فرهنگی",
+    "slug": "social_community",
+    "categories": [
+      {
+        "name_en": "Community Centers",
+        "name_fa": "Community Centers",
+        "slug": "community_centers",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Cultural Associations",
+        "name_fa": "Cultural Associations",
+        "slug": "cultural_associations",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Religious Centers",
+        "name_fa": "Religious Centers",
+        "slug": "religious_centers",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Charities",
+        "name_fa": "Charities",
+        "slug": "charities",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Volunteer Groups",
+        "name_fa": "Volunteer Groups",
+        "slug": "volunteer_groups",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Social Clubs",
+        "name_fa": "Social Clubs",
+        "slug": "social_clubs",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Networking Events",
+        "name_fa": "Networking Events",
+        "slug": "networking_events",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Language Exchange",
+        "name_fa": "Language Exchange",
+        "slug": "language_exchange",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Support Groups",
+        "name_fa": "Support Groups",
+        "slug": "support_groups",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "NGOs",
+        "name_fa": "NGOs",
+        "slug": "ngos",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Meetups",
+        "name_fa": "Meetups",
+        "slug": "meetups",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Forums",
+        "name_fa": "Forums",
+        "slug": "forums",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Online Communities",
+        "name_fa": "Online Communities",
+        "slug": "online_communities",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Student Groups",
+        "name_fa": "Student Groups",
+        "slug": "student_groups",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Professional Networks",
+        "name_fa": "Professional Networks",
+        "slug": "professional_networks",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Women Groups",
+        "name_fa": "Women Groups",
+        "slug": "women_groups",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Youth Clubs",
+        "name_fa": "Youth Clubs",
+        "slug": "youth_clubs",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Cultural Events",
+        "name_fa": "Cultural Events",
+        "slug": "cultural_events",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Local News",
+        "name_fa": "Local News",
+        "slug": "local_news",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      },
+      {
+        "name_en": "Public Forums",
+        "name_fa": "Public Forums",
+        "slug": "public_forums",
+        "tags_en": [
+          "community",
+          "networking",
+          "events",
+          "support",
+          "volunteer",
+          "meetups",
+          "forums",
+          "clubs"
+        ],
+        "tags_fa": [
+          "جامعه",
+          "شبکه‌سازی",
+          "رویدادها",
+          "حمایت",
+          "داوطلبی",
+          "دورهمی",
+          "انجمن‌ها",
+          "باشگاه‌ها"
+        ]
+      }
+    ]
+  }
+]

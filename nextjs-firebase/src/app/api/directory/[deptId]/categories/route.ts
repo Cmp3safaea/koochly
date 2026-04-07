@@ -5,10 +5,12 @@ import { getFirestoreAdmin } from "../../../../../lib/firebaseAdmin";
 export const runtime = "nodejs";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ deptId: string }> },
 ) {
   try {
+    const { searchParams } = new URL(request.url);
+    const locale = searchParams.get("locale") === "en" ? "en" : "fa";
     const { deptId: raw } = await context.params;
     const deptId = typeof raw === "string" ? decodeURIComponent(raw.trim()) : "";
     if (!deptId) {
@@ -16,14 +18,14 @@ export async function GET(
     }
 
     const db = getFirestoreAdmin();
-    const snap = await db.collection("directory").doc(deptId).get();
+    const snap = await db.collection("dir").doc(deptId).get();
     if (!snap.exists) {
       return NextResponse.json({ error: "بخش پیدا نشد" }, { status: 404 });
     }
 
     const data = snap.data() as Record<string, unknown>;
-    const base = await resolveDirectoryCategoriesForAdmin(db, deptId, data);
-    const sub = await db.collection("directory").doc(deptId).collection("categories").limit(500).get();
+    const base = await resolveDirectoryCategoriesForAdmin(db, deptId, data, locale);
+    const sub = await db.collection("dir").doc(deptId).collection("categories").limit(500).get();
 
     if (!sub.empty) {
       const byId = new Map(

@@ -4,10 +4,29 @@ import { notFound } from "next/navigation";
 import { getFirestoreAdmin } from "../../../../../../lib/firebaseAdmin";
 import { resolveLocale } from "../../../../../../i18n/server";
 import { getSiteBaseUrl } from "../../../../../../lib/siteUrl";
-import { withLocale } from "@koochly/shared";
-import { directoryDepartmentDisplayLabel } from "../../../../../../lib/directoryDepartmentLabel";
+import { firstAdImageUrl, withLocale } from "@koochly/shared";
+import {
+  directoryDepartmentDisplayLabel,
+  type DirectoryLocale,
+} from "../../../../../../lib/directoryDepartmentLabel";
+import {
+  collectCategoryCodes,
+  categoriesFromDirectoryData,
+} from "../../../../../../lib/directoryMetadata";
+import {
+  firstPersianAdCatForCatCode,
+  resolveDirCategoryLabelPreferPersianCatField,
+} from "../../../../../../lib/dirCategoryLabelResolve";
+import {
+  cityDocHasApprovedAds,
+  getApprovedAdCityKeysCached,
+} from "../../../../../../lib/citiesWithApprovedAds";
 import { getMapsBrowserApiKey } from "../../../../../../lib/mapsBrowserKey";
 import { reviewSummaryFromAdData } from "../../../../../../lib/adReviewSummary";
+import {
+  adListingPathFromAd,
+  isCityActiveForPublicPages,
+} from "../../../../../../lib/seoIndexable";
 import CityAdsViewClient, {
   type CityAdCard,
   type CityJumpOption,
@@ -26,7 +45,10 @@ type AdDoc = {
   website?: string;
   cat?: string;
   cat_code?: string;
+  dir_category_slug?: string;
   departmentID?: unknown;
+  dir_id?: string;
+  dir_department_slug?: string;
   city?: string;
   city_eng?: string;
   dept?: string;
@@ -65,21 +87,36 @@ async function findCityDoc(country: string, city: string) {
   const countryKey = sanitize(country).toLowerCase();
   const cityKey = sanitize(city);
 
-  const pick = (docs: FirebaseFirestore.QueryDocumentSnapshot[]) =>
-    docs.find((d) => {
-      const data = d.data() as Record<string, unknown>;
-      const ce = typeof data.country_eng === "string" ? data.country_eng.toLowerCase() : "";
-      return ce === countryKey;
-    }) ?? docs[0] ?? null;
+  const pick = (docs: FirebaseFirestore.QueryDocumentSnapshot[]) => {
+    const active = docs.filter((d) =>
+      isCityActiveForPublicPages(d.data() as Record<string, unknown>),
+    );
+    if (active.length === 0) return null;
+    return (
+      active.find((d) => {
+        const data = d.data() as Record<string, unknown>;
+        const ce = typeof data.country_eng === "string" ? data.country_eng.toLowerCase() : "";
+        return ce === countryKey;
+      }) ?? active[0] ?? null
+    );
+  };
 
   const byEng = await db.collection("cities").where("city_eng", "==", cityKey).limit(20).get();
-  if (!byEng.empty) return pick(byEng.docs);
+  if (!byEng.empty) {
+    const chosen = pick(byEng.docs);
+    if (chosen) return chosen;
+  }
 
   const byFa = await db.collection("cities").where("city_fa", "==", cityKey).limit(20).get();
-  if (!byFa.empty) return pick(byFa.docs);
+  if (!byFa.empty) {
+    const chosen = pick(byFa.docs);
+    if (chosen) return chosen;
+  }
 
   const legacy = await db.collection("cities").doc(cityKey).get();
-  return legacy.exists ? legacy : null;
+  if (!legacy.exists) return null;
+  const legacyData = legacy.data() as Record<string, unknown>;
+  return isCityActiveForPublicPages(legacyData) ? legacy : null;
 }
 
 function toFiniteNumber(value: unknown): number | null {
@@ -144,73 +181,32 @@ function normalizeSubcats(value: unknown): string[] {
     .slice(0, 8);
 }
 
-function getFirstImage(ad: AdDoc): string | null {
-  const imgs = ad.images;
-  if (Array.isArray(imgs) && imgs.length > 0 && typeof imgs[0] === "string") {
-    return imgs[0];
-  }
-  if (typeof ad.image === "string") return ad.image;
-  return null;
-}
-
-function normalizeLink(ad: AdDoc): string | null {
-  if (typeof ad.url === "string" && ad.url.trim()) return ad.url;
-  if (typeof ad.website === "string" && ad.website.trim()) return ad.website;
-  return null;
-}
-
-function deriveAdDetailPath(ad: AdDoc): string | null {
-  if (typeof ad.url === "string" && ad.url.trim()) {
-    const m = ad.url.match(/\/b\/(\d+)/);
-    if (m?.[1]) return `/b/${m[1]}`;
-  }
-  if (typeof ad.seq === "number" && Number.isFinite(ad.seq)) {
-    return `/b/${ad.seq}`;
-  }
-  return null;
-}
-
 async function loadCategoryAds(cityEng: string, cityFa: string, catCode: string): Promise<AdDoc[]> {
   const db = getFirestoreAdmin();
   const rows = new Map<string, AdDoc>();
+  const limit = 2000;
 
-  const pushDoc = (d: FirebaseFirestore.QueryDocumentSnapshot) => {
+  const pushIfMatch = (d: FirebaseFirestore.QueryDocumentSnapshot) => {
     const data = d.data() as Record<string, unknown>;
+    if (data.approved !== true) return;
+    const slug =
+      typeof data.dir_category_slug === "string" ? data.dir_category_slug.trim() : "";
+    const cc = typeof data.cat_code === "string" ? data.cat_code.trim() : "";
+    if (slug !== catCode && cc !== catCode) return;
     rows.set(d.id, { id: d.id, ...(data as AdDoc), cat_code: catCode });
   };
 
   try {
     if (cityEng) {
-      const q = await db
-        .collection("ads")
-        .where("city_eng", "==", cityEng)
-        .where("cat_code", "==", catCode)
-        .where("approved", "==", true)
-        .limit(200)
-        .get();
-      q.docs.forEach(pushDoc);
+      const snap = await db.collection("ad").where("city_eng", "==", cityEng).limit(limit).get();
+      snap.docs.forEach(pushIfMatch);
     }
     if (cityFa) {
-      const q = await db
-        .collection("ads")
-        .where("city_fa", "==", cityFa)
-        .where("cat_code", "==", catCode)
-        .where("approved", "==", true)
-        .limit(200)
-        .get();
-      q.docs.forEach(pushDoc);
+      const snap = await db.collection("ad").where("city_fa", "==", cityFa).limit(limit).get();
+      snap.docs.forEach(pushIfMatch);
     }
   } catch {
-    const subset = await db.collection("ads").limit(700).get();
-    subset.docs.forEach((d) => {
-      const data = d.data() as Record<string, unknown>;
-      if (data.approved !== true) return;
-      if (typeof data.cat_code !== "string" || data.cat_code.trim() !== catCode) return;
-      const matchEng = cityEng && data.city_eng === cityEng;
-      const matchFa = cityFa && data.city_fa === cityFa;
-      if (!matchEng && !matchFa) return;
-      pushDoc(d);
-    });
+    /* ignore */
   }
 
   return Array.from(rows.values());
@@ -243,16 +239,46 @@ export default async function CityCategoryLandingPage({
       ? { lat: cityCenterLat, lon: cityCenterLon }
       : null;
 
+  const db = getFirestoreAdmin();
+  const dirLocale: DirectoryLocale = locale === "en" ? "en" : "fa";
+  const directorySnap = await db.collection("dir").get();
+  const departmentMap = new Map<string, string>();
+  const departmentImageMap = new Map<string, string>();
+  const categoryMap = new Map<string, string>();
+  const categoryToDepartmentMap = new Map<string, string>();
+  directorySnap.docs.forEach((doc) => {
+    const data = doc.data() as Record<string, unknown>;
+    departmentMap.set(doc.id, directoryDepartmentDisplayLabel(data, doc.id, locale));
+    if (typeof data.image === "string" && data.image.trim()) {
+      departmentImageMap.set(doc.id, data.image.trim());
+    }
+    collectCategoryCodes(data.categories, categoryMap, dirLocale);
+    for (const c of categoriesFromDirectoryData(data, dirLocale)) {
+      if (!categoryMap.has(c.code)) {
+        categoryMap.set(c.code, c.label);
+      }
+      if (!categoryToDepartmentMap.has(c.code)) {
+        categoryToDepartmentMap.set(c.code, doc.id);
+      }
+    }
+  });
+
   const ads = await loadCategoryAds(cityEng, cityFa, catCodeParam);
   const categoryLabel =
-    ads.find((a) => typeof a.cat === "string" && a.cat.trim())?.cat?.trim() || catCodeParam;
+    resolveDirCategoryLabelPreferPersianCatField(
+      catCodeParam,
+      dirLocale,
+      categoryMap,
+      firstPersianAdCatForCatCode(ads, catCodeParam),
+    ) ||
+    ads.find((a) => typeof a.cat === "string" && a.cat.trim())?.cat?.trim() ||
+    catCodeParam;
   const cityName = cityEng || cityFa || cityParam;
   const pageTitle = cityEng && countryFa ? `${countryFa} - ${cityEng}` : cityName;
   const pathWithinLocale = `/${countryParam}/${cityParam}/category/${catCodeParam}/`;
   const canonicalPath = withLocale(locale, pathWithinLocale);
   const canonicalUrl = `${getSiteBaseUrl()}${canonicalPath}`;
   const cityHubPath = withLocale(locale, `/${countryParam}/${cityParam}/`);
-  const db = getFirestoreAdmin();
 
   const adsForClient: CityAdCard[] = ads
     .map((ad) => {
@@ -269,8 +295,24 @@ export default async function CityCategoryLandingPage({
       const engRaw =
         typeof ad.engName === "string" && ad.engName.trim() ? ad.engName.trim() : null;
       const engName = engRaw && engRaw !== title ? engRaw : null;
+      const catCodeResolved =
+        typeof ad.dir_category_slug === "string" && ad.dir_category_slug.trim()
+          ? ad.dir_category_slug.trim()
+          : typeof ad.cat_code === "string" && ad.cat_code.trim()
+            ? ad.cat_code.trim()
+            : null;
+      const rawAdCat =
+        typeof ad.cat === "string" && ad.cat.trim() ? ad.cat.trim() : null;
       const category =
-        (typeof ad.cat === "string" && ad.cat.trim() ? ad.cat.trim() : null) ??
+        (catCodeResolved
+          ? resolveDirCategoryLabelPreferPersianCatField(
+              catCodeResolved,
+              dirLocale,
+              categoryMap,
+              rawAdCat,
+            )
+          : null) ??
+        rawAdCat ??
         (typeof ad.dept === "string" && ad.dept.trim() ? ad.dept.trim() : null);
       const description =
         typeof ad.details === "string" && ad.details.trim() ? ad.details.trim() : null;
@@ -302,12 +344,22 @@ export default async function CityCategoryLandingPage({
         engName,
         category,
         description,
-        image: getFirstImage(ad),
-        link: deriveAdDetailPath(ad) ?? normalizeLink(ad),
+        image: firstAdImageUrl({ images: ad.images, image: ad.image }),
+        link: adListingPathFromAd(ad),
         phone,
         location,
-        departmentId: toDepartmentId(ad.departmentID),
-        catCode: typeof ad.cat_code === "string" ? ad.cat_code : null,
+        departmentId:
+          toDepartmentId(ad.departmentID) ||
+          (typeof ad.dir_id === "string" && ad.dir_id.trim() ? ad.dir_id.trim() : null) ||
+          (typeof ad.dir_department_slug === "string" && ad.dir_department_slug.trim()
+            ? ad.dir_department_slug.trim()
+            : null),
+        catCode:
+          typeof ad.dir_category_slug === "string" && ad.dir_category_slug.trim()
+            ? ad.dir_category_slug.trim()
+            : typeof ad.cat_code === "string" && ad.cat_code.trim()
+              ? ad.cat_code.trim()
+              : null,
         subcats,
         createdAtMs: toDateTimeMs(ad.dateTime),
         visits,
@@ -327,35 +379,40 @@ export default async function CityCategoryLandingPage({
       return bo - ao;
     });
 
-  const directorySnap = await db.collection("directory").get();
-  const departmentMap = new Map<string, string>();
-  const departmentImageMap = new Map<string, string>();
-  directorySnap.docs.forEach((doc) => {
-    const data = doc.data() as Record<string, unknown>;
-    departmentMap.set(doc.id, directoryDepartmentDisplayLabel(data, doc.id, locale));
-    if (typeof data.image === "string" && data.image.trim()) {
-      departmentImageMap.set(doc.id, data.image.trim());
-    }
+  const adsForFilter = adsForClient.map((a) => {
+    if (a.departmentId) return a;
+    if (!a.catCode) return a;
+    const inferredDept = categoryToDepartmentMap.get(a.catCode);
+    return inferredDept ? { ...a, departmentId: inferredDept } : a;
   });
   const departmentOptions: SelectOption[] = Array.from(
-    new Set(adsForClient.map((a) => a.departmentId).filter(Boolean) as string[]),
+    new Set(adsForFilter.map((a) => a.departmentId).filter(Boolean) as string[]),
   )
     .map((id) => ({ value: id, label: departmentMap.get(id) ?? id }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .sort((a, b) => a.label.localeCompare(b.label, locale));
   const categoryOptions: SelectOption[] = Array.from(
-    new Set(adsForClient.map((a) => a.catCode).filter(Boolean) as string[]),
+    new Set(adsForFilter.map((a) => a.catCode).filter(Boolean) as string[]),
   )
-    .map((code) => ({ value: code, label: code === catCodeParam ? categoryLabel : code }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .map((code) => ({
+      value: code,
+      label: resolveDirCategoryLabelPreferPersianCatField(
+        code,
+        dirLocale,
+        categoryMap,
+        firstPersianAdCatForCatCode(ads, code),
+      ),
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label, locale));
   const departmentQuickFilters: DepartmentQuickItem[] = Array.from(
-    new Set(adsForClient.map((a) => a.departmentId).filter(Boolean) as string[]),
+    new Set(adsForFilter.map((a) => a.departmentId).filter(Boolean) as string[]),
   )
     .map((id) => ({
       id,
       label: departmentMap.get(id) ?? id,
       imageUrl: departmentImageMap.get(id) ?? null,
     }))
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .sort((a, b) => a.label.localeCompare(b.label, locale));
+  const adCityKeys = await getApprovedAdCityKeysCached();
   let citiesSnap;
   try {
     citiesSnap = await db
@@ -368,16 +425,19 @@ export default async function CityCategoryLandingPage({
     citiesSnap = await db.collection("cities").limit(300).get();
   }
   const cityOptions: CityJumpOption[] = citiesSnap.docs
+    .filter((doc) => {
+      const c = doc.data() as Record<string, unknown>;
+      if (c.active !== true) return false;
+      return cityDocHasApprovedAds(c, adCityKeys);
+    })
     .map((doc) => {
       const c = doc.data() as Record<string, unknown>;
-      if (c.active !== true) return null;
       const fa = sanitize(c.city_fa);
       const en = sanitize(c.city_eng);
       const cityPath = en || fa || doc.id;
       const label = fa && en ? `${fa} · ${en}` : fa || en || doc.id;
       return { id: cityPath, label };
     })
-    .filter((x): x is CityJumpOption => x !== null)
     .sort((a, b) => a.label.localeCompare(b.label, locale));
 
   const breadcrumbJsonLd = {
@@ -415,7 +475,7 @@ export default async function CityCategoryLandingPage({
         cityFa={cityFa}
         countryFa={countryFa}
         countryEng={countryEng}
-        ads={adsForClient}
+        ads={adsForFilter}
         cityCenter={cityCenter}
         departmentOptions={departmentOptions}
         categoryOptions={categoryOptions}

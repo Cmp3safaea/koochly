@@ -211,12 +211,7 @@ export default function AdReviewsSection({ adId, initialSummary }: Props) {
     }
   }, [fetchReviews, nextCursor, loadingMore, t]);
 
-  const countLabel =
-    summary.count === 0
-      ? ""
-      : summary.count === 1
-        ? t("adDetail.reviewsCountOne")
-        : t("adDetail.reviewsCount", { count: String(summary.count) });
+  const countLabel = summary.count === 0 ? "" : `(${summary.count})`;
 
   const scrollToComposer = useCallback(() => {
     const el = document.getElementById("ad-review-composer");
@@ -241,16 +236,13 @@ export default function AdReviewsSection({ adId, initialSummary }: Props) {
         <p className={styles.sub}>{t("adDetail.reviewsSubtitle")}</p>
         {summary.count > 0 && summary.avg !== null ? (
           <div className={styles.summaryRow}>
-            <div className={styles.summaryBig}>
-              <span className={styles.avgNum}>{summary.avg.toFixed(1)}</span>
-              <StarRating
-                value={summary.avg}
-                size="md"
-                ariaLabel={t("adDetail.reviewsOutOf", { n: summary.avg.toFixed(1) })}
-              />
-            </div>
-            <span className={styles.summaryMeta}>
-              {t("adDetail.reviewsAvgOf", { avg: summary.avg.toFixed(1) })} · {countLabel}
+            <StarRating
+              value={summary.avg}
+              size="md"
+              ariaLabel={t("adDetail.reviewsOutOf", { n: summary.avg.toFixed(1) })}
+            />
+            <span className={styles.summaryCount} dir="ltr" lang="en">
+              {countLabel}
             </span>
           </div>
         ) : (

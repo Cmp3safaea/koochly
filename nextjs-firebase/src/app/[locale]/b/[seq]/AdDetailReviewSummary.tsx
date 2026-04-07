@@ -13,10 +13,6 @@ export default function AdDetailReviewSummary({
 }) {
   const { t } = useI18n();
   if (count <= 0 || avg == null) return null;
-  const countLabel =
-    count === 1
-      ? t("adDetail.reviewsCountOne")
-      : t("adDetail.reviewsCount", { count: String(count) });
   return (
     <div className={styles.detailReviewRow}>
       <StarRating
@@ -24,8 +20,8 @@ export default function AdDetailReviewSummary({
         size="md"
         ariaLabel={t("adDetail.reviewsOutOf", { n: avg.toFixed(1) })}
       />
-      <span className={styles.detailReviewMeta}>
-        {avg.toFixed(1)} · {countLabel}
+      <span className={styles.detailReviewCount} dir="ltr" lang="en">
+        ({count})
       </span>
     </div>
   );

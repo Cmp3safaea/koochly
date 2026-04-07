@@ -69,7 +69,7 @@ export default function HomePage() {
   }
 
   async function loadCities({ silent }: { silent?: boolean } = {}) {
-    const data = await getCitiesCached();
+    const data = await getCitiesCached(5 * 60 * 1000, "withAds");
     setCities((data.cities as City[]) ?? []);
     if (!silent) setCitiesStatus(null);
     setHasLoaded(true);

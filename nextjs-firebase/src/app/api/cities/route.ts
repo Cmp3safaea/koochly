@@ -1,8 +1,17 @@
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+import {
+  cityDocHasApprovedAds,
+  getApprovedAdCityKeysCached,
+} from "../../../lib/citiesWithApprovedAds";
 import { getFirestoreAdmin } from "../../../lib/firebaseAdmin";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const onlyWithAds =
+      req.nextUrl.searchParams.get("onlyWithAds") === "1" ||
+      req.nextUrl.searchParams.get("onlyWithAds") === "true";
+    const cityLimit = onlyWithAds ? 500 : 100;
+
     const db = getFirestoreAdmin();
     // Fast path: only active cities, ordered by `order`.
     // Falls back for legacy schemas without `active`/`order`.
@@ -12,13 +21,17 @@ export async function GET() {
         .collection("cities")
         .where("active", "==", true)
         .orderBy("order")
-        .limit(100)
+        .limit(cityLimit)
         .get();
     } catch {
       try {
-        snap = await db.collection("cities").orderBy("order").limit(100).get();
+        snap = await db
+          .collection("cities")
+          .orderBy("order")
+          .limit(cityLimit)
+          .get();
       } catch {
-        snap = await db.collection("cities").limit(100).get();
+        snap = await db.collection("cities").limit(cityLimit).get();
       }
     }
 
@@ -66,11 +79,19 @@ export async function GET() {
       return ao - bo;
     });
 
+    let out = cities.filter((c) => c.active === true);
+    if (onlyWithAds) {
+      const adKeys = await getApprovedAdCityKeysCached();
+      out = out.filter((c) => cityDocHasApprovedAds(c as Record<string, unknown>, adKeys));
+    }
+
     return NextResponse.json(
-      { cities: cities.filter((c) => c.active === true) },
+      { cities: out },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+          "Cache-Control": onlyWithAds
+            ? "public, s-maxage=180, stale-while-revalidate=360"
+            : "public, s-maxage=300, stale-while-revalidate=600",
         },
       },
     );

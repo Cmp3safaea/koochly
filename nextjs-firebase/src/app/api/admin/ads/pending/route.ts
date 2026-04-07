@@ -62,14 +62,14 @@ export async function GET() {
     let snap;
     try {
       snap = await db
-        .collection("ads")
+        .collection("ad")
         .where("approved", "==", false)
         .orderBy("dateTime", "desc")
         .limit(300)
         .get();
     } catch {
       // Fallback when composite index is not yet deployed.
-      snap = await db.collection("ads").where("approved", "==", false).limit(300).get();
+      snap = await db.collection("ad").where("approved", "==", false).limit(300).get();
     }
     const ads = snap.docs
       .map((doc) => {

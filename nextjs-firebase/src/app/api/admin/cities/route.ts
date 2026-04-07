@@ -41,7 +41,7 @@ export async function GET() {
     const db = getFirestoreAdmin();
     const [citySnap, adsSnap] = await Promise.all([
       db.collection("cities").limit(500).get(),
-      db.collection("ads").limit(ADS_SCAN_CAP).get(),
+      db.collection("ad").limit(ADS_SCAN_CAP).get(),
     ]);
 
     const usageMap = new Map<string, number>();

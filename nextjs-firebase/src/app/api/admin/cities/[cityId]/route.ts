@@ -97,7 +97,7 @@ export async function DELETE(
     const cityEng = sanitizeToken(asString(data.city_eng));
     const cityFa = asString(data.city_fa);
 
-    const adsSnap = await db.collection("ads").limit(ADS_SCAN_CAP).get();
+    const adsSnap = await db.collection("ad").limit(ADS_SCAN_CAP).get();
     const used = adsSnap.docs.some((doc) => {
       const ad = doc.data() as Record<string, unknown>;
       const adCityEng = sanitizeToken(asString(ad.city_eng));

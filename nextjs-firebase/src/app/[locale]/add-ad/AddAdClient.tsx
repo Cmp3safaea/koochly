@@ -428,7 +428,7 @@ export default function AddAdClient({
     let cancelled = false;
     setCategoriesLoading(true);
     setCategoryOptions([]);
-    const url = `/api/directory/${encodeURIComponent(departmentId)}/categories`;
+    const url = `/api/directory/${encodeURIComponent(departmentId)}/categories?locale=${encodeURIComponent(locale)}`;
     fetch(url)
       .then(async (res) => {
         const j = (await res.json().catch(() => ({}))) as {
