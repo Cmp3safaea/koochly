@@ -1522,12 +1522,13 @@ export default function CityAdsViewClient({
         return true;
       });
 
-      const visitTotal = (card: CityAdCard) => {
+      /** Server/listing visits only — optimistic `visitBumps` must not reorder the list on click. */
+      const visitsForSort = (card: CityAdCard) => {
         const v =
           typeof card.visits === "number" && Number.isFinite(card.visits)
             ? Math.max(0, Math.floor(card.visits))
             : 0;
-        return v + (visitBumps[card.id] ?? 0);
+        return v;
       };
 
       const nowMs = Date.now();
@@ -1549,8 +1550,8 @@ export default function CityAdsViewClient({
         if (aPromoExpiry === null && bPromoExpiry !== null) return 1;
 
         if (listSortKey === "visits") {
-          const av = visitTotal(a);
-          const bv = visitTotal(b);
+          const av = visitsForSort(a);
+          const bv = visitsForSort(b);
           let cmp = listSortDir === "desc" ? bv - av : av - bv;
           if (cmp !== 0) return cmp;
           const ams = typeof a.createdAtMs === "number" ? a.createdAtMs : null;
@@ -1563,12 +1564,12 @@ export default function CityAdsViewClient({
 
         const ams = typeof a.createdAtMs === "number" ? a.createdAtMs : null;
         const bms = typeof b.createdAtMs === "number" ? b.createdAtMs : null;
-        if (ams === null && bms === null) return visitTotal(b) - visitTotal(a);
+        if (ams === null && bms === null) return visitsForSort(b) - visitsForSort(a);
         if (ams === null) return 1;
         if (bms === null) return -1;
         let cmp = listSortDir === "asc" ? ams - bms : bms - ams;
         if (cmp !== 0) return cmp;
-        return visitTotal(b) - visitTotal(a);
+        return visitsForSort(b) - visitsForSort(a);
       });
 
       return out;
@@ -1580,7 +1581,6 @@ export default function CityAdsViewClient({
       searchQuery,
       listSortKey,
       listSortDir,
-      visitBumps,
       priceMinStr,
       priceMaxStr,
       filterFreeOnly,
