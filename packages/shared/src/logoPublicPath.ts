@@ -11,13 +11,25 @@ export const LOGO_DM_ENG_PUBLIC_PATH = "/logo_dm_eng.png";
 export const LOGO_DM_FA_PUBLIC_PATH = "/logo_dm_fa.png";
 
 /**
- * @param theme Defaults to `"light"` (use for server metadata / JSON-LD).
+ * @param theme Defaults to `"light"` (use for server metadata / JSON-LD / OG tags).
  */
 export function logoPublicPath(locale: Locale, theme: LogoTheme = "light"): string {
   if (theme === "dark") {
     return locale === "en" ? LOGO_DM_ENG_PUBLIC_PATH : LOGO_DM_FA_PUBLIC_PATH;
   }
   return locale === "en" ? LOGO_ENG_PUBLIC_PATH : LOGO_FA_PUBLIC_PATH;
+}
+
+/**
+ * Logo for in-app UI (headers, splash). English light-mode raster is inverted vs the Farsi
+ * pair: use `logo_dm_eng.png` on light surfaces (same role as `logo_fa.png`), and keep
+ * `logo_eng.png` for dark mode via {@link logoPublicPath}.
+ */
+export function logoPublicPathUi(locale: Locale, theme: LogoTheme): string {
+  if (locale === "en" && theme === "light") {
+    return LOGO_DM_ENG_PUBLIC_PATH;
+  }
+  return logoPublicPath(locale, theme);
 }
 
 /** Listing thumbnail fallback when an ad has no photos (same asset as `LOGO_ENG_PUBLIC_PATH`). */

@@ -193,10 +193,11 @@
 }
 
 .countriesStack {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-top: 12px;
+  align-items: start;
 }
 
 .topBar {
@@ -354,6 +355,7 @@
 }
 
 .countryCard {
+  min-width: 0;
   border: 1px solid var(--border-country);
   border-radius: 14px;
   background: var(--surface-glass-75);
@@ -617,6 +619,7 @@
   }
 
   .countriesStack {
+    grid-template-columns: 1fr;
     gap: 10px;
   }
 

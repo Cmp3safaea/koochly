@@ -14,7 +14,9 @@ import {
   categoriesFromDirectoryData,
 } from "../../../../../../lib/directoryMetadata";
 import {
+  adCardTitleForLocale,
   firstPersianAdCatForCatCode,
+  hasPersianScript,
   resolveDirCategoryLabelPreferPersianCatField,
 } from "../../../../../../lib/dirCategoryLabelResolve";
 import {
@@ -186,6 +188,10 @@ async function loadCategoryAds(cityEng: string, cityFa: string, catCode: string)
   const rows = new Map<string, AdDoc>();
   const limit = 2000;
 
+  const ingestApproved = (d: FirebaseFirestore.QueryDocumentSnapshot) => {
+    rows.set(d.id, { id: d.id, ...(d.data() as AdDoc), cat_code: catCode });
+  };
+
   const pushIfMatch = (d: FirebaseFirestore.QueryDocumentSnapshot) => {
     const data = d.data() as Record<string, unknown>;
     if (data.approved !== true) return;
@@ -196,12 +202,48 @@ async function loadCategoryAds(cityEng: string, cityFa: string, catCode: string)
     rows.set(d.id, { id: d.id, ...(data as AdDoc), cat_code: catCode });
   };
 
+  const indexedQueries: Promise<FirebaseFirestore.QuerySnapshot>[] = [];
+  const addIndexed = (
+    field: "city_eng" | "city_fa",
+    city: string,
+    catField: "dir_category_slug" | "cat_code",
+  ) => {
+    if (!city) return;
+    indexedQueries.push(
+      db
+        .collection("ad")
+        .where("approved", "==", true)
+        .where(field, "==", city)
+        .where(catField, "==", catCode)
+        .limit(limit)
+        .get(),
+    );
+  };
+
+  try {
+    if (cityEng) {
+      addIndexed("city_eng", cityEng, "dir_category_slug");
+      addIndexed("city_eng", cityEng, "cat_code");
+    }
+    if (cityFa && cityFa !== cityEng) {
+      addIndexed("city_fa", cityFa, "dir_category_slug");
+      addIndexed("city_fa", cityFa, "cat_code");
+    }
+    if (indexedQueries.length > 0) {
+      const snaps = await Promise.all(indexedQueries);
+      for (const snap of snaps) snap.docs.forEach(ingestApproved);
+      return Array.from(rows.values());
+    }
+  } catch {
+    /* fall through to legacy city scan */
+  }
+
   try {
     if (cityEng) {
       const snap = await db.collection("ad").where("city_eng", "==", cityEng).limit(limit).get();
       snap.docs.forEach(pushIfMatch);
     }
-    if (cityFa) {
+    if (cityFa && cityFa !== cityEng) {
       const snap = await db.collection("ad").where("city_fa", "==", cityFa).limit(limit).get();
       snap.docs.forEach(pushIfMatch);
     }
@@ -271,10 +313,22 @@ export default async function CityCategoryLandingPage({
       categoryMap,
       firstPersianAdCatForCatCode(ads, catCodeParam),
     ) ||
-    ads.find((a) => typeof a.cat === "string" && a.cat.trim())?.cat?.trim() ||
+    (locale === "en"
+      ? ads.find((a) => {
+          const c = typeof a.cat === "string" ? a.cat.trim() : "";
+          return c.length > 0 && !hasPersianScript(c);
+        })?.cat?.trim()
+      : ads.find((a) => typeof a.cat === "string" && a.cat.trim())?.cat?.trim()) ||
     catCodeParam;
   const cityName = cityEng || cityFa || cityParam;
-  const pageTitle = cityEng && countryFa ? `${countryFa} - ${cityEng}` : cityName;
+  const pageTitle =
+    locale === "en"
+      ? cityEng && countryEng.trim()
+        ? `${cityEng}, ${countryEng.trim()}`
+        : cityName
+      : cityEng && countryFa.trim()
+        ? `${countryFa.trim()} - ${cityEng}`
+        : cityName;
   const pathWithinLocale = `/${countryParam}/${cityParam}/category/${catCodeParam}/`;
   const canonicalPath = withLocale(locale, pathWithinLocale);
   const canonicalUrl = `${getSiteBaseUrl()}${canonicalPath}`;
@@ -286,12 +340,7 @@ export default async function CityCategoryLandingPage({
       const lat = toFiniteNumber(rawLoc?.__lat__ ?? rawLoc?.lat ?? rawLoc?.latitude);
       const lon = toFiniteNumber(rawLoc?.__lon__ ?? rawLoc?.lon ?? rawLoc?.longitude ?? rawLoc?.lng);
       const location = lat !== null && lon !== null ? { lat, lon } : null;
-      const title =
-        typeof ad.title === "string" && ad.title.trim()
-          ? ad.title.trim()
-          : typeof ad.engName === "string"
-            ? ad.engName
-            : ad.id ?? "";
+      const title = adCardTitleForLocale(dirLocale, ad);
       const engRaw =
         typeof ad.engName === "string" && ad.engName.trim() ? ad.engName.trim() : null;
       const engName = engRaw && engRaw !== title ? engRaw : null;
@@ -303,6 +352,8 @@ export default async function CityCategoryLandingPage({
             : null;
       const rawAdCat =
         typeof ad.cat === "string" && ad.cat.trim() ? ad.cat.trim() : null;
+      const deptStr =
+        typeof ad.dept === "string" && ad.dept.trim() ? ad.dept.trim() : null;
       const category =
         (catCodeResolved
           ? resolveDirCategoryLabelPreferPersianCatField(
@@ -312,8 +363,8 @@ export default async function CityCategoryLandingPage({
               rawAdCat,
             )
           : null) ??
-        rawAdCat ??
-        (typeof ad.dept === "string" && ad.dept.trim() ? ad.dept.trim() : null);
+        (dirLocale === "en" && rawAdCat && hasPersianScript(rawAdCat) ? null : rawAdCat) ??
+        (dirLocale === "en" && deptStr && hasPersianScript(deptStr) ? null : deptStr);
       const description =
         typeof ad.details === "string" && ad.details.trim() ? ad.details.trim() : null;
       const phone =

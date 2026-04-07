@@ -33,7 +33,9 @@ function readFileAsBase64(file: File): Promise<{ base64: string; mime: string }>
 }
 
 export default function ClaimBusinessPanel({ adId }: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const wrapClass =
+    locale === "en" ? `${styles.wrap} ${styles.wrapEn}` : styles.wrap;
   const [expanded, setExpanded] = useState(false);
   const configured = isFirebaseClientConfigured();
   const [user, setUser] = useState<User | null>(null);
@@ -131,7 +133,7 @@ export default function ClaimBusinessPanel({ adId }: Props) {
 
   if (!configured) {
     return (
-      <div className={styles.wrap}>
+      <div className={wrapClass}>
         <div className={styles.head}>{t("claim.headDisabled")}</div>
         <p className={styles.notConfigured}>{t("claim.disabledHint")}</p>
       </div>
@@ -148,7 +150,7 @@ export default function ClaimBusinessPanel({ adId }: Props) {
   }
 
   return (
-    <div className={styles.wrap}>
+    <div className={wrapClass}>
       <div className={styles.head}>{t("claim.headAsk")}</div>
       <p className={styles.hint}>
         {t("claim.hint")}

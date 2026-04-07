@@ -11,8 +11,8 @@ export function norm(s) {
   return asString(s)
     .toLowerCase()
     .replace(/\s+/g, " ")
-    .replaceAll("\u200c", "")
-    .replaceAll("\u200f", "")
+    .replace(/\u200c/g, "")
+    .replace(/\u200f/g, "")
     .trim();
 }
 
@@ -22,38 +22,60 @@ function categoryAliasKeysFromData(cd) {
     asString(cd.cat_code),
     asString(cd.catCode),
     asString(cd.category_code),
-    asString(cd.categoryCode),
+    asString(cd.Category_code),
   ].filter(Boolean);
 }
 
 function registerCategoryRow(categories, row, keys) {
+  for (const raw of keys) {
+    const k = norm(raw);
+    if (!k) continue;
+    if (!categories.has(k)) categories.set(k, row);
+  }
+}
+
+function mergeTags(target, fromField) {
+  if (!Array.isArray(fromField)) return;
+  for (const x of fromField) {
+    if (typeof x === "string" && x.trim() && !target.includes(x.trim())) target.push(x.trim());
+  }
+}
+
+export function uniqueCategoryRows(deptState) {
+  if (!deptState?.categories) return [];
   const seen = new Set();
-  for (const k of keys) {
-    const t = asString(k);
-    if (!t || seen.has(t)) continue;
-    seen.add(t);
-    categories.set(t, row);
-  }
-}
-
-function uniqueCategoryRows(deptState) {
-  const bySlug = new Map();
+  const out = [];
   for (const c of deptState.categories.values()) {
-    const s = asString(c?.slug);
-    if (s && !bySlug.has(s)) bySlug.set(s, c);
+    const s = c?.slug;
+    if (!s || seen.has(s)) continue;
+    seen.add(s);
+    out.push(c);
   }
-  return [...bySlug.values()];
+  return out;
 }
 
-export async function loadDirDepartmentsState(db, dirCollection) {
+function allCategoryRowsFlat(deptState) {
+  const rows = uniqueCategoryRows(deptState);
+  const out = [...rows];
+  for (const r of rows) {
+    if (r.subcategories?.size) {
+      for (const s of r.subcategories.values()) {
+        if (s?.slug) out.push(s);
+      }
+    }
+  }
+  return out;
+}
+
+export async function loadDirDepartmentsState(db, dirCollection = "dir") {
   const depts = new Map();
   const snap = await db.collection(dirCollection).get();
 
   for (const doc of snap.docs) {
     const slug = doc.id;
     const data = doc.data();
-    const department_en = asString(data.department_en);
-    const department_fa = asString(data.department_fa);
+    const department_fa = asString(data.department_fa) || asString(data.department);
+    const department_en = asString(data.department_en) || asString(data.engName);
     const categories = new Map();
 
     const raw = data.categories;
@@ -66,25 +88,32 @@ export async function loadDirDepartmentsState(db, dirCollection) {
           slug: cs,
           name_en: asString(c.name_en),
           name_fa: asString(c.name_fa),
-          tags_en: Array.isArray(c.tags_en) ? c.tags_en.filter((x) => typeof x === "string") : [],
-          tags_fa: Array.isArray(c.tags_fa) ? c.tags_fa.filter((x) => typeof x === "string") : [],
+          tags_en: Array.isArray(c.tags_en)
+            ? c.tags_en.filter((x) => typeof x === "string")
+            : [],
+          tags_fa: Array.isArray(c.tags_fa)
+            ? c.tags_fa.filter((x) => typeof x === "string")
+            : [],
           subcategories: new Map(),
         };
-        const keys = [cs, ...categoryAliasKeysFromData(c)];
-        registerCategoryRow(categories, row, keys);
+        registerCategoryRow(categories, row, [cs, ...categoryAliasKeysFromData(c)]);
       }
     }
 
-    const catCol = db.collection(dirCollection).doc(slug).collection("categories");
-    const catSnap = await catCol.limit(600).get();
+    const catSnap = await db
+      .collection(dirCollection)
+      .doc(slug)
+      .collection("categories")
+      .limit(600)
+      .get();
+
     for (const cdoc of catSnap.docs) {
       const cd = cdoc.data();
       const canonical = asString(cd.slug) || cdoc.id;
-      if (!canonical) continue;
-      const existing =
-        categories.get(canonical) ||
-        categories.get(cdoc.id) ||
-        {
+      let existing =
+        categories.get(canonical) || categories.get(norm(canonical)) || null;
+      if (!existing) {
+        existing = {
           slug: canonical,
           name_en: "",
           name_fa: "",
@@ -92,55 +121,70 @@ export async function loadDirDepartmentsState(db, dirCollection) {
           tags_fa: [],
           subcategories: new Map(),
         };
-      existing.slug = canonical;
-      existing.name_en = existing.name_en || asString(cd.name_en);
-      existing.name_fa = existing.name_fa || asString(cd.name_fa);
-      if (!existing.subcategories) existing.subcategories = new Map();
-
-      const subCol = catCol.doc(cdoc.id).collection("subcategories");
-      const subSnap = await subCol.limit(400).get();
-      for (const sdoc of subSnap.docs) {
-        const sd = sdoc.data();
-        const ss = asString(sd.slug) || sdoc.id;
-        if (!ss) continue;
-        existing.subcategories.set(ss, {
-          slug: ss,
-          name_en: asString(sd.name_en) || ss,
-          name_fa: asString(sd.name_fa) || asString(sd.name_en) || ss,
-        });
       }
-      const keys = [canonical, cdoc.id, ...categoryAliasKeysFromData(cd)];
-      registerCategoryRow(categories, existing, keys);
+      existing.slug = canonical;
+      existing.name_en =
+        existing.name_en ||
+        asString(cd.name_en) ||
+        asString(cd.engName) ||
+        asString(cd.Category);
+      existing.name_fa =
+        existing.name_fa ||
+        asString(cd.name_fa) ||
+        asString(cd.category_fa) ||
+        asString(cd.category);
+      mergeTags(existing.tags_en, cd.tags_en);
+      mergeTags(existing.tags_fa, cd.tags_fa);
+      registerCategoryRow(categories, existing, [canonical, cdoc.id, ...categoryAliasKeysFromData(cd)]);
+
+      const subSnap = await cdoc.ref.collection("subcategories").limit(400).get();
       for (const sdoc of subSnap.docs) {
         const sd = sdoc.data();
-        const ss = asString(sd.slug) || sdoc.id;
-        if (!ss) continue;
-        registerCategoryRow(categories, existing, [ss, ...categoryAliasKeysFromData(sd)]);
+        const subSlug = asString(sd.slug) || sdoc.id;
+        const subRow = {
+          slug: subSlug,
+          name_en: asString(sd.name_en) || asString(sd.engName),
+          name_fa: asString(sd.name_fa),
+          tags_en: [],
+          tags_fa: [],
+          subcategories: new Map(),
+        };
+        existing.subcategories.set(subSlug, subRow);
+        registerCategoryRow(categories, subRow, [subSlug, sdoc.id, ...categoryAliasKeysFromData(sd)]);
       }
     }
 
-    depts.set(slug, { department_en, department_fa, categories });
+    depts.set(slug, {
+      department_en,
+      department_fa,
+      categories,
+    });
   }
+
   return depts;
 }
 
 export function matchDirCategoryInDept(deptState, dirRow) {
-  const list = uniqueCategoryRows(deptState);
-  const code = dirRow.code;
+  const list = allCategoryRowsFlat(deptState);
+  const code = norm(dirRow.code);
   const label = norm(dirRow.label);
-  const eng = norm(dirRow.engName);
+  const engName = norm(dirRow.engName);
 
-  let found = list.find((c) => c.slug && c.slug === code);
+  let found = list.find((c) => c.slug && norm(c.slug) === code);
   if (found) return found;
 
-  if (eng) {
-    found = list.find((c) => norm(c.name_en) === eng);
+  if (engName) {
+    found = list.find((c) => norm(c.name_en) === engName);
     if (found) return found;
   }
   if (label) {
-    found = list.find((c) => norm(c.name_fa) === label);
-    if (found) return found;
-    found = list.find((c) => norm(c.name_en) === label);
+    found = list.find(
+      (c) =>
+        norm(c.name_fa) === label ||
+        norm(c.name_en) === label ||
+        (c.tags_fa && c.tags_fa.some((t) => norm(t) === label)) ||
+        (c.tags_en && c.tags_en.some((t) => norm(t) === label)),
+    );
     if (found) return found;
   }
   return null;
@@ -150,14 +194,14 @@ export function buildCatCodeToDeptSlug(depts) {
   const m = new Map();
   let conflicts = 0;
   for (const [deptSlug, st] of depts) {
-    for (const key of st.categories.keys()) {
-      const k = asString(key);
-      if (!k) continue;
-      if (m.has(k) && m.get(k) !== deptSlug) {
+    for (const k of st.categories.keys()) {
+      const key = asString(k);
+      if (!key) continue;
+      if (m.has(key) && m.get(key) !== deptSlug) {
         conflicts++;
         continue;
       }
-      if (!m.has(k)) m.set(k, deptSlug);
+      if (!m.has(key)) m.set(key, deptSlug);
     }
   }
   if (conflicts > 0) {
@@ -168,7 +212,6 @@ export function buildCatCodeToDeptSlug(depts) {
   return m;
 }
 
-/** e.g. cat_code "beauty" → single dept "beauty_personal_care" (unique prefix match). */
 export function resolveDeptSlugByCatPrefix(catRaw, depts) {
   if (!catRaw) return null;
   if (depts.has(catRaw)) return catRaw;
@@ -181,14 +224,12 @@ export function resolveDeptSlugByCatPrefix(catRaw, depts) {
   return null;
 }
 
-/** Match `cat` / `engName` / `cat_code` labels against embedded dir category names (unique dept only). */
 export function resolveDeptSlugFromAdLabels(data, depts) {
   const catRaw =
     asString(data.cat_code) || asString(data.catCode) || asString(data.category_code);
   const label = asString(data.cat);
   const engName = asString(data.engName) || label;
   if (!label && !engName && !catRaw) return null;
-
   const dirRow = { code: catRaw, label, engName };
   const hits = [];
   for (const [slug, st] of depts) {
@@ -203,32 +244,34 @@ export function resolveCategorySlug(data, deptState, directoryDeptId, catKeyToDi
     asString(data.cat_code) || asString(data.catCode) || asString(data.category_code);
   if (!deptState) return null;
 
-  if (!catRaw) {
-    const matched = matchDirCategoryInDept(deptState, {
-      code: "",
-      label: asString(data.cat),
-      engName: asString(data.engName) || asString(data.cat),
-    });
-    return matched?.slug || null;
+  if (catRaw && deptState.categories.has(catRaw)) {
+    const row = deptState.categories.get(catRaw);
+    return row?.slug || catRaw;
   }
 
-  const byKey = deptState.categories.get(catRaw);
-  if (byKey?.slug) return asString(byKey.slug);
-
-  if (directoryDeptId && catKeyToDirCat.has(`${directoryDeptId}|${catRaw}`)) {
+  if (directoryDeptId && catKeyToDirCat && catKeyToDirCat.size > 0) {
     const row = catKeyToDirCat.get(`${directoryDeptId}|${catRaw}`);
-    if (row?.slug) return row.slug;
+    if (row && row.slug) return asString(row.slug);
   }
 
-  for (const cat of uniqueCategoryRows(deptState)) {
-    if (!cat.subcategories || cat.subcategories.size === 0) continue;
-    if (cat.subcategories.has(catRaw)) return cat.slug;
+  if (catRaw) {
+    for (const cat of uniqueCategoryRows(deptState)) {
+      if (cat.subcategories && cat.subcategories.has(catRaw)) return catRaw;
+      if (cat.subcategories) {
+        for (const sub of cat.subcategories.values()) {
+          if (sub.slug === catRaw) return sub.slug;
+        }
+      }
+    }
   }
 
+  const label = asString(data.cat);
+  const engName = asString(data.engName) || label;
   const matched = matchDirCategoryInDept(deptState, {
     code: catRaw,
-    label: asString(data.cat),
-    engName: asString(data.engName) || asString(data.cat),
+    label,
+    engName,
   });
-  return matched?.slug || null;
+  if (matched && matched.slug) return matched.slug;
+  return catRaw || null;
 }

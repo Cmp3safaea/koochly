@@ -8,7 +8,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
 import { recordAdVisit } from "../../../../lib/recordAdVisit";
-import { firstAdImageUrl, logoPublicPath, telHref, type Locale } from "@koochly/shared";
+import { firstAdImageUrl, logoPublicPathUi, telHref, type Locale } from "@koochly/shared";
 import { useDocumentTheme } from "../../../../lib/useDocumentTheme";
 import { getAuthClientOrNull, getGoogleProvider } from "../../../../lib/firebaseClient";
 import { useI18n, useLocalizedHref } from "../../../../i18n/client";
@@ -2112,7 +2112,7 @@ export default function CityAdsViewClient({
         <div className={styles.filterLogoWrap}>
           <Link href={loc("/")}>
             <img
-              src={logoPublicPath(locale, docTheme)}
+              src={logoPublicPathUi(locale, docTheme)}
               alt={t("city.brand")}
               className={styles.filterLogo}
               decoding="async"

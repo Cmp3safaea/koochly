@@ -13,26 +13,17 @@ export async function GET(req: NextRequest) {
     const cityLimit = onlyWithAds ? 500 : 100;
 
     const db = getFirestoreAdmin();
-    // Fast path: only active cities, ordered by `order`.
-    // Falls back for legacy schemas without `active`/`order`.
+    // Ordered fetch; filter `active !== false` in-memory so city docs without `active`
+    // (legacy) still appear — same rule as `isCityActiveForPublicPages`.
     let snap;
     try {
       snap = await db
         .collection("cities")
-        .where("active", "==", true)
         .orderBy("order")
         .limit(cityLimit)
         .get();
     } catch {
-      try {
-        snap = await db
-          .collection("cities")
-          .orderBy("order")
-          .limit(cityLimit)
-          .get();
-      } catch {
-        snap = await db.collection("cities").limit(cityLimit).get();
-      }
+      snap = await db.collection("cities").limit(cityLimit).get();
     }
 
     const cities = snap.docs.map((d): Record<string, unknown> & { id: string } => {
@@ -79,7 +70,7 @@ export async function GET(req: NextRequest) {
       return ao - bo;
     });
 
-    let out = cities.filter((c) => c.active === true);
+    let out = cities.filter((c) => c.active !== false);
     if (onlyWithAds) {
       const adKeys = await getApprovedAdCityKeysCached();
       out = out.filter((c) => cityDocHasApprovedAds(c as Record<string, unknown>, adKeys));

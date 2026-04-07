@@ -98,22 +98,6 @@
       ]
     },
     {
-      "collectionGroup": "ad",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "approved", "order": "ASCENDING" },
-        { "fieldPath": "__name__", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "ad",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "approved", "order": "ASCENDING" },
-        { "fieldPath": "seq", "order": "DESCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "reviews",
       "queryScope": "COLLECTION",
       "fields": [

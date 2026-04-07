@@ -73,10 +73,11 @@ export function resolveDirCategoryLabel(
   const tax = taxonomyBySlug.get(code);
 
   if (locale === "en") {
+    const fsOk =
+      fsLabel && !hasPersianScript(fsLabel) ? fsLabel : null;
     return (
-      fsLabel ??
+      fsOk ??
       (tax?.name_en && tax.name_en.length > 0 ? tax.name_en : null) ??
-      (tax?.name_fa && tax.name_fa.length > 0 ? tax.name_fa : null) ??
       code
     );
   }
@@ -108,9 +109,32 @@ export function resolveDirCategoryLabelPreferPersianCatField(
   adCat?: string | null,
 ): string {
   const base = resolveDirCategoryLabel(slug, locale, categoryMap);
+  if (locale === "en") {
+    const fromAd = typeof adCat === "string" ? adCat.trim() : "";
+    if (fromAd && !hasPersianScript(fromAd)) return fromAd;
+    return base;
+  }
   if (locale !== "fa") return base;
   const fromAd = typeof adCat === "string" ? adCat.trim() : "";
   if (!fromAd || !hasPersianScript(fromAd)) return base;
   if (hasPersianScript(base)) return base;
   return fromAd;
+}
+
+/** Listing title: English UI avoids Persian-only `title` when `engName` exists. */
+export function adCardTitleForLocale(
+  locale: DirectoryLocale,
+  ad: { title?: unknown; engName?: unknown; id?: unknown },
+): string {
+  const rawTitle = typeof ad.title === "string" ? ad.title.trim() : "";
+  const rawEng = typeof ad.engName === "string" ? ad.engName.trim() : "";
+  if (locale === "en") {
+    if (rawEng && (!rawTitle || hasPersianScript(rawTitle))) return rawEng;
+    if (rawTitle) return rawTitle;
+    if (rawEng) return rawEng;
+    return typeof ad.id === "string" && ad.id ? ad.id : String(ad.id ?? "");
+  }
+  if (rawTitle) return rawTitle;
+  if (rawEng) return rawEng;
+  return typeof ad.id === "string" && ad.id ? ad.id : String(ad.id ?? "");
 }

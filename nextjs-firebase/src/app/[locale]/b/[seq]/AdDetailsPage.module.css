@@ -808,3 +808,19 @@
 .hoursPanelCompact .hoursFullLine {
   font-size: 0.74rem;
 }
+
+/* English locale: explicit LTR + left alignment (html may be RTL for hybrid pages). */
+.pageEn,
+.sheetEn {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.sheetEn {
+  text-align: left;
+}
+
+.pageEn .qrFooter {
+  align-items: flex-start;
+  text-align: left;
+}

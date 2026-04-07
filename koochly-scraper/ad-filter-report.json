@@ -1,50 +1,107 @@
 {
   "scanned": 3000,
   "hasCatCode": 3000,
-  "hasDirCat": 3000,
+  "hasDirCat": 2507,
   "hasDepartmentID": 0,
-  "hasDirDept": 0,
+  "hasDirDept": 2700,
+  "hasDirId": 2700,
   "approved": 3000,
   "topCities": [
     {
-      "city": "Dubai",
-      "count": 411
+      "city": "Toronto",
+      "count": 238
     },
     {
-      "city": "Toronto",
-      "count": 395
+      "city": "Dubai",
+      "count": 221
     },
     {
       "city": "Los Angeles",
-      "count": 366
+      "count": 203
     },
     {
       "city": "New York",
-      "count": 360
+      "count": 199
+    },
+    {
+      "city": "Manchester",
+      "count": 162
     },
     {
       "city": "London",
-      "count": 296
+      "count": 162
     },
     {
       "city": "Vancouver",
-      "count": 279
+      "count": 154
     },
     {
       "city": "Berlin",
-      "count": 255
-    },
-    {
-      "city": "Paris",
-      "count": 218
-    },
-    {
-      "city": "Istanbul",
-      "count": 212
+      "count": 147
     },
     {
       "city": "Sydney",
-      "count": 208
+      "count": 130
+    },
+    {
+      "city": "Istanbul",
+      "count": 123
+    },
+    {
+      "city": "Paris",
+      "count": 120
+    },
+    {
+      "city": "Edinburgh",
+      "count": 108
+    },
+    {
+      "city": "Belfast",
+      "count": 105
+    },
+    {
+      "city": "Bristol",
+      "count": 102
+    },
+    {
+      "city": "Leicester",
+      "count": 99
+    },
+    {
+      "city": "Cardiff",
+      "count": 99
+    },
+    {
+      "city": "Glasgow",
+      "count": 97
+    },
+    {
+      "city": "Leeds",
+      "count": 88
+    },
+    {
+      "city": "Sheffield",
+      "count": 84
+    },
+    {
+      "city": "Bradford",
+      "count": 80
+    },
+    {
+      "city": "Coventry",
+      "count": 75
+    },
+    {
+      "city": "Birmingham",
+      "count": 72
+    },
+    {
+      "city": "Liverpool",
+      "count": 67
+    },
+    {
+      "city": "Nottingham",
+      "count": 65
     }
   ]
 }

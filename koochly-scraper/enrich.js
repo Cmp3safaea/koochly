@@ -4,7 +4,7 @@ const fs = require("fs");
 const API_KEY = "AIzaSyCCl0UyEKkDmyCDjatmfctiu0NTBj2XSD8";
 
 // 📂 Load your file
-const data = JSON.parse(fs.readFileSync("output_new.json", "utf-8"));
+const data = JSON.parse(fs.readFileSync("output_new_2.json", "utf-8"));
 
 // 🔍 Get extra details
 async function getDetails(placeId) {
@@ -59,10 +59,10 @@ async function run() {
   }
 
   // 💾 Save updated file
-  fs.writeFileSync("output_enriched_new.json", JSON.stringify(data, null, 2));
+  fs.writeFileSync("output_enriched_new_2.json", JSON.stringify(data, null, 2));
 
   console.log(`\n✅ Enriched ${count} businesses`);
-  console.log("📁 Saved to output_enriched_new.json");
+  console.log("📁 Saved to output_enriched_new_2.json");
 }
 
 run();

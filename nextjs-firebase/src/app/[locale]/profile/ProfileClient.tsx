@@ -11,7 +11,7 @@ import {
 } from "../../../lib/firebaseClient";
 import { getCitiesCached } from "../../../lib/citiesClientCache";
 import { useI18n, useLocalizedHref } from "../../../i18n/client";
-import { firstAdImageUrl, logoPublicPath, telHref, type Locale } from "@koochly/shared";
+import { firstAdImageUrl, logoPublicPathUi, telHref, type Locale } from "@koochly/shared";
 import { useDocumentTheme } from "../../../lib/useDocumentTheme";
 import cityStyles from "../city/[cityId]/CityAdsViewClient.module.css";
 import styles from "./ProfilePage.module.css";
@@ -662,7 +662,7 @@ export default function ProfileClient({ showWorkspaceHeader = false }: { showWor
         <header className={styles.workspaceHeader}>
           <Link href={loc("/")} className={styles.workspaceBrand}>
             <img
-              src={logoPublicPath(locale, docTheme)}
+              src={logoPublicPathUi(locale, docTheme)}
               alt={t("home.brand")}
               className={styles.workspaceLogo}
               decoding="async"

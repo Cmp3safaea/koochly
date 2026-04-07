@@ -11,7 +11,9 @@ import {
   type DirectoryLocale,
 } from "../../../../lib/directoryDepartmentLabel";
 import {
+  adCardTitleForLocale,
   firstPersianAdCatForCatCode,
+  hasPersianScript,
   resolveDirCategoryLabelPreferPersianCatField,
 } from "../../../../lib/dirCategoryLabelResolve";
 import {
@@ -387,7 +389,6 @@ export default async function CityAdsPage({
       ? { lat: cityCenterLat, lon: cityCenterLon }
       : null;
 
-  // One equality per query (automatic indexes); filter `approved` in memory.
   const mergedAdDocs = new Map<string, QueryDocumentSnapshot>();
   const cityAdFetchLimit = 2500;
   const pushApproved = (doc: QueryDocumentSnapshot) => {
@@ -395,21 +396,32 @@ export default async function CityAdsPage({
     if (data.approved !== true) return;
     mergedAdDocs.set(doc.id, doc);
   };
+  const fetchApprovedCityAds = async (
+    field: "city_eng" | "city_fa",
+    value: string,
+  ) => {
+    try {
+      const snap = await db
+        .collection("ad")
+        .where("approved", "==", true)
+        .where(field, "==", value)
+        .limit(cityAdFetchLimit)
+        .get();
+      snap.docs.forEach((doc) => mergedAdDocs.set(doc.id, doc));
+    } catch {
+      const snap = await db
+        .collection("ad")
+        .where(field, "==", value)
+        .limit(cityAdFetchLimit)
+        .get();
+      snap.docs.forEach(pushApproved);
+    }
+  };
   if (cityEng) {
-    const engSnap = await db
-      .collection("ad")
-      .where("city_eng", "==", cityEng)
-      .limit(cityAdFetchLimit)
-      .get();
-    engSnap.docs.forEach(pushApproved);
+    await fetchApprovedCityAds("city_eng", cityEng);
   }
-  if (cityFa) {
-    const faSnap = await db
-      .collection("ad")
-      .where("city_fa", "==", cityFa)
-      .limit(cityAdFetchLimit)
-      .get();
-    faSnap.docs.forEach(pushApproved);
+  if (cityFa && cityFa !== cityEng) {
+    await fetchApprovedCityAds("city_fa", cityFa);
   }
   const adsSnap = { docs: Array.from(mergedAdDocs.values()) };
 
@@ -455,7 +467,13 @@ export default async function CityAdsPage({
 
   // SEO + heading: always prefer city_eng.
   const pageTitle =
-    cityEng && countryFa ? `${countryFa} - ${cityEng}` : cityEng || cityFa;
+    uiLocale === "en"
+      ? cityEng && countryEng.trim()
+        ? `${cityEng}, ${countryEng.trim()}`
+        : cityEng || cityFa || canonicalCityKey
+      : cityEng && countryFa.trim()
+        ? `${countryFa.trim()} - ${cityEng}`
+        : cityEng || cityFa || canonicalCityKey;
 
   const nowMs = Date.now();
   const allAdDocIds = ads
@@ -483,12 +501,7 @@ export default async function CityAdsPage({
     const location =
       lat !== null && lon !== null ? { lat, lon } : null;
 
-    const title =
-      typeof ad.title === "string" && ad.title.trim()
-        ? ad.title.trim()
-        : typeof ad.engName === "string"
-          ? ad.engName
-          : ad.id ?? "";
+    const title = adCardTitleForLocale(dirLocale, ad);
 
     const engRaw =
       typeof ad.engName === "string" && ad.engName.trim() ? ad.engName.trim() : null;
@@ -509,6 +522,8 @@ export default async function CityAdsPage({
 
     const rawAdCat =
       typeof ad.cat === "string" && ad.cat.trim() ? ad.cat.trim() : null;
+    const deptStr =
+      typeof ad.dept === "string" && ad.dept.trim() ? ad.dept.trim() : null;
     const category =
       (catCode
         ? resolveDirCategoryLabelPreferPersianCatField(
@@ -518,8 +533,8 @@ export default async function CityAdsPage({
             rawAdCat,
           )
         : null) ??
-      rawAdCat ??
-      (typeof ad.dept === "string" && ad.dept.trim() ? ad.dept.trim() : null);
+      (dirLocale === "en" && rawAdCat && hasPersianScript(rawAdCat) ? null : rawAdCat) ??
+      (dirLocale === "en" && deptStr && hasPersianScript(deptStr) ? null : deptStr);
 
     const description =
       typeof ad.details === "string" && ad.details.trim()

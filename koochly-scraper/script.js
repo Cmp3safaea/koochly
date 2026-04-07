@@ -8,20 +8,30 @@ const { v4: uuidv4 } = require("uuid");
 // 🌍 GLOBAL CITIES (expand anytime)
 const cities = [
 
-  { fa: "منچستر", en: "Manchester" },
-  { fa: "بیرمنگام", en: "Birmingham" },
-  { fa: "لیدز", en: "Leeds" },
-  { fa: "گلاسگو", en: "Glasgow" },
-  { fa: "لیورپول", en: "Liverpool" },
-  { fa: "بریستول", en: "Bristol" },
-  { fa: "ادینبرو", en: "Edinburgh" },
-  { fa: "ناتینگهام", en: "Nottingham" },
-  { fa: "شفیلد", en: "Sheffield" },
-  { fa: "لستر", en: "Leicester" },
-  { fa: "کاونتری", en: "Coventry" },
-  { fa: "بردفورد", en: "Bradford" },
-  { fa: "کاردیف", en: "Cardiff" },
-  { fa: "بلفاست", en: "Belfast" },
+
+  // 🇫🇮 Finland
+  { fa: "هلسینکی", en: "Helsinki" },
+  // 🇩🇪 Germany
+  { fa: "فرانکفورت", en: "Frankfurt" },
+  { fa: "هامبورگ", en: "Hamburg" },
+  // 🇳🇱 Netherlands
+  { fa: "آمستردام", en: "Amsterdam" },
+  // 🇸🇪 Sweden
+  { fa: "استکهلم", en: "Stockholm" },
+  // 🇳🇴 Norway
+  { fa: "اسلو", en: "Oslo" },
+  { fa: "برگن", en: "Bergen" },
+  // 🇩🇰 Denmark
+  { fa: "کپنهاگ", en: "Copenhagen" },
+  { fa: "آرهوس", en: "Aarhus" },
+  // 🇪🇸 Spain
+  { fa: "مادرید", en: "Madrid" },
+  { fa: "بارسلونا", en: "Barcelona" },
+  // 🇮🇹 Italy
+  { fa: "رم", en: "Rome" },
+  // 🇦🇹 Austria
+  { fa: "وین", en: "Vienna" },
+
 ];
 
 // 🧩 Categories
@@ -145,8 +155,8 @@ async function run() {
 
   console.log(`\n✅ TOTAL BUSINESSES: ${all.length}`);
 
-  fs.writeFileSync("output_new.json", JSON.stringify(all, null, 2));
-  console.log("📁 Saved to output_new.json");
+  fs.writeFileSync("output_new_2.json", JSON.stringify(all, null, 2));
+  console.log("📁 Saved to output_new_2.json");
 }
 
 run();

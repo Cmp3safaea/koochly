@@ -2,6 +2,7 @@
  * Walks nested `directory.categories` trees (and similar) and collects code → label pairs.
  * Supports: JSON strings, UUID-keyed maps ({ [uuid]: { name } }), alternate field names, subcollections (via API).
  */
+import { hasPersianScript } from "./dirCategoryLabelResolve";
 import type { DirectoryLocale } from "./directoryDepartmentLabel";
 
 function parseCategoriesField(raw: unknown): unknown {
@@ -62,23 +63,27 @@ export function categoryLabelFromDirectoryEntry(
   locale: DirectoryLocale,
 ): string | null {
   if (locale === "en") {
-    const s = stringFrom(obj, [
+    const enFirst = stringFrom(obj, [
       "name_en",
       "engName",
+      "Category_en",
+      "category_en",
+      "label_en",
+      "title_en",
+    ]);
+    if (enFirst) return enFirst;
+    const generic = stringFrom(obj, [
       "Category",
-      "name",
       "category",
+      "name",
       "displayName",
       "title",
       "label",
-      "name_fa",
-      "category_fa",
-      "faName",
-      "persianName",
       "groupName",
       "subcategory",
     ]);
-    return s || null;
+    if (generic && !hasPersianScript(generic)) return generic;
+    return null;
   }
   const s = stringFrom(obj, [
     "name_fa",

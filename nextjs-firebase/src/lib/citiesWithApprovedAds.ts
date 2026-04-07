@@ -15,31 +15,26 @@ export async function approvedAdCityKeySet(): Promise<Set<string>> {
   const keys = new Set<string>();
   const PAGE = 450;
 
-  const ingest = (data: Record<string, unknown>) => {
+  const ingestApproved = (data: Record<string, unknown>) => {
+    if (data.approved !== true) return;
     const ce = sanitizeCityKeyToken(data.city_eng);
     const cf = sanitizeCityKeyToken(data.city_fa);
     if (ce) keys.add(ce);
     if (cf) keys.add(cf);
   };
 
-  try {
-    let last: QueryDocumentSnapshot | null = null;
-    for (;;) {
-      let q = db
-        .collection("ad")
-        .where("approved", "==", true)
-        .orderBy(FieldPath.documentId())
-        .limit(PAGE);
-      if (last) q = q.startAfter(last);
-      const snap = await q.get();
-      if (snap.empty) break;
-      for (const d of snap.docs) ingest(d.data() as Record<string, unknown>);
-      last = snap.docs[snap.docs.length - 1];
-      if (snap.size < PAGE) break;
-    }
-  } catch {
-    const snap = await db.collection("ad").where("approved", "==", true).limit(5000).get();
-    for (const d of snap.docs) ingest(d.data() as Record<string, unknown>);
+  // Paginate the whole collection by document id (no composite index). Skipping ads without
+  // `dateTime` — as in an `orderBy("dateTime")` scan — drops city keys and empties the home
+  // city list when `onlyWithAds` filters Firestore cities.
+  let last: QueryDocumentSnapshot | null = null;
+  for (;;) {
+    let q = db.collection("ad").orderBy(FieldPath.documentId()).limit(PAGE);
+    if (last) q = q.startAfter(last);
+    const snap = await q.get();
+    if (snap.empty) break;
+    for (const d of snap.docs) ingestApproved(d.data() as Record<string, unknown>);
+    last = snap.docs[snap.docs.length - 1];
+    if (snap.size < PAGE) break;
   }
 
   return keys;
@@ -62,7 +57,7 @@ const readApprovedAdCityKeys = unstable_cache(
     const s = await approvedAdCityKeySet();
     return Array.from(s);
   },
-  ["approved-ad-city-key-tokens-v1"],
+  ["approved-ad-city-key-tokens-v2"],
   { revalidate: 300 },
 );
 

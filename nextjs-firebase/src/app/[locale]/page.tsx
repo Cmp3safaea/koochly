@@ -7,7 +7,7 @@ import { onAuthStateChanged, type User } from "firebase/auth";
 import styles from "./page.module.css";
 import { AuthWelcome } from "../AuthWelcome";
 import { useI18n, useLocalizedHref } from "../../i18n/client";
-import { logoPublicPath } from "@koochly/shared";
+import { logoPublicPathUi } from "@koochly/shared";
 import { getAuthClientOrNull, isFirebaseClientConfigured } from "../../lib/firebaseClient";
 import { useDocumentTheme } from "../../lib/useDocumentTheme";
 import { getCitiesCached } from "../../lib/citiesClientCache";
@@ -45,7 +45,7 @@ export default function HomePage() {
   const [eventsStatus, setEventsStatus] = useState<string | null>(null);
   const [eventIndex, setEventIndex] = useState(0);
   const authConfigured = isFirebaseClientConfigured();
-  // We only show cities where `active === true` (or `active` is missing).
+  // Cities with `active === false` are hidden; missing `active` counts as public (legacy).
 
   function getCityDisplayName(city: City): string {
     const cityFa = city.city_fa;
@@ -103,7 +103,7 @@ export default function HomePage() {
   }
 
   const activeCities = useMemo(
-    () => cities.filter((c) => c.active === true),
+    () => cities.filter((c) => c.active !== false),
     [cities],
   );
 
@@ -336,7 +336,7 @@ export default function HomePage() {
           <div className={styles.brandLockup}>
             <div className={styles.brandRow}>
               <img
-                src={logoPublicPath(locale, docTheme)}
+                src={logoPublicPathUi(locale, docTheme)}
                 alt={t("home.brand")}
                 className={styles.logo}
                 decoding="async"

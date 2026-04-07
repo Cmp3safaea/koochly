@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { logoPublicPath } from "@koochly/shared";
+import { logoPublicPathUi } from "@koochly/shared";
 import { useI18n } from "../../i18n/client";
 import { useDocumentTheme } from "../../lib/useDocumentTheme";
 import styles from "./HomeSplash.module.css";
@@ -12,7 +12,7 @@ const EXIT_MS = 720;
 export function HomeSplash() {
   const { t, locale } = useI18n();
   const docTheme = useDocumentTheme();
-  const logoSrc = logoPublicPath(locale, docTheme);
+  const logoSrc = logoPublicPathUi(locale, docTheme);
   const [exiting, setExiting] = useState(false);
   const [gone, setGone] = useState(false);
 

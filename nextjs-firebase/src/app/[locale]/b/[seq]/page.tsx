@@ -13,6 +13,19 @@ import { isAdDocIndexable } from "../../../../lib/seoIndexable";
 import { telHref } from "@koochly/shared";
 import { withLocale } from "@koochly/shared";
 import { getTranslator, resolveLocale } from "../../../../i18n/server";
+import {
+  directoryDepartmentDisplayLabel,
+  type DirectoryLocale,
+} from "../../../../lib/directoryDepartmentLabel";
+import {
+  adCardTitleForLocale,
+  hasPersianScript,
+  resolveDirCategoryLabelPreferPersianCatField,
+} from "../../../../lib/dirCategoryLabelResolve";
+import {
+  collectCategoryCodes,
+  categoriesFromDirectoryData,
+} from "../../../../lib/directoryMetadata";
 import BackToCityButton from "./BackToCityButton";
 import AdDetailGoogleMap from "./AdDetailGoogleMap";
 import ClaimBusinessPanel from "./ClaimBusinessPanel";
@@ -292,10 +305,9 @@ export default async function AdDetailsPage({
   if (!ad) return notFound();
   if (ad.approved !== true) return notFound();
 
-  const title =
-    (typeof ad.title === "string" && ad.title.trim()) ||
-    (typeof ad.engName === "string" && ad.engName.trim()) ||
-    `Ad #${seq}`;
+  const dirLocale: DirectoryLocale = locale === "en" ? "en" : "fa";
+  const displayTitle =
+    adCardTitleForLocale(dirLocale, ad).trim() || `Ad #${seq}`;
 
   const images = getImages(ad);
   const heroImage = images[0] ?? null;
@@ -322,6 +334,51 @@ export default async function AdDetailsPage({
       : typeof ad.cat_code === "string" && ad.cat_code.trim()
         ? ad.cat_code.trim()
         : null;
+
+  const directorySnap = await db.collection("dir").get();
+  const departmentMap = new Map<string, string>();
+  const categoryMap = new Map<string, string>();
+  directorySnap.docs.forEach((doc) => {
+    const data = doc.data() as Record<string, unknown>;
+    departmentMap.set(
+      doc.id,
+      directoryDepartmentDisplayLabel(data, doc.id, locale),
+    );
+    collectCategoryCodes(data.categories, categoryMap, dirLocale);
+    for (const c of categoriesFromDirectoryData(data, dirLocale)) {
+      if (!categoryMap.has(c.code)) {
+        categoryMap.set(c.code, c.label);
+      }
+    }
+  });
+
+  const rawAdCat =
+    typeof ad.cat === "string" && ad.cat.trim() ? ad.cat.trim() : null;
+  const deptStr =
+    typeof ad.dept === "string" && ad.dept.trim() ? ad.dept.trim() : null;
+  const deptFromDir =
+    deptId && departmentMap.has(deptId)
+      ? (departmentMap.get(deptId) ?? "").trim()
+      : "";
+  const deptChipLabel =
+    deptFromDir ||
+    (dirLocale === "en" && deptStr && hasPersianScript(deptStr)
+      ? null
+      : deptStr);
+  const catChipLabel =
+    (catCode
+      ? resolveDirCategoryLabelPreferPersianCatField(
+          catCode,
+          dirLocale,
+          categoryMap,
+          rawAdCat,
+        )
+      : null) ??
+    (dirLocale === "en" && rawAdCat && hasPersianScript(rawAdCat)
+      ? null
+      : rawAdCat);
+  const sameCategoryLinkCat = catChipLabel ?? rawAdCat ?? ad.cat ?? "";
+
   let sameCategoryHref: string | null = null;
   if (cityPath && catCode) {
     const qs = new URLSearchParams();
@@ -348,16 +405,20 @@ export default async function AdDetailsPage({
   const openingHourLines = normalizeOpeningHours(ad.opening_hours ?? ad.openingHours);
   const openingHourRows =
     openingHourLines.length > 0 ? adDetailOpeningHoursRows(openingHourLines) : [];
-  const subcats = normalizeSubcats(ad.subcat).length
+  const subcatsRaw = normalizeSubcats(ad.subcat).length
     ? normalizeSubcats(ad.subcat)
     : normalizeSubcats(ad.selectedCategoryTags);
+  const subcats =
+    dirLocale === "en"
+      ? subcatsRaw.filter((tag) => !hasPersianScript(tag))
+      : subcatsRaw;
   const indexable = isAdDocIndexable(ad as Record<string, unknown>);
   const localBusinessJsonLd =
     indexable
       ? {
           "@context": "https://schema.org",
           "@type": "LocalBusiness",
-          name: title,
+          name: displayTitle,
           description:
             typeof ad.details === "string" && !isGoogleImportPlaceholderDescription(ad.details)
               ? ad.details.slice(0, 320)
@@ -377,7 +438,9 @@ export default async function AdDetailsPage({
       : null;
 
   return (
-    <main className={styles.page}>
+    <main
+      className={`${styles.page} ${locale === "en" ? styles.pageEn : ""}`}
+    >
       {localBusinessJsonLd ? (
         <script
           type="application/ld+json"
@@ -389,7 +452,9 @@ export default async function AdDetailsPage({
           <BackToCityButton className={styles.backBtn} label={t("adDetail.back")} />
         </div>
 
-        <section className={styles.sheet}>
+        <section
+          className={`${styles.sheet} ${locale === "en" ? styles.sheetEn : ""}`}
+        >
           <ActivityLogClient
             page="ad_detail"
             pathname={withLocale(locale, `/b/${seqNum}`)}
@@ -398,15 +463,19 @@ export default async function AdDetailsPage({
             departmentIds={deptId ? [deptId] : []}
             categoryCodes={catCode ? [catCode] : []}
           />
-          <h1 className={styles.title}>{title}</h1>
+          <h1 className={styles.title}>{displayTitle}</h1>
           <AdDetailReviewSummary avg={initialReviewSummary.avg} count={initialReviewSummary.count} />
 
           <div className={styles.chips}>
-            {ad.dept ? (
-              <span className={`${styles.chip} ${styles.chipDept}`}>{ad.dept}</span>
+            {deptChipLabel ? (
+              <span className={`${styles.chip} ${styles.chipDept}`}>
+                {deptChipLabel}
+              </span>
             ) : null}
-            {ad.cat ? (
-              <span className={`${styles.chip} ${styles.chipCat}`}>{ad.cat}</span>
+            {catChipLabel ? (
+              <span className={`${styles.chip} ${styles.chipCat}`}>
+                {catChipLabel}
+              </span>
             ) : null}
             {ad.city_eng || ad.city ? (
               <span className={`${styles.chip} ${styles.chipCity}`}>{ad.city_eng || ad.city}</span>
@@ -421,13 +490,17 @@ export default async function AdDetailsPage({
                 href={sameCategoryHref}
                 className={styles.sameCategoryBtn}
                 title={
-                  ad.cat
-                    ? t("adDetail.sameCategoryTitleCat", { cat: ad.cat })
+                  sameCategoryLinkCat
+                    ? t("adDetail.sameCategoryTitleCat", {
+                        cat: sameCategoryLinkCat,
+                      })
                     : t("adDetail.sameCategoryTitle")
                 }
                 aria-label={
-                  ad.cat
-                    ? t("adDetail.sameCategoryAriaCat", { cat: ad.cat })
+                  sameCategoryLinkCat
+                    ? t("adDetail.sameCategoryAriaCat", {
+                        cat: sameCategoryLinkCat,
+                      })
                     : t("adDetail.sameCategoryAria")
                 }
               >
@@ -449,7 +522,7 @@ export default async function AdDetailsPage({
             ) : null}
           </div>
 
-          <GalleryStripLightbox images={images} title={title} />
+          <GalleryStripLightbox images={images} title={displayTitle} />
 
           {ad.details && !isGoogleImportPlaceholderDescription(ad.details) ? (
             <p className={styles.details}>{ad.details}</p>
@@ -548,8 +621,8 @@ export default async function AdDetailsPage({
               {lat !== null && lon !== null ? (
                 <AdDetailGoogleMap
                   adId={ad.id}
-                  title={title}
-                  category={typeof ad.cat === "string" && ad.cat.trim() ? ad.cat.trim() : null}
+                  title={displayTitle}
+                  category={catChipLabel}
                   lat={lat}
                   lon={lon}
                   heroImage={heroImage}
@@ -639,10 +712,9 @@ export async function generateMetadata({
   if (!Number.isFinite(seqNum)) return { title: "Persiana" };
   const ad = await loadAdBySeq(seqNum);
   if (!ad) return { title: "Persiana" };
+  const dirLocale: DirectoryLocale = locale === "en" ? "en" : "fa";
   const title =
-    (typeof ad.title === "string" && ad.title.trim()) ||
-    (typeof ad.engName === "string" && ad.engName.trim()) ||
-    `Ad #${seq}`;
+    adCardTitleForLocale(dirLocale, ad).trim() || `Ad #${seq}`;
   const indexable = isAdDocIndexable(ad as Record<string, unknown>);
   return {
     title: `${title}${t("adDetail.metaTitleSuffix")}`,
