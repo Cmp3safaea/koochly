@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { getFirestoreAdmin } from "../../../../../../lib/firebaseAdmin";
 import { resolveLocale } from "../../../../../../i18n/server";
@@ -29,13 +29,55 @@ import {
   adListingPathFromAd,
   isCityActiveForPublicPages,
 } from "../../../../../../lib/seoIndexable";
+import { resolveCityFlagUrl } from "../../../../../../lib/cityFlagUrl";
+import {
+  buildFaqPageJsonLd,
+  buildItemListLocalBusinessJsonLd,
+  buildOrganizationJsonLd,
+  categoryLandingFaq,
+  categoryLandingH1,
+  categoryLandingIntroParagraphs,
+  categoryLandingMetaDescription,
+  categoryLandingMetaTitle,
+  getDirectoryCategoryLabelsCached,
+  type CategoryLandingSeoInput,
+} from "../../../../../../lib/koochlySeoCategory";
 import CityAdsViewClient, {
   type CityAdCard,
   type CityJumpOption,
   type DepartmentQuickItem,
 } from "../../../../city/[cityId]/CityAdsViewClient";
 
-export const dynamic = "force-dynamic";
+const seoArticleStyle: CSSProperties = {
+  maxWidth: 720,
+  margin: "0 auto 28px",
+  lineHeight: 1.65,
+};
+const seoIntroStyle: CSSProperties = {
+  margin: "0 0 14px",
+  color: "#333",
+  fontSize: "1.02rem",
+};
+const seoFaqStyle: CSSProperties = {
+  marginTop: 28,
+  borderTop: "1px solid #eee",
+  paddingTop: 20,
+};
+const seoFaqTitleStyle: CSSProperties = {
+  fontSize: "1.15rem",
+  margin: "0 0 12px",
+};
+const seoDetailsStyle: CSSProperties = {
+  marginBottom: 10,
+  border: "1px solid #e5e5e5",
+  borderRadius: 8,
+  padding: "8px 12px",
+};
+const seoSummaryStyle: CSSProperties = { cursor: "pointer", fontWeight: 600 };
+const seoAnswerStyle: CSSProperties = { margin: "8px 0 0", paddingLeft: 4 };
+
+/** ISR-style revalidation; page still runs on each request when uncached. */
+export const revalidate = 600;
 
 type AdDoc = {
   id?: string;
@@ -329,10 +371,16 @@ export default async function CityCategoryLandingPage({
       : cityEng && countryFa.trim()
         ? `${countryFa.trim()} - ${cityEng}`
         : cityName;
-  const pathWithinLocale = `/${countryParam}/${cityParam}/category/${catCodeParam}/`;
+  const pathWithinLocale = `/${countryParam}/${cityParam}/category/${encodeURIComponent(catCodeParam)}/`;
   const canonicalPath = withLocale(locale, pathWithinLocale);
   const canonicalUrl = `${getSiteBaseUrl()}${canonicalPath}`;
   const cityHubPath = withLocale(locale, `/${countryParam}/${cityParam}/`);
+  const flagUrl = resolveCityFlagUrl({
+    flagUrl: typeof cityData.flag_url === "string" ? cityData.flag_url : undefined,
+    countryEng,
+    countryFa,
+    pathCountrySlug: countryParam,
+  });
 
   const adsForClient: CityAdCard[] = ads
     .map((ad) => {
@@ -436,6 +484,21 @@ export default async function CityCategoryLandingPage({
     const inferredDept = categoryToDepartmentMap.get(a.catCode);
     return inferredDept ? { ...a, departmentId: inferredDept } : a;
   });
+
+  const brandName = process.env.NEXT_PUBLIC_SITE_NAME?.trim() || "Persiana";
+  const seoInput: CategoryLandingSeoInput = {
+    locale,
+    categoryLabel,
+    cityEn: cityEng || cityParam,
+    cityFa: cityFa || cityParam,
+    countryEn: countryEng,
+    countryFa: countryFa,
+    adCount: adsForFilter.length,
+    brandName,
+  };
+  const primaryH1 = categoryLandingH1(seoInput);
+  const introParagraphs = categoryLandingIntroParagraphs(seoInput);
+  const faqItems = categoryLandingFaq(seoInput);
   const departmentOptions: SelectOption[] = Array.from(
     new Set(adsForFilter.map((a) => a.departmentId).filter(Boolean) as string[]),
   )
@@ -495,18 +558,43 @@ export default async function CityCategoryLandingPage({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Persiana", item: `${getSiteBaseUrl()}/${locale}` },
-      { "@type": "ListItem", position: 2, name: cityName, item: `${getSiteBaseUrl()}${cityHubPath}` },
+      { "@type": "ListItem", position: 1, name: brandName, item: `${getSiteBaseUrl()}/${locale}` },
+      { "@type": "ListItem", position: 2, name: pageTitle, item: `${getSiteBaseUrl()}${cityHubPath}` },
       { "@type": "ListItem", position: 3, name: categoryLabel, item: canonicalUrl },
     ],
   };
   const collectionJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: `${pageTitle} - Persiana`,
+    name: categoryLandingMetaTitle(seoInput),
+    description: categoryLandingMetaDescription(seoInput),
     url: canonicalUrl,
     inLanguage: locale,
+    isPartOf: { "@type": "WebSite", name: brandName, url: getSiteBaseUrl() },
+    about: {
+      "@type": "Thing",
+      name: `${categoryLabel} in ${cityEng || cityFa}`,
+      description: `Iranian, Persian, and Farsi-speaking ${categoryLabel} directory listings.`,
+    },
   };
+  const faqJsonLd = buildFaqPageJsonLd(faqItems, canonicalUrl);
+  const itemListJsonLd = buildItemListLocalBusinessJsonLd(
+    locale,
+    canonicalUrl,
+    primaryH1,
+    adsForFilter.map((a) => ({
+      title: a.title,
+      link: a.link,
+      image: a.image,
+      phone: a.phone,
+      description: a.description,
+      location: a.location,
+      reviewAvg: a.reviewAvg,
+      reviewCount: a.reviewCount,
+    })),
+    15,
+  );
+  const orgJsonLd = buildOrganizationJsonLd(brandName);
 
   const googleMapsApiKey = getMapsBrowserApiKey();
 
@@ -520,12 +608,43 @@ export default async function CityCategoryLandingPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
+      <article style={seoArticleStyle}>
+        {introParagraphs.map((p, i) => (
+          <p key={i} style={seoIntroStyle}>
+            {p}
+          </p>
+        ))}
+        <section style={seoFaqStyle} aria-labelledby="cat-faq-heading">
+          <h2 id="cat-faq-heading" style={seoFaqTitleStyle}>
+            {locale === "fa" ? "سوالات متداول" : "Frequently asked questions"}
+          </h2>
+          {faqItems.map((f) => (
+            <details key={f.question} style={seoDetailsStyle}>
+              <summary style={seoSummaryStyle}>{f.question}</summary>
+              <p style={seoAnswerStyle}>{f.answer}</p>
+            </details>
+          ))}
+        </section>
+      </article>
       <CityAdsViewClient
         googleMapsApiKey={googleMapsApiKey}
         cityTitle={pageTitle}
         cityFa={cityFa}
         countryFa={countryFa}
         countryEng={countryEng}
+        flagUrl={flagUrl}
         ads={adsForFilter}
         cityCenter={cityCenter}
         departmentOptions={departmentOptions}
@@ -536,6 +655,7 @@ export default async function CityCategoryLandingPage({
         initialCatCode={catCodeParam}
         relatedCategoryLabel={categoryLabel}
         allCityAdsHref={cityHubPath}
+        primaryHeading={primaryH1}
       />
     </main>
   );
@@ -553,17 +673,47 @@ export async function generateMetadata({
   const catCodeParam = toNonEmptyString(catCode);
   if (!countryParam || !cityParam || !catCodeParam) return { title: "Persiana" };
 
-  const pathWithinLocale = `/${countryParam}/${cityParam}/category/${catCodeParam}/`;
+  const pathWithinLocale = `/${countryParam}/${cityParam}/category/${encodeURIComponent(catCodeParam)}/`;
+  const canonicalPath = withLocale(locale, pathWithinLocale);
+  const brandName = process.env.NEXT_PUBLIC_SITE_NAME?.trim() || "Persiana";
+
+  const cityDoc = await findCityDoc(countryParam, cityParam);
+  const cityData = cityDoc?.data() as Record<string, unknown> | undefined;
+  const cityEng = cityData ? sanitize(cityData.city_eng) : "";
+  const cityFa = cityData ? sanitize(cityData.city_fa) : "";
+  const countryEng = cityData && typeof cityData.country_eng === "string" ? cityData.country_eng : "";
+  const countryFa =
+    cityData && typeof cityData.country_fa === "string" ? cityData.country_fa.trim() : "";
+
+  const labelMap = await getDirectoryCategoryLabelsCached(locale);
+  const categoryLabel = labelMap[catCodeParam] ?? catCodeParam;
+
+  const seoInput: CategoryLandingSeoInput = {
+    locale,
+    categoryLabel,
+    cityEn: cityEng || cityParam,
+    cityFa: cityFa || cityParam,
+    countryEn: countryEng,
+    countryFa,
+    adCount: 0,
+    brandName,
+  };
+
   return {
-    title: `${catCodeParam} in ${cityParam} - Persiana`,
-    description: `Browse ${catCodeParam} listings in ${cityParam} on Persiana.`,
+    title: categoryLandingMetaTitle(seoInput),
+    description: categoryLandingMetaDescription(seoInput),
     alternates: {
-      canonical: withLocale(locale, pathWithinLocale),
+      canonical: canonicalPath,
       languages: {
         fa: withLocale("fa", pathWithinLocale),
         en: withLocale("en", pathWithinLocale),
         "x-default": withLocale("en", pathWithinLocale),
       },
+    },
+    openGraph: {
+      title: categoryLandingMetaTitle(seoInput),
+      description: categoryLandingMetaDescription(seoInput),
+      url: canonicalPath,
     },
   };
 }

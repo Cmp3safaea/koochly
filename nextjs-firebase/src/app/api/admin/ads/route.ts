@@ -71,6 +71,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const q = asString(searchParams.get("q") ?? "");
     const qLower = q.toLowerCase();
+    const cityEngFilter = asString(searchParams.get("city_eng")).trim().toLowerCase();
+    const cityFaFilter = asString(searchParams.get("city_fa")).trim().toLowerCase();
+    const hasCityFilter = cityEngFilter.length > 0 || cityFaFilter.length > 0;
     const seq = asNumber(searchParams.get("seq"));
     const limitRaw = asNumber(searchParams.get("limit"));
     const limit =
@@ -83,18 +86,12 @@ export async function GET(request: Request) {
       const bySeq = await db.collection("ad").where("seq", "==", seq).limit(30).get();
       docs = bySeq.docs;
     } else {
-      // For dashboard/manage use-cases, prefer ordering by Firestore timestamp.
-      // Fallback to scanning if an index is missing.
-      let snap:
-        | FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>
-        | null = null;
-      const dbQueryLimit = wantsSearchScan ? Math.max(limit, SCAN_CAP_FOR_SEARCH) : limit;
-      const fallbackCap = wantsSearchScan ? dbQueryLimit : Math.max(limit, Math.min(SCAN_CAP, 1200));
-      try {
-        snap = await db.collection("ad").orderBy("dateTime", "desc").limit(dbQueryLimit).get();
-      } catch {
-        snap = await db.collection("ad").limit(fallbackCap).get();
-      }
+      // Do not use orderBy("dateTime") here: Firestore omits docs without that field, which
+      // makes the admin list look empty for legacy/imported ads. Fetch by cap, sort in memory.
+      const fetchCap = wantsSearchScan
+        ? Math.max(limit, SCAN_CAP_FOR_SEARCH)
+        : Math.max(limit, Math.min(SCAN_CAP, 1200));
+      const snap = await db.collection("ad").limit(fetchCap).get();
       docs = snap.docs;
     }
 
@@ -131,6 +128,14 @@ export async function GET(request: Request) {
         };
       })
       .filter((row) => {
+        if (hasCityFilter) {
+          const re = asString(row.city_eng).trim().toLowerCase();
+          const rf = asString(row.city).trim().toLowerCase();
+          let ok = false;
+          if (cityEngFilter && (re === cityEngFilter || rf === cityEngFilter)) ok = true;
+          if (cityFaFilter && (rf === cityFaFilter || re === cityFaFilter)) ok = true;
+          if (!ok) return false;
+        }
         if (!qLower) return true;
         return (
           row.id.toLowerCase().includes(qLower) ||

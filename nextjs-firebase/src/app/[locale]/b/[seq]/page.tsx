@@ -381,12 +381,9 @@ export default async function AdDetailsPage({
 
   let sameCategoryHref: string | null = null;
   if (cityPath && catCode) {
-    const qs = new URLSearchParams();
-    qs.set("cat", catCode);
-    if (deptId) qs.set("dept", deptId);
     sameCategoryHref = withLocale(
       locale,
-      `/${encodeURIComponent(cityPath.country)}/${encodeURIComponent(cityPath.city)}/?${qs.toString()}`,
+      `/${encodeURIComponent(cityPath.country)}/${encodeURIComponent(cityPath.city)}/category/${encodeURIComponent(catCode)}/`,
     );
   }
 
@@ -413,6 +410,20 @@ export default async function AdDetailsPage({
       ? subcatsRaw.filter((tag) => !hasPersianScript(tag))
       : subcatsRaw;
   const indexable = isAdDocIndexable(ad as Record<string, unknown>);
+  const reviewAvg = initialReviewSummary.avg;
+  const reviewAgg =
+    initialReviewSummary.count > 0 &&
+    typeof reviewAvg === "number" &&
+    Number.isFinite(reviewAvg) &&
+    reviewAvg > 0
+      ? {
+          "@type": "AggregateRating",
+          ratingValue: Math.round(reviewAvg * 10) / 10,
+          reviewCount: initialReviewSummary.count,
+          bestRating: 5,
+          worstRating: 1,
+        }
+      : undefined;
   const localBusinessJsonLd =
     indexable
       ? {
@@ -434,6 +445,7 @@ export default async function AdDetailsPage({
             lat !== null && lon !== null
               ? { "@type": "GeoCoordinates", latitude: lat, longitude: lon }
               : undefined,
+          ...(reviewAgg ? { aggregateRating: reviewAgg } : {}),
         }
       : null;
 

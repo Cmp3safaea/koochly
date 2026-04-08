@@ -5,9 +5,11 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev --webpack",
+    "prebuild": "npm run fix:seo-encoding --silent",
     "build": "next build --webpack",
     "start": "next start -p $PORT",
     "lint": "next lint",
+    "fix:seo-encoding": "node -e \"const fs=require('fs');const path=require('path');const file=path.join(process.cwd(),'src/lib/koochlySeoCategory.ts');function d(b){if(b.length>=2&&b[0]===0xff&&b[1]===0xfe)return b.subarray(2).toString('utf16le');if(b.length>=2&&b[0]===0xfe&&b[1]===0xff){const o=Buffer.alloc(b.length-2);for(let i=2;i<b.length;i+=2){o[i-2]=b[i+1];o[i-1]=b[i]}return o.toString('utf16le')}if(b.length>=8&&b[1]===0&&b[2]<0x80&&b[3]===0&&b[4]<0x80&&b[5]===0)return b.toString('utf16le');if(b.length>=3&&b[0]===0xef&&b[1]===0xbb&&b[2]===0xbf)return b.subarray(3).toString('utf8');return b.toString('utf8')}try{if(!fs.existsSync(file)){console.warn('normalize-ts-utf8: skip');process.exit(0)}const buf=fs.readFileSync(file);const t=d(buf);fs.writeFileSync(file,t,{encoding:'utf8'});let n=0;for(let i=0;i<t.length;i++){if(t.charCodeAt(i)===0)n++}if(n>0){console.error('normalize-ts-utf8: NUL',n);process.exit(1)}console.log('normalize-ts-utf8: ok')}catch(e){console.error(e);process.exit(1)}\"",
     "seo:verify": "node ./scripts/seo-verify.mjs",
     "seo:priority-urls": "node ./scripts/seo-priority-urls.mjs",
     "import:places-draft": "node ./scripts/import-places-draft.mjs",

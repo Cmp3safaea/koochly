@@ -13,10 +13,6 @@ const nextConfig = {
       "@koochly/shared": path.join(sharedRoot, "index.ts"),
     },
   },
-  // Allow compiling shared source that lives outside this app folder (monorepo).
-  experimental: {
-    externalDir: true,
-  },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -28,6 +24,14 @@ const nextConfig = {
   output: "standalone",
   // Monorepo: trace deps from repo root (avoids wrong workspace inference + duplicate lockfile warning).
   outputFileTracingRoot: path.join(__dirname, ".."),
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
+  },
+  experimental: {
+    externalDir: true,
+    optimizePackageImports: ["@koochly/shared"],
+  },
   // If you open the dev app from another device/IP on your LAN,
   // Next.js will otherwise block the HMR websocket for safety.
   allowedDevOrigins: ["192.168.0.119", "localhost", "127.0.0.1"],

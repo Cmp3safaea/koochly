@@ -1,12 +1,24 @@
 import { NextResponse } from "next/server";
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldPath, FieldValue } from "firebase-admin/firestore";
+import type { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { defaultLocale } from "@koochly/shared";
 import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
-import { directoryDepartmentDisplayLabel } from "../../../../lib/directoryDepartmentLabel";
+import {
+  directoryDepartmentDisplayLabel,
+  type DirectoryLocale,
+} from "../../../../lib/directoryDepartmentLabel";
 import { resolveDirectoryCategoriesForAdmin } from "../../../../lib/directoryCategoriesAdmin";
+import {
+  categoriesFromDirectoryData,
+  displayLabelForCategoryFirestoreDoc,
+} from "../../../../lib/directoryMetadata";
 
 export const runtime = "nodejs";
-const ADS_SCAN_CAP = 20000;
+/** Large scans can time out serverless routes; dashboard still gets a useful sample. */
+const ADS_SCAN_CAP = 12000;
+/** Load every `dir` doc (paginated); cap avoids runaway reads if collection grows huge. */
+const DIR_DOC_PAGE = 400;
+const DIR_DOC_MAX = 8000;
 
 type CategoryRow = {
   code: string;
@@ -30,21 +42,39 @@ function normKey(v: unknown): string {
   return asLooseString(v).toLowerCase();
 }
 
-function categoryLabelFromDoc(data: Record<string, unknown>, fallbackId: string): string {
+function categoryEngNameFromDoc(data: Record<string, unknown>): string {
   return (
-    asString(data.category) ||
-    asString(data.Category) ||
-    asString(data.label) ||
-    asString(data.name) ||
-    asString(data.title) ||
-    fallbackId
+    asString(data.engName) ||
+    asString(data.name_en) ||
+    asString(data.Category_en) ||
+    asString(data.category_en) ||
+    asString(data.label_en) ||
+    asString(data.title_en)
   );
+}
+
+async function fetchAllDirDocumentSnapshots(
+  db: ReturnType<typeof getFirestoreAdmin>,
+): Promise<QueryDocumentSnapshot[]> {
+  const out: QueryDocumentSnapshot[] = [];
+  let last: QueryDocumentSnapshot | undefined;
+  while (out.length < DIR_DOC_MAX) {
+    let q = db.collection("dir").orderBy(FieldPath.documentId()).limit(DIR_DOC_PAGE);
+    if (last) q = q.startAfter(last);
+    const snap = await q.get();
+    if (snap.empty) break;
+    out.push(...snap.docs);
+    last = snap.docs[snap.docs.length - 1];
+    if (snap.size < DIR_DOC_PAGE) break;
+  }
+  return out;
 }
 
 async function readDepartmentCategories(
   db: ReturnType<typeof getFirestoreAdmin>,
   deptId: string,
   deptData: Record<string, unknown>,
+  locale: DirectoryLocale,
 ): Promise<Array<{ code: string; label: string; engName: string; subcategories: string[] }>> {
   const sub = await db.collection("dir").doc(deptId).collection("categories").limit(500).get();
   if (!sub.empty) {
@@ -56,29 +86,33 @@ async function readDepartmentCategories(
         .filter((v) => v.length > 0);
       return {
         code: d.id,
-        label: categoryLabelFromDoc(data, d.id),
-        engName: asString(data.engName),
+        label: displayLabelForCategoryFirestoreDoc(data, d.id, locale),
+        engName: categoryEngNameFromDoc(data),
         subcategories,
       };
     });
-    rows.sort((a, b) => a.label.localeCompare(b.label, "fa"));
+    const sortLoc = locale === "en" ? "en" : "fa";
+    rows.sort((a, b) => a.label.localeCompare(b.label, sortLoc));
     return rows;
   }
   // Fallback for legacy docs that still keep categories at root.
-  return (await resolveDirectoryCategoriesForAdmin(db, deptId, deptData)).map((c) => ({
+  return (await resolveDirectoryCategoriesForAdmin(db, deptId, deptData, locale)).map((c) => ({
     ...c,
     engName: "",
     subcategories: [],
   }));
 }
 
+/**
+ * Same resolution as public app: `departmentID` ref/string, then `dir_id`, then `dir_department_slug`.
+ */
 function departmentIdFromAd(data: Record<string, unknown>): string | null {
   const direct = asString(data.departmentID);
   if (direct) {
     const parts = direct.split("/").filter(Boolean);
     return parts.length > 0 ? parts[parts.length - 1] : direct;
   }
-  const maybeRef = data.departmentID as { id?: unknown; path?: unknown } | undefined;
+  const maybeRef = data.departmentID as { id?: unknown; path?: unknown; __ref__?: unknown } | undefined;
   if (maybeRef && typeof maybeRef === "object") {
     const refId = asString(maybeRef.id);
     if (refId) return refId;
@@ -93,28 +127,66 @@ function departmentIdFromAd(data: Record<string, unknown>): string | null {
       return parts.length > 0 ? parts[parts.length - 1] : null;
     }
   }
+  const dirId = asString(data.dir_id);
+  if (dirId) return dirId;
+  const dirSlug = asString(data.dir_department_slug);
+  if (dirSlug) {
+    const parts = dirSlug.split("/").filter(Boolean);
+    return parts.length > 0 ? parts[parts.length - 1] : dirSlug;
+  }
   return null;
+}
+
+function categoriesFromParentDocOnly(
+  data: Record<string, unknown>,
+  locale: DirectoryLocale,
+  deptId: string,
+  catUsageMap: Map<string, number>,
+  catLabelUsageMap: Map<string, number>,
+): CategoryRow[] {
+  const rows = categoriesFromDirectoryData(data, locale).map((c) => ({
+    code: c.code,
+    label: c.label,
+    engName: "",
+    subcategories: [] as string[],
+  }));
+  return rows.map((c) => {
+    const byCode = catUsageMap.get(`${deptId}::${normKey(c.code)}`) ?? 0;
+    if (byCode > 0) return { ...c, usageCount: byCode };
+    const byLabel = catLabelUsageMap.get(`${deptId}::${normKey(c.label)}`) ?? 0;
+    return { ...c, usageCount: byLabel };
+  });
 }
 
 export async function GET(request: Request) {
   try {
     const db = getFirestoreAdmin();
     const { searchParams } = new URL(request.url);
-    const locale = searchParams.get("locale") === "en" ? "en" : defaultLocale;
-    const [snap, adsSnap] = await Promise.all([
-      db.collection("dir").limit(300).get(),
+    const locale: DirectoryLocale = searchParams.get("locale") === "en" ? "en" : defaultLocale;
+    const brief =
+      searchParams.get("brief") === "1" || searchParams.get("brief")?.toLowerCase() === "true";
+    const [dirDocs, adsSnap] = await Promise.all([
+      fetchAllDirDocumentSnapshots(db),
       db.collection("ad").limit(ADS_SCAN_CAP).get(),
     ]);
 
+    const dirDocIds = new Set(dirDocs.map((d) => d.id));
     const deptUsageMap = new Map<string, number>();
     const catUsageMap = new Map<string, number>();
     const catLabelUsageMap = new Map<string, number>();
+    let adsNoDepartment = 0;
+    let adsUnknownDirRef = 0;
     adsSnap.docs.forEach((doc) => {
       const ad = doc.data() as Record<string, unknown>;
       const deptId = departmentIdFromAd(ad);
-      if (!deptId) return;
+      if (!deptId) {
+        adsNoDepartment += 1;
+        return;
+      }
+      if (!dirDocIds.has(deptId)) adsUnknownDirRef += 1;
       deptUsageMap.set(deptId, (deptUsageMap.get(deptId) ?? 0) + 1);
       const catCode =
+        asLooseString(ad.dir_category_slug) ||
         asLooseString(ad.cat_code) ||
         asLooseString(ad.catCode) ||
         asLooseString(ad.category_code) ||
@@ -129,29 +201,95 @@ export async function GET(request: Request) {
       }
     });
 
-    const departments = await Promise.all(
-      snap.docs.map(async (doc) => {
+    /** Full mode: parallel subcollection reads per chunk. Brief: parent doc only (much faster). */
+    const DEPT_FETCH_CHUNK = brief ? 120 : 36;
+    const departments: Array<{
+      id: string;
+      label: string;
+      department: string;
+      engName: string;
+      image: string;
+      usageCount: number;
+      categories: CategoryRow[];
+    }> = [];
+    if (brief) {
+      for (const doc of dirDocs) {
         const data = doc.data() as Record<string, unknown>;
-        const categories = (await readDepartmentCategories(db, doc.id, data)).map((c) => {
-          const byCode = catUsageMap.get(`${doc.id}::${normKey(c.code)}`) ?? 0;
-          if (byCode > 0) return { ...c, usageCount: byCode };
-          const byLabel = catLabelUsageMap.get(`${doc.id}::${normKey(c.label)}`) ?? 0;
-          return { ...c, usageCount: byLabel };
-        });
-        return {
+        const categories = categoriesFromParentDocOnly(
+          data,
+          locale,
+          doc.id,
+          catUsageMap,
+          catLabelUsageMap,
+        );
+        const departmentFa =
+          asString(data.department) || asString(data.department_fa) || asString(data.Department);
+        const engNameVal =
+          asString(data.engName) || asString(data.department_en) || asString(data.Department_en);
+        departments.push({
           id: doc.id,
           label: directoryDepartmentDisplayLabel(data, doc.id, locale),
-          department: asString(data.department),
-          engName: asString(data.engName),
+          department: departmentFa,
+          engName: engNameVal,
           image: asString(data.image),
           usageCount: deptUsageMap.get(doc.id) ?? 0,
           categories,
-        };
-      }),
-    );
+        });
+      }
+    } else {
+      for (let i = 0; i < dirDocs.length; i += DEPT_FETCH_CHUNK) {
+        const chunk = dirDocs.slice(i, i + DEPT_FETCH_CHUNK);
+        const part = await Promise.all(
+          chunk.map(async (doc) => {
+            const data = doc.data() as Record<string, unknown>;
+            const categories = (
+              await readDepartmentCategories(db, doc.id, data, locale)
+            ).map((c) => {
+              const byCode = catUsageMap.get(`${doc.id}::${normKey(c.code)}`) ?? 0;
+              if (byCode > 0) return { ...c, usageCount: byCode };
+              const byLabel = catLabelUsageMap.get(`${doc.id}::${normKey(c.label)}`) ?? 0;
+              return { ...c, usageCount: byLabel };
+            });
+            const departmentFa =
+              asString(data.department) || asString(data.department_fa) || asString(data.Department);
+            const engNameVal =
+              asString(data.engName) || asString(data.department_en) || asString(data.Department_en);
+            return {
+              id: doc.id,
+              label: directoryDepartmentDisplayLabel(data, doc.id, locale),
+              department: departmentFa,
+              engName: engNameVal,
+              image: asString(data.image),
+              usageCount: deptUsageMap.get(doc.id) ?? 0,
+              categories,
+            };
+          }),
+        );
+        departments.push(...part);
+      }
+    }
 
     departments.sort((a, b) => a.label.localeCompare(b.label, locale));
-    return NextResponse.json({ departments });
+    const totalScanned = adsSnap.size;
+    const adsInKnownDir = Math.max(0, totalScanned - adsNoDepartment - adsUnknownDirRef);
+    const adScanSummary = {
+      totalScanned,
+      adsInKnownDir,
+      adsUnknownDirRef,
+      adsNoDepartment,
+      scanLimit: ADS_SCAN_CAP,
+      isCapped: totalScanned >= ADS_SCAN_CAP,
+    };
+    return NextResponse.json({
+      departments,
+      adScanSummary,
+      dirMeta: {
+        docCount: dirDocs.length,
+        fetchCap: DIR_DOC_MAX,
+        isDirCapped: dirDocs.length >= DIR_DOC_MAX,
+        brief,
+      },
+    });
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Unknown error" },

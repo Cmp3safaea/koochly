@@ -721,7 +721,7 @@ export default async function CityAdsByCountryPage({
           label: cat.label,
           href: withLocale(
             uiLocale,
-            `/${countryParam}/${cityParam}/category/${cat.value}/`,
+            `/${countryParam}/${cityParam}/category/${encodeURIComponent(cat.value)}/`,
           ),
         }))}
         currentCityId={(cityEng || cityFa || citySnap.id || "").trim()}

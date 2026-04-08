@@ -780,6 +780,8 @@ export default function CityAdsViewClient({
   initialDepartmentId = null,
   initialCatCode = null,
   googleMapsApiKey = "",
+  /** When set, used as the visible H1 instead of `cityTitle` (e.g. SEO category landings). */
+  primaryHeading = null,
 }: {
   cityTitle: string;
   /** Persian city name from Firestore (`city_fa`) for copy; falls back to `cityTitle` if empty. */
@@ -802,6 +804,7 @@ export default function CityAdsViewClient({
   initialDepartmentId?: string | null;
   initialCatCode?: string | null;
   googleMapsApiKey?: string;
+  primaryHeading?: string | null;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -1733,7 +1736,10 @@ export default function CityAdsViewClient({
     [displayedAds],
   );
 
-  const listTitle = cityTitle;
+  const listTitle =
+    typeof primaryHeading === "string" && primaryHeading.trim()
+      ? primaryHeading.trim()
+      : cityTitle;
   const introCityName = (typeof cityFa === "string" && cityFa.trim()) || cityTitle;
   const introCountryLabel = useMemo(() => {
     const fa = typeof countryFa === "string" ? countryFa.trim() : "";

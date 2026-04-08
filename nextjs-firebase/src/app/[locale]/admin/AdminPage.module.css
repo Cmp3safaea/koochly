@@ -95,6 +95,56 @@
   font-weight: 700;
 }
 
+.subTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -4px 0 14px 0;
+}
+
+.subTab {
+  border: 1px solid var(--border-input);
+  color: var(--text-muted);
+  background: var(--surface-muted, var(--surface));
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.subTab:hover {
+  border-color: var(--accent-35, color-mix(in srgb, var(--accent) 35%, var(--border-input)));
+  color: var(--text-strong);
+}
+
+.subTabActive {
+  border: 1px solid var(--accent-border-strong);
+  color: var(--accent);
+  background: var(--accent-soft-08);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.paneMeta {
+  margin: 4px 0 0 0;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+  font-weight: 500;
+  max-width: 260px;
+}
+
+.paneHead > div:first-child {
+  min-width: 0;
+  flex: 1;
+}
+
 .info {
   color: var(--text-muted);
 }
@@ -835,6 +885,22 @@
 
 .dashboardCard strong {
   font-size: 1.35rem;
+}
+
+.dashboardCardMeta {
+  margin: 8px 0 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.dashboardCardWarn {
+  margin: 6px 0 0;
+  font-size: 0.72rem;
+  color: #b45309;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .dashboardGrid2 {

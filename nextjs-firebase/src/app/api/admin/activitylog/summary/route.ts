@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { getFirestoreAdmin } from "../../../../../lib/firebaseAdmin";
 
 export const runtime = "nodejs";
-const SCAN_CAP = 4000;
+/** Smaller cap keeps admin dashboard responsive; breakdowns are still representative. */
+const SCAN_CAP = 12000;
 
 function asString(v: unknown): string {
   return typeof v === "string" ? v.trim() : "";

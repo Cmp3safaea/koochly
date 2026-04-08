@@ -5,13 +5,16 @@
  * - `/` — home
  * - `/{country_eng}/{city_eng}/` — city hub pages (only cities with both fields;
  *   see `isCityDocIndexable`)
+ * - `/{country}/{city}/category/{cat_code}/` — city + category SEO landings (from ads with
+ *   `country_eng`, `city_eng`, and `cat_code`; see `sitemapFirestore`)
  * - `/b/{seq}` — ad detail pages with a numeric `seq`, not explicitly rejected
  *
  * **Excluded**
  * - `/api/*` — disallow in robots.txt (not crawled as public HTML)
  * - `/city/{cityId}` — reachable for users/deep links but omitted from sitemap; canonical
  *   URL is the `/{country_eng}/{city_eng}/` hub when those fields exist
- * - Query-only variants (`?cat=&dept=`) — not listed; canonical hub is the bare city URL
+ * - Query-only variants (`?cat=&dept=`) on city hubs — prefer linking to
+ *   `/category/{cat_code}/` landings; query URLs are not listed in the sitemap
  * - Ads with `approved === false`
  * - Ads without a usable numeric `seq`
  * - Cities with `active === false`

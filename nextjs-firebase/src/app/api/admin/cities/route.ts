@@ -9,9 +9,9 @@ function asString(v: unknown): string {
   return typeof v === "string" ? v.trim() : "";
 }
 
-function asBoolean(v: unknown, fallback = false): boolean {
-  if (typeof v === "boolean") return v;
-  return fallback;
+/** Match public city pages: missing `active` counts as public (legacy docs). */
+function isCityActive(data: Record<string, unknown>): boolean {
+  return data.active !== false;
 }
 
 function asNumber(v: unknown): number | null {
@@ -21,6 +21,13 @@ function asNumber(v: unknown): number | null {
     if (Number.isFinite(n)) return n;
   }
   return null;
+}
+
+function asBoolean(v: unknown, defaultValue: boolean): boolean {
+  if (typeof v === "boolean") return v;
+  if (v === "true" || v === 1) return true;
+  if (v === "false" || v === 0) return false;
+  return defaultValue;
 }
 
 function sanitizeToken(value: string): string {
@@ -44,12 +51,24 @@ export async function GET() {
       db.collection("ad").limit(ADS_SCAN_CAP).get(),
     ]);
 
+    const faToEngKey = new Map<string, string>();
+    citySnap.docs.forEach((doc) => {
+      const data = doc.data() as Record<string, unknown>;
+      const eng = sanitizeToken(asString(data.city_eng));
+      const fa = sanitizeToken(asString(data.city_fa));
+      if (eng && fa) faToEngKey.set(fa.toLowerCase(), eng.toLowerCase());
+    });
+
     const usageMap = new Map<string, number>();
     adsSnap.docs.forEach((doc) => {
       const ad = doc.data() as Record<string, unknown>;
-      const cityEng = sanitizeToken(asString(ad.city_eng));
-      if (!cityEng) return;
-      usageMap.set(cityEng.toLowerCase(), (usageMap.get(cityEng.toLowerCase()) ?? 0) + 1);
+      let engKey = sanitizeToken(asString(ad.city_eng)).toLowerCase();
+      if (!engKey) {
+        const cityField = sanitizeToken(asString(ad.city));
+        if (cityField) engKey = faToEngKey.get(cityField.toLowerCase()) ?? "";
+      }
+      if (!engKey) return;
+      usageMap.set(engKey, (usageMap.get(engKey) ?? 0) + 1);
     });
 
     const cities = citySnap.docs.map((doc) => {
@@ -62,7 +81,7 @@ export async function GET() {
       const lng = asNumber(ll?.longitude ?? ll?.lng ?? ll?.__lon__);
       return {
         id: doc.id,
-        active: asBoolean(data.active, false),
+        active: isCityActive(data),
         city_eng: cityEng,
         city_fa: asString(data.city_fa),
         country_eng: asString(data.country_eng),

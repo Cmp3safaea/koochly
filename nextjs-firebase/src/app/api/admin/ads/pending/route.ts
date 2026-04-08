@@ -59,19 +59,13 @@ function normalizeLocation(value: unknown): { lat: number; lng: number } | null 
 export async function GET() {
   try {
     const db = getFirestoreAdmin();
-    let snap;
-    try {
-      snap = await db
-        .collection("ad")
-        .where("approved", "==", false)
-        .orderBy("dateTime", "desc")
-        .limit(300)
-        .get();
-    } catch {
-      // Fallback when composite index is not yet deployed.
-      snap = await db.collection("ad").where("approved", "==", false).limit(300).get();
-    }
+    // `where("approved","==",false)` misses docs with no `approved` field (treated as pending).
+    const snap = await db.collection("ad").limit(1200).get();
     const ads = snap.docs
+      .filter((doc) => {
+        const d = doc.data() as Record<string, unknown>;
+        return d.approved !== true;
+      })
       .map((doc) => {
         const data = doc.data() as Record<string, unknown>;
         const images = normalizeImages(data);
@@ -108,7 +102,8 @@ export async function GET() {
           city_eng: asString(data.city_eng),
         };
       })
-      .sort((a, b) => b.createdAtMs - a.createdAtMs);
+      .sort((a, b) => b.createdAtMs - a.createdAtMs)
+      .slice(0, 400);
     return NextResponse.json({ ads });
   } catch (e) {
     return NextResponse.json(

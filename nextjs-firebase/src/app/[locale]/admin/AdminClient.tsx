@@ -95,6 +95,15 @@ type EventRow = {
   endAtMs: number | null;
   createdAtMs: number;
 };
+type AdScanSummary = {
+  totalScanned: number;
+  adsInKnownDir: number;
+  adsUnknownDirRef: number;
+  adsNoDepartment: number;
+  scanLimit: number;
+  isCapped: boolean;
+};
+
 type ActivityBucket = { key: string; count: number };
 type ActivitySummary = {
   totalEvents: number;
@@ -159,9 +168,11 @@ export default function AdminClient({
   const [departmentFa, setDepartmentFa] = useState("");
   const [departmentEn, setDepartmentEn] = useState("");
   const [departmentImage, setDepartmentImage] = useState("");
-  const [tab, setTab] = useState<
-    "dashboard" | "directory" | "city" | "adsApproval" | "adsManage" | "events"
-  >("dashboard");
+  const [tab, setTab] = useState<"dashboard" | "ads" | "directory" | "city" | "events">(
+    "dashboard",
+  );
+  /** Primary table: all `ad` docs; secondary: moderation queue. */
+  const [adsSubTab, setAdsSubTab] = useState<"manage" | "pending">("manage");
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [categorySearch, setCategorySearch] = useState("");
   const [subcategoryDrafts, setSubcategoryDrafts] = useState<Record<number, string>>({});
@@ -183,6 +194,8 @@ export default function AdminClient({
   const [selectedPendingAdId, setSelectedPendingAdId] = useState<string | null>(null);
   const [managedAds, setManagedAds] = useState<ManagedAdRow[]>([]);
   const [adsQuery, setAdsQuery] = useState("");
+  /** `city_eng` of selected city, or "" to list ads from every city. */
+  const [adsCityFilterEng, setAdsCityFilterEng] = useState("");
   const [selectedAdId, setSelectedAdId] = useState<string | null>(null);
   const [adTitle, setAdTitle] = useState("");
   const [adEngName, setAdEngName] = useState("");
@@ -206,6 +219,7 @@ export default function AdminClient({
   const [adPaidExpiresAtMs, setAdPaidExpiresAtMs] = useState<number | null>(null);
   const [paidTermPickerOpen, setPaidTermPickerOpen] = useState(false);
   const [activitySummary, setActivitySummary] = useState<ActivitySummary | null>(null);
+  const [adScanSummary, setAdScanSummary] = useState<AdScanSummary | null>(null);
   const [events, setEvents] = useState<EventRow[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [isNewEvent, setIsNewEvent] = useState(false);
@@ -234,13 +248,16 @@ export default function AdminClient({
     isNewEventRef.current = isNewEvent;
   }, [isNewEvent]);
 
-  /** Directory response matches this UI locale (labels are locale-specific). */
-  const directoryDataLocaleRef = useRef<string | null>(null);
+  /** Any directory payload loaded for this locale (brief or full). */
+  const directoryAnyLocaleRef = useRef<string | null>(null);
+  /** Full directory (subcollection categories) loaded for this locale — required for Directory + Ads editors. */
+  const directoryFullLocaleRef = useRef<string | null>(null);
   /** Cities list fetched at least once this session (API is not locale-specific). */
   const citiesHydratedRef = useRef(false);
 
   useEffect(() => {
-    directoryDataLocaleRef.current = null;
+    directoryAnyLocaleRef.current = null;
+    directoryFullLocaleRef.current = null;
   }, [locale]);
 
   const selected = useMemo(
@@ -248,16 +265,28 @@ export default function AdminClient({
     [departments, selectedId],
   );
 
-  const loadAll = async (preferredDeptId?: string | null) => {
+  type DirectoryLoadMode = "brief" | "full";
+
+  const loadDirectory = async (
+    preferredDeptId?: string | null,
+    mode: DirectoryLoadMode = "full",
+  ) => {
     setError(null);
     try {
-      const res = await fetch(`/api/admin/directory?locale=${encodeURIComponent(locale)}`);
+      const params = new URLSearchParams({ locale });
+      if (mode === "brief") params.set("brief", "1");
+      const res = await fetch(`/api/admin/directory?${params.toString()}`);
       const json = (await res.json().catch(() => ({}))) as {
         departments?: DepartmentRow[];
+        adScanSummary?: AdScanSummary;
         error?: string;
       };
       if (!res.ok) throw new Error(json.error ?? t("admin.loadErr"));
+      if (mode === "brief" && directoryFullLocaleRef.current === locale) {
+        return;
+      }
       const rows = Array.isArray(json.departments) ? json.departments : [];
+      setAdScanSummary(json.adScanSummary ?? null);
       setDepartments(rows);
       if (rows.length > 0) {
         const keepId = preferredDeptId ?? selectedId;
@@ -274,7 +303,10 @@ export default function AdminClient({
         setDepartmentImage("");
         setCategories([]);
       }
-      directoryDataLocaleRef.current = locale;
+      directoryAnyLocaleRef.current = locale;
+      if (mode === "full") {
+        directoryFullLocaleRef.current = locale;
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : t("admin.loadErr"));
     }
@@ -342,6 +374,7 @@ export default function AdminClient({
       } else {
         setSelectedPendingAdId(null);
       }
+      setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : t("admin.loadErr"));
     }
@@ -351,10 +384,16 @@ export default function AdminClient({
     setError(null);
     try {
       const q = (query ?? adsQuery).trim();
-      const url = q
-        ? `/api/admin/ads?q=${encodeURIComponent(q)}&limit=50`
-        : "/api/admin/ads?limit=50";
-      const res = await fetch(url);
+      const params = new URLSearchParams();
+      params.set("limit", "50");
+      if (q) params.set("q", q);
+      const cityEng = adsCityFilterEng.trim();
+      if (cityEng) {
+        params.set("city_eng", cityEng);
+        const fa = cities.find((c) => (c.city_eng ?? "") === cityEng)?.city_fa?.trim() ?? "";
+        if (fa) params.set("city_fa", fa);
+      }
+      const res = await fetch(`/api/admin/ads?${params.toString()}`);
       const json = (await res.json().catch(() => ({}))) as { ads?: ManagedAdRow[]; error?: string };
       if (!res.ok) throw new Error(json.error ?? t("admin.loadErr"));
       const rows = Array.isArray(json.ads) ? json.ads : [];
@@ -365,6 +404,7 @@ export default function AdminClient({
       } else {
         setSelectedAdId(null);
       }
+      setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : t("admin.loadErr"));
     }
@@ -424,19 +464,20 @@ export default function AdminClient({
   };
 
   useEffect(() => {
-    const needDirectory = directoryDataLocaleRef.current !== locale;
+    const needAnyDirectory = directoryAnyLocaleRef.current !== locale;
+    const needFullDirectory = directoryFullLocaleRef.current !== locale;
     const needCities = !citiesHydratedRef.current;
 
     if (tab === "dashboard") {
-      const tasks: Promise<unknown>[] = [loadActivitySummary()];
-      if (needDirectory) tasks.push(loadAll());
-      if (needCities) tasks.push(loadCities());
-      void Promise.all(tasks);
+      // Brief directory: same ad usage stats, no per-dept subcollection reads (much faster).
+      void loadActivitySummary();
+      if (needAnyDirectory) void loadDirectory(selectedId, "brief");
+      void loadCities(selectedCityId);
       return;
     }
     if (tab === "directory") {
-      if (!needDirectory) return;
-      void loadAll();
+      if (!needFullDirectory) return;
+      void loadDirectory(selectedId, "full");
       return;
     }
     if (tab === "city") {
@@ -444,18 +485,10 @@ export default function AdminClient({
       void loadCities();
       return;
     }
-    if (tab === "adsApproval") {
-      const tasks: Promise<unknown>[] = [loadPendingAds()];
-      if (needCities) tasks.push(loadCities());
-      if (needDirectory) tasks.push(loadAll());
-      void Promise.all(tasks);
-      return;
-    }
-    if (tab === "adsManage") {
-      const tasks: Promise<unknown>[] = [loadManagedAds(adsQuery)];
-      if (needCities) tasks.push(loadCities());
-      if (needDirectory) tasks.push(loadAll());
-      void Promise.all(tasks);
+    if (tab === "ads") {
+      if (needCities) void loadCities(selectedCityId);
+      if (needFullDirectory) void loadDirectory(selectedId, "full");
+      void (adsSubTab === "pending" ? loadPendingAds() : loadManagedAds(adsQuery));
       return;
     }
     if (tab === "events") {
@@ -464,16 +497,16 @@ export default function AdminClient({
       void Promise.all(tasks);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locale, tab]);
+  }, [locale, tab, adsSubTab]);
 
   useEffect(() => {
-    if (tab !== "adsManage") return;
+    if (tab !== "ads" || adsSubTab !== "manage") return;
     const timer = window.setTimeout(() => {
       void loadManagedAds(adsQuery);
     }, 280);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [adsQuery]);
+  }, [adsQuery, adsCityFilterEng, cities]);
 
   useEffect(() => {
     if (tab !== "events") return;
@@ -512,7 +545,12 @@ export default function AdminClient({
     () => events.find((e) => e.id === selectedEventId) ?? null,
     [events, selectedEventId],
   );
-  const activeEditingAdId = tab === "adsApproval" ? selectedPendingAdId : selectedAdId;
+  const activeEditingAdId =
+    tab === "ads" && adsSubTab === "pending"
+      ? selectedPendingAdId
+      : tab === "ads" && adsSubTab === "manage"
+        ? selectedAdId
+        : null;
   const cityLatNum = useMemo(() => {
     const n = Number(cityLat);
     return Number.isFinite(n) ? n : null;
@@ -831,7 +869,7 @@ export default function AdminClient({
         });
         const json = (await res.json().catch(() => ({}))) as { id?: string; error?: string };
         if (!res.ok) throw new Error(json.error ?? t("admin.saveErr"));
-        await loadAll(json.id ?? null);
+        await loadDirectory(json.id ?? null, "full");
         if (json.id) setSelectedId(json.id);
       } else if (selectedId) {
         const res = await fetch(`/api/admin/directory/${encodeURIComponent(selectedId)}`, {
@@ -845,7 +883,7 @@ export default function AdminClient({
         });
         const json = (await res.json().catch(() => ({}))) as { error?: string };
         if (!res.ok) throw new Error(json.error ?? t("admin.saveErr"));
-        await loadAll(selectedId);
+        await loadDirectory(selectedId, "full");
       }
       setStatus(t("admin.saved"));
       setIsNew(false);
@@ -868,7 +906,7 @@ export default function AdminClient({
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(json.error ?? t("admin.deleteErr"));
-      await loadAll(null);
+      await loadDirectory(null, "full");
       setStatus(t("admin.deleted"));
     } catch (e) {
       setError(e instanceof Error ? e.message : t("admin.deleteErr"));
@@ -909,7 +947,7 @@ export default function AdminClient({
       );
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(json.error ?? t("admin.saveCategoryErr"));
-      await loadAll(selectedId);
+      await loadDirectory(selectedId, "full");
       setStatus(t("admin.savedCategories"));
     } catch (e) {
       setError(e instanceof Error ? e.message : t("admin.saveCategoryErr"));
@@ -1093,7 +1131,8 @@ export default function AdminClient({
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(json.error ?? t("admin.saveErr"));
       setStatus(t("admin.saved"));
-      await loadManagedAds();
+      if (adsSubTab === "pending") await loadPendingAds();
+      else await loadManagedAds(adsQuery);
     } catch (e) {
       setError(e instanceof Error ? e.message : t("admin.saveErr"));
     } finally {
@@ -1114,7 +1153,8 @@ export default function AdminClient({
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(json.error ?? t("admin.deleteErr"));
       setStatus(t("admin.deletedAd"));
-      await loadManagedAds();
+      if (adsSubTab === "pending") await loadPendingAds();
+      else await loadManagedAds(adsQuery);
     } catch (e) {
       setError(e instanceof Error ? e.message : t("admin.deleteErr"));
     } finally {
@@ -1292,7 +1332,7 @@ export default function AdminClient({
         </Link>
       </header>
 
-      <section className={styles.tabs}>
+      <section className={styles.tabs} aria-label={t("admin.title")}>
         <button
           type="button"
           className={tab === "dashboard" ? styles.tabActive : styles.tab}
@@ -1302,10 +1342,17 @@ export default function AdminClient({
         </button>
         <button
           type="button"
+          className={tab === "ads" ? styles.tabActive : styles.tab}
+          onClick={() => setTab("ads")}
+        >
+          {t("admin.optionAds")}
+        </button>
+        <button
+          type="button"
           className={tab === "directory" ? styles.tabActive : styles.tab}
           onClick={() => setTab("directory")}
         >
-          {t("admin.optionDirectory")}
+          {t("admin.optionDir")}
         </button>
         <button
           type="button"
@@ -1316,26 +1363,39 @@ export default function AdminClient({
         </button>
         <button
           type="button"
-          className={tab === "adsApproval" ? styles.tabActive : styles.tab}
-          onClick={() => setTab("adsApproval")}
-        >
-          {t("admin.optionAdsApproval")}
-        </button>
-        <button
-          type="button"
-          className={tab === "adsManage" ? styles.tabActive : styles.tab}
-          onClick={() => setTab("adsManage")}
-        >
-          {t("admin.optionAdsManage")}
-        </button>
-        <button
-          type="button"
           className={tab === "events" ? styles.tabActive : styles.tab}
           onClick={() => setTab("events")}
         >
           {t("admin.optionEvents")}
         </button>
       </section>
+
+      {tab === "ads" ? (
+        <div
+          className={styles.subTabs}
+          role="tablist"
+          aria-label={t("admin.adsSectionAria")}
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={adsSubTab === "manage"}
+            className={adsSubTab === "manage" ? styles.subTabActive : styles.subTab}
+            onClick={() => setAdsSubTab("manage")}
+          >
+            {t("admin.adsSubAll")}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={adsSubTab === "pending"}
+            className={adsSubTab === "pending" ? styles.subTabActive : styles.subTab}
+            onClick={() => setAdsSubTab("pending")}
+          >
+            {t("admin.adsSubPending")}
+          </button>
+        </div>
+      ) : null}
 
       {error ? <p className={styles.err}>{error}</p> : null}
       {status ? <p className={styles.ok}>{status}</p> : null}
@@ -1359,7 +1419,25 @@ export default function AdminClient({
               </article>
               <article className={styles.dashboardCard}>
                 <h3>{t("admin.dashboardAdsCount")}</h3>
-                <strong>{dashboardTotals.totalAdsByDept}</strong>
+                <strong>
+                  {adScanSummary?.totalScanned ?? dashboardTotals.totalAdsByDept}
+                </strong>
+                {adScanSummary ? (
+                  <p className={styles.dashboardCardMeta}>
+                    {t("admin.dashboardAdsInDir", { n: adScanSummary.adsInKnownDir })}
+                    {" · "}
+                    {t("admin.dashboardAdsUnknownDir", { n: adScanSummary.adsUnknownDirRef })}
+                    {" · "}
+                    {t("admin.dashboardAdsNoDept", { n: adScanSummary.adsNoDepartment })}
+                  </p>
+                ) : null}
+                {adScanSummary?.isCapped ? (
+                  <p className={styles.dashboardCardWarn}>
+                    {t("admin.dashboardAdsScanCapped", {
+                      limit: adScanSummary.scanLimit,
+                    })}
+                  </p>
+                ) : null}
               </article>
               <article className={styles.dashboardCard}>
                 <h3>{t("admin.dashboardActivityEvents")}</h3>
@@ -1478,7 +1556,10 @@ export default function AdminClient({
           <>
         <aside className={styles.listPane}>
           <div className={styles.paneHead}>
-            <h2>{t("admin.departments")}</h2>
+            <div>
+              <h2>{t("admin.departments")}</h2>
+              <p className={styles.paneMeta}>{t("admin.dirListMeta")}</p>
+            </div>
             <button type="button" onClick={onCreateNew} disabled={busy}>
               {t("admin.newDepartment")}
             </button>
@@ -1883,7 +1964,7 @@ export default function AdminClient({
             </section>
           </>
         ) : null}
-        {tab === "adsApproval" ? (
+        {tab === "ads" && adsSubTab === "pending" ? (
           <>
             <aside className={styles.listPane}>
               <div className={styles.paneHead}>
@@ -2150,7 +2231,7 @@ export default function AdminClient({
             </section>
           </>
         ) : null}
-        {tab === "adsManage" ? (
+        {tab === "ads" && adsSubTab === "manage" ? (
           <>
             <aside className={styles.listPane}>
               <div className={styles.paneHead}>
@@ -2158,6 +2239,21 @@ export default function AdminClient({
                 <Link href={loc("/add-ad")} className={styles.backLink}>
                   {t("admin.newAd")}
                 </Link>
+              </div>
+              <div className={styles.formRow}>
+                <label>{t("addAd.city")}</label>
+                <select
+                  value={adsCityFilterEng}
+                  onChange={(e) => setAdsCityFilterEng(e.target.value)}
+                  aria-label={t("addAd.city")}
+                >
+                  <option value="">{t("admin.adsAllCities")}</option>
+                  {cities.map((c) => (
+                    <option key={c.id} value={c.city_eng ?? ""}>
+                      {c.city_fa || c.city_eng}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className={styles.formRow}>
                 <input
