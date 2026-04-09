@@ -6,6 +6,8 @@ const sharedRoot = path.resolve(__dirname, "../packages/shared/src");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Docker/Cloud Build often uses 1 worker; slow Firestore during SSG can exceed 60s otherwise.
+  staticPageGenerationTimeout: 180,
   transpilePackages: ["@koochly/shared"],
   // Next 16 defaults to Turbopack for `next build`; keep aliases in sync for both bundlers.
   turbopack: {

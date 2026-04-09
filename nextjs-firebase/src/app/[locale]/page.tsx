@@ -2,6 +2,9 @@ import { unstable_cache } from "next/cache";
 import { listPublicCities, listPublicEvents } from "../../lib/citiesWithApprovedAds";
 import HomePageClient, { type HomePageClientProps } from "./HomePageClient";
 
+/** Firestore scans can exceed Cloud Build's default 60s static-gen budget (1 CPU). Render on demand. */
+export const dynamic = "force-dynamic";
+
 const loadHomePayload = unstable_cache(
   async () => {
     const [citiesRes, eventsRes] = await Promise.all([
