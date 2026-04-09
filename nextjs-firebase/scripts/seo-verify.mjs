@@ -11,7 +11,7 @@ async function checkUrl(path) {
 async function main() {
   const checks = [
     "/robots.txt",
-    "/sitemap/0.xml",
+    "/sitemap.xml",
     "/en",
     "/fa",
   ];

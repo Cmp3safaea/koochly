@@ -13,12 +13,11 @@ async function fetchText(url) {
 }
 
 async function main() {
-  const sitemapIndexUrl = `${BASE_URL}/sitemap/0.xml`;
+  const sitemapIndexUrl = `${BASE_URL}/sitemap.xml`;
   const indexXml = await fetchText(sitemapIndexUrl);
   let urls = extractLocs(indexXml);
 
   if (urls.length === 0) {
-    // Fallback if sitemap/0.xml is itself a sitemap index wrapper.
     const indexCandidates = [
       `${BASE_URL}/sitemap.xml`,
       `${BASE_URL}/sitemap/0.xml`,

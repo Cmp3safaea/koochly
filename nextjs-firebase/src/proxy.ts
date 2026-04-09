@@ -8,6 +8,16 @@ function firstSegment(pathname: string): string | undefined {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  // Next.js metadata routes live at the app root (`app/sitemap.ts`, `app/robots.ts`),
+  // not under `/[locale]`. Skipping locale rewrite avoids 404 on `/sitemap.xml`, etc.
+  if (
+    pathname === "/sitemap.xml" ||
+    pathname === "/robots.txt" ||
+    pathname.startsWith("/sitemap/")
+  ) {
+    return NextResponse.next();
+  }
+
   const seg = firstSegment(pathname);
   const hasLocale = Boolean(seg && isLocale(seg));
 

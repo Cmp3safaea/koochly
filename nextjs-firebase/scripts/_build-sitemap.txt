@@ -1,0 +1,86 @@
+
+> nextjs-firebase@1.0.0 prebuild
+> npm run fix:seo-encoding --silent
+
+normalize-ts-utf8: ok
+
+> nextjs-firebase@1.0.0 build
+> next build --webpack
+
+▲ Next.js 16.2.1 (webpack)
+- Environments: .env
+- Experiments (use with caution):
+  ✓ externalDir
+  · optimizePackageImports
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 9.7s
+  Running TypeScript ...
+  Finished TypeScript in 7.1s ...
+  Collecting page data using 19 workers ...
+  Generating static pages using 19 workers (0/42) ...
+  Generating static pages using 19 workers (10/42) 
+  Generating static pages using 19 workers (20/42) 
+  Generating static pages using 19 workers (31/42) 
+✓ Generating static pages using 19 workers (42/42) in 20.3s
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)                                        Revalidate  Expire
+┌ ƒ /_not-found
+├ ƒ /[locale]
+├ ƒ /[locale]/[country]/[city]
+├ ƒ /[locale]/[country]/[city]/category/[catCode]
+├ ƒ /[locale]/ad/[adId]
+├ ƒ /[locale]/add-ad
+├ ƒ /[locale]/admin
+├ ƒ /[locale]/b/[seq]
+├ ƒ /[locale]/city/[cityId]
+├ ƒ /[locale]/help
+├ ƒ /[locale]/profile
+├ ƒ /[locale]/workspace
+├ ƒ /api/activitylog
+├ ƒ /api/admin/activitylog/summary
+├ ƒ /api/admin/ads
+├ ƒ /api/admin/ads/[adId]
+├ ƒ /api/admin/ads/[adId]/approve
+├ ƒ /api/admin/ads/pending
+├ ƒ /api/admin/ads/upload-image
+├ ƒ /api/admin/cities
+├ ƒ /api/admin/cities/[cityId]
+├ ƒ /api/admin/directory
+├ ƒ /api/admin/directory/[deptId]
+├ ƒ /api/admin/directory/[deptId]/categories
+├ ƒ /api/admin/directory/upload-image
+├ ƒ /api/admin/events
+├ ƒ /api/admin/events/[eventId]
+├ ƒ /api/admin/events/upload-image
+├ ƒ /api/ads/[id]/reviews
+├ ƒ /api/ads/[id]/visit
+├ ƒ /api/ads/priority
+├ ƒ /api/ads/submit
+├ ƒ /api/ai/draft-ad
+├ ƒ /api/ai/search-ads
+├ ƒ /api/apply/claim
+├ ƒ /api/cities
+├ ƒ /api/collections
+├ ƒ /api/directory
+├ ƒ /api/directory/[deptId]/categories
+├ ƒ /api/events
+├ ƒ /api/places/photo
+├ ƒ /api/todos
+├ ƒ /api/user/bookmarked-ads
+├ ƒ /api/user/bookmarks
+├ ƒ /api/user/my-ads
+├ ƒ /api/user/my-ads/[adId]
+├ ƒ /api/user/profile
+├ ƒ /api/user/recent-visits
+├ ○ /robots.txt                                            1h      1y
+└ ○ /sitemap.xml                                           1h      1y
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

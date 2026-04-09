@@ -3,13 +3,12 @@ import {
   getCachedSitemapPayload,
   SITEMAP_MAX_URLS_PER_FILE,
 } from "../lib/sitemapCache";
-import { getSiteBaseUrl } from "../lib/siteUrl";
+import { getSiteBaseUrlFromRequest } from "../lib/siteUrl";
 import { locales } from "@koochly/shared";
 
 export const revalidate = 3600;
 
-function toAbsoluteUrl(path: string): string {
-  const base = getSiteBaseUrl();
+function toAbsoluteUrl(path: string, base: string): string {
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
@@ -32,43 +31,32 @@ function expandForAllLocales(
 function mapEntries(
   entries: { path: string; lastModified?: Date }[],
   priority: number,
+  base: string,
 ): MetadataRoute.Sitemap {
   return entries.map((e) => ({
-    url: toAbsoluteUrl(e.path),
+    url: toAbsoluteUrl(e.path, base),
     lastModified: e.lastModified,
     changeFrequency: "weekly",
     priority,
   }));
 }
 
-export async function generateSitemaps() {
+/**
+ * Single sitemap at `/sitemap.xml`.
+ *
+ * We avoid `generateSitemaps()` here: with that API, Next.js 16 serves chunk URLs at
+ * `/sitemap/[id].xml` and `/sitemap.xml` may not resolve as users expect. If you ever
+ * exceed Google's per-file limit (~50k URLs), split via multiple route handlers or
+ * revisit the multi-sitemap API.
+ */
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const base = await getSiteBaseUrlFromRequest();
   const { staticEntries, adEntries } = await getCachedSitemapPayload();
-  const total =
-    expandForAllLocales(staticEntries).length + expandForAllLocales(adEntries).length;
-  if (total <= SITEMAP_MAX_URLS_PER_FILE) {
-    return [{ id: 0 }];
+  const staticUrls = mapEntries(expandForAllLocales(staticEntries), 0.9, base);
+  const adUrls = mapEntries(expandForAllLocales(adEntries), 0.6, base);
+  const merged = [...staticUrls, ...adUrls];
+  if (merged.length > SITEMAP_MAX_URLS_PER_FILE) {
+    return merged.slice(0, SITEMAP_MAX_URLS_PER_FILE);
   }
-  const adChunks = Math.ceil(adEntries.length / SITEMAP_MAX_URLS_PER_FILE);
-  return [
-    { id: 0 },
-    ...Array.from({ length: adChunks }, (_, i) => ({ id: i + 1 })),
-  ];
-}
-
-export default async function sitemap(props: {
-  id: Promise<string>;
-}): Promise<MetadataRoute.Sitemap> {
-  const { staticEntries, adEntries } = await getCachedSitemapPayload();
-  const staticUrls = mapEntries(expandForAllLocales(staticEntries), 0.9);
-  const adUrls = mapEntries(expandForAllLocales(adEntries), 0.6);
-  const total = staticUrls.length + adUrls.length;
-
-  if (total <= SITEMAP_MAX_URLS_PER_FILE) {
-    return [...staticUrls, ...adUrls];
-  }
-
-  const idNum = Number(await props.id);
-  if (idNum === 0) return staticUrls;
-  const start = (idNum - 1) * SITEMAP_MAX_URLS_PER_FILE;
-  return adUrls.slice(start, start + SITEMAP_MAX_URLS_PER_FILE);
+  return merged;
 }
