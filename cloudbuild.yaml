@@ -7,6 +7,8 @@ substitutions:
   _IMAGE: web
   # Required for Maps on add-ad / city maps (inlined at build). Set in the trigger or override when running submit.
   _NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ""
+  # Canonical public origin (sitemap, robots, metadataBase). Override per environment if needed.
+  _NEXT_PUBLIC_SITE_URL: "https://persianan.store"
   # OPENAI_API_KEY is not a build arg: set it on the Cloud Run service (or host) at deploy/runtime for AI listing search.
 
 steps:
@@ -19,6 +21,8 @@ steps:
       - GCP_PROJECT_ID=$PROJECT_ID
       - --build-arg
       - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$_NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+      - --build-arg
+      - NEXT_PUBLIC_SITE_URL=$_NEXT_PUBLIC_SITE_URL
       - -t
       - $_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPO/$_IMAGE:$BUILD_ID
       - -t

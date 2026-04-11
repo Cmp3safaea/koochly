@@ -52,6 +52,7 @@ docker run --rm -p 8080:8080 -e PORT=8080 koochly-web:local
 Build/push the image to a registry, then deploy with:
 - a service account that can access Firestore (recommended), or
 - set `FIREBASE_SERVICE_ACCOUNT_KEY` as an environment variable/secret
+- **`NEXT_PUBLIC_SITE_URL`**: set to your public origin (e.g. `https://persianan.store`) on the Cloud Run service and/or as a Docker build arg so metadata and client bundles use the right host (see root `cloudbuild.yaml` substitution `_NEXT_PUBLIC_SITE_URL`).
 - ensure the container listens on `PORT` (this image uses `8080`)
 - **`OPENAI_API_KEY`** (secret): required for the logged-in AI listing search (`POST /api/ai/search-ads`). Omit it only if you disable that feature; without it the API returns 503. Optional **`OPENAI_MODEL`** (default `gpt-4o-mini`).
 
