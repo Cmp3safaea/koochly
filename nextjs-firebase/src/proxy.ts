@@ -15,7 +15,7 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const base = pathWithoutQuery(pathname);
   const baseLower = base.toLowerCase();
-  // Next.js metadata routes live at the app root (`app/sitemap.ts`, `app/robots.ts`),
+  // SEO routes live at the app root (`app/sitemap.xml/route.ts`, `app/robots.txt/route.ts`),
   // not under `/[locale]`. Skipping locale rewrite avoids 404 on `/sitemap.xml`, etc.
   if (
     baseLower === "/sitemap.xml" ||
