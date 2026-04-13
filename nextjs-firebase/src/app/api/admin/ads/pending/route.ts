@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdminRequest } from "../../../../../lib/adminAuth";
 import { getFirestoreAdmin } from "../../../../../lib/firebaseAdmin";
 
 export const runtime = "nodejs";
@@ -56,7 +57,9 @@ function normalizeLocation(value: unknown): { lat: number; lng: number } | null 
   return { lat, lng };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const db = getFirestoreAdmin();
     // `where("approved","==",false)` misses docs with no `approved` field (treated as pending).

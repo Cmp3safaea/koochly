@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { FieldPath, FieldValue } from "firebase-admin/firestore";
 import type { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { defaultLocale } from "@koochly/shared";
+import { requireAdminRequest } from "../../../../lib/adminAuth";
 import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
 import {
   directoryDepartmentDisplayLabel,
@@ -159,6 +160,8 @@ function categoriesFromParentDocOnly(
 }
 
 export async function GET(request: Request) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const db = getFirestoreAdmin();
     const { searchParams } = new URL(request.url);
@@ -299,6 +302,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
     const department = asString(body.department);

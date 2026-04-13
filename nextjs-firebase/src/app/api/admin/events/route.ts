@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdminRequest } from "../../../../lib/adminAuth";
 import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
 
 export const runtime = "nodejs";
@@ -62,6 +63,8 @@ function titleFromDesc(desc: string): string {
 }
 
 export async function GET(request: Request) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const db = getFirestoreAdmin();
     const { searchParams } = new URL(request.url);
@@ -140,6 +143,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
     const event =

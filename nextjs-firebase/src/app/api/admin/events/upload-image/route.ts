@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
+import { requireAdminRequest } from "../../../../../lib/adminAuth";
 import { getFirebaseStorageBucket } from "../../../../../lib/firebaseAdmin";
 
 export const runtime = "nodejs";
@@ -21,6 +22,8 @@ function extFromMime(mime: string): string {
 }
 
 export async function POST(request: Request) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const form = await request.formData();
     const file = form.get("file");

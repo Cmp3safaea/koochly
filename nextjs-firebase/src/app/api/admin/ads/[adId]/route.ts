@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { GeoPoint } from "firebase-admin/firestore";
+import { requireAdminRequest } from "../../../../../lib/adminAuth";
 import { getFirestoreAdmin } from "../../../../../lib/firebaseAdmin";
 
 export const runtime = "nodejs";
@@ -42,6 +43,8 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ adId: string }> },
 ) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const { adId: raw } = await context.params;
     const adId = asString(raw);
@@ -104,9 +107,11 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ adId: string }> },
 ) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const { adId: raw } = await context.params;
     const adId = asString(raw);

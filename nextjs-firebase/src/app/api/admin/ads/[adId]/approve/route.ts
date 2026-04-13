@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
+import { requireAdminRequest } from "../../../../../../lib/adminAuth";
 import { getFirestoreAdmin } from "../../../../../../lib/firebaseAdmin";
 
 export const runtime = "nodejs";
@@ -9,9 +10,11 @@ function asString(v: unknown): string {
 }
 
 export async function PATCH(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ adId: string }> },
 ) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const { adId: raw } = await context.params;
     const adId = asString(raw);

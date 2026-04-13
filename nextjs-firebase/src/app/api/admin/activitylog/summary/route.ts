@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdminRequest } from "../../../../../lib/adminAuth";
 import { getFirestoreAdmin } from "../../../../../lib/firebaseAdmin";
 
 export const runtime = "nodejs";
@@ -23,7 +24,9 @@ function topEntries(map: Map<string, number>, limit = 12) {
     .slice(0, limit);
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const db = getFirestoreAdmin();
     const snap = await db.collection("activitylog").limit(SCAN_CAP).get();

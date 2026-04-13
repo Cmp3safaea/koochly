@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
+import { requireAdminRequest } from "../../../../../../lib/adminAuth";
 import { getFirestoreAdmin } from "../../../../../../lib/firebaseAdmin";
 
 export const runtime = "nodejs";
@@ -58,6 +59,8 @@ export async function PUT(
   request: Request,
   context: { params: Promise<{ deptId: string }> },
 ) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const { deptId: raw } = await context.params;
     const deptId = asString(raw);

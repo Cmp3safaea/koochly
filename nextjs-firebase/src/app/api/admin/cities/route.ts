@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { FieldValue, GeoPoint } from "firebase-admin/firestore";
+import { requireAdminRequest } from "../../../../lib/adminAuth";
 import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
 
 export const runtime = "nodejs";
@@ -43,7 +44,9 @@ function toGeoPoint(value: unknown): GeoPoint | null {
   return new GeoPoint(lat, lng);
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const db = getFirestoreAdmin();
     const [citySnap, adsSnap] = await Promise.all([
@@ -111,6 +114,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
     const cityEng = sanitizeToken(asString(body.city_eng));

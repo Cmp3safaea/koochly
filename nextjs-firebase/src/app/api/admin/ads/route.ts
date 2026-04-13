@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdminRequest } from "../../../../lib/adminAuth";
 import { getFirestoreAdmin } from "../../../../lib/firebaseAdmin";
 
 export const runtime = "nodejs";
@@ -66,6 +67,8 @@ function toMs(value: unknown): number {
 }
 
 export async function GET(request: Request) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const db = getFirestoreAdmin();
     const { searchParams } = new URL(request.url);

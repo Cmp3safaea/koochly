@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireAdminRequest } from "../../../../../lib/adminAuth";
 import { getFirestoreAdmin } from "../../../../../lib/firebaseAdmin";
 
 export const runtime = "nodejs";
@@ -27,6 +28,8 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ eventId: string }> },
 ) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const { eventId: raw } = await context.params;
     const eventId = asString(raw);
@@ -77,9 +80,11 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ eventId: string }> },
 ) {
+  const deny = await requireAdminRequest(request);
+  if (deny) return deny;
   try {
     const { eventId: raw } = await context.params;
     const eventId = asString(raw);

@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
+import { onAuthStateChanged, signInWithPopup, type User } from "firebase/auth";
 import { useI18n, useLocalizedHref } from "../../../i18n/client";
+import { ADMIN_ALLOWED_GOOGLE_EMAIL } from "../../../lib/adminAllowedEmail";
+import { getAuthClientOrNull, getGoogleProvider } from "../../../lib/firebaseClient";
 import styles from "./AdminPage.module.css";
 
 type CategoryRow = {
@@ -159,6 +162,36 @@ export default function AdminClient({
   const { t, locale } = useI18n();
   const loc = useLocalizedHref();
 
+  const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+
+  const adminEmailMatches = (email: string | null | undefined) =>
+    (email ?? "").trim().toLowerCase() === ADMIN_ALLOWED_GOOGLE_EMAIL.toLowerCase();
+
+  useEffect(() => {
+    const auth = getAuthClientOrNull();
+    if (!auth) {
+      setFirebaseUser(null);
+      setAuthReady(true);
+      return;
+    }
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setFirebaseUser(u);
+      setAuthReady(true);
+    });
+    return () => unsub();
+  }, []);
+
+  async function adminFetch(input: RequestInfo, init?: RequestInit): Promise<Response> {
+    const auth = getAuthClientOrNull();
+    const u = auth?.currentUser;
+    const headers = new Headers(init?.headers);
+    if (u) {
+      headers.set("Authorization", `Bearer ${await u.getIdToken()}`);
+    }
+    return fetch(input, { ...init, headers });
+  }
+
   const [departments, setDepartments] = useState<DepartmentRow[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -275,7 +308,7 @@ export default function AdminClient({
     try {
       const params = new URLSearchParams({ locale });
       if (mode === "brief") params.set("brief", "1");
-      const res = await fetch(`/api/admin/directory?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/directory?${params.toString()}`);
       const json = (await res.json().catch(() => ({}))) as {
         departments?: DepartmentRow[];
         adScanSummary?: AdScanSummary;
@@ -315,7 +348,7 @@ export default function AdminClient({
   const loadCities = async (preferredCityId?: string | null) => {
     setError(null);
     try {
-      const res = await fetch("/api/admin/cities");
+      const res = await adminFetch("/api/admin/cities");
       const json = (await res.json().catch(() => ({}))) as { cities?: CityRow[]; error?: string };
       if (!res.ok) throw new Error(json.error ?? t("admin.loadErr"));
       const rows = Array.isArray(json.cities) ? json.cities : [];
@@ -362,7 +395,7 @@ export default function AdminClient({
   const loadPendingAds = async () => {
     setError(null);
     try {
-      const res = await fetch("/api/admin/ads/pending");
+      const res = await adminFetch("/api/admin/ads/pending");
       const json = (await res.json().catch(() => ({}))) as { ads?: PendingAdRow[]; error?: string };
       if (!res.ok) throw new Error(json.error ?? t("admin.loadErr"));
       const rows = Array.isArray(json.ads) ? json.ads : [];
@@ -393,7 +426,7 @@ export default function AdminClient({
         const fa = cities.find((c) => (c.city_eng ?? "") === cityEng)?.city_fa?.trim() ?? "";
         if (fa) params.set("city_fa", fa);
       }
-      const res = await fetch(`/api/admin/ads?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/ads?${params.toString()}`);
       const json = (await res.json().catch(() => ({}))) as { ads?: ManagedAdRow[]; error?: string };
       if (!res.ok) throw new Error(json.error ?? t("admin.loadErr"));
       const rows = Array.isArray(json.ads) ? json.ads : [];
@@ -423,7 +456,7 @@ export default function AdminClient({
       params.set("limit", "200");
       if (search) params.set("q", search);
       if (cityQ) params.set("city", cityQ);
-      const res = await fetch(`/api/admin/events?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/events?${params.toString()}`);
       const json = (await res.json().catch(() => ({}))) as { events?: EventRow[]; error?: string };
       if (!res.ok) throw new Error(json.error ?? t("admin.loadErr"));
       const rows = Array.isArray(json.events) ? json.events : [];
@@ -451,7 +484,7 @@ export default function AdminClient({
 
   const loadActivitySummary = async () => {
     try {
-      const res = await fetch("/api/admin/activitylog/summary");
+      const res = await adminFetch("/api/admin/activitylog/summary");
       const json = (await res.json().catch(() => ({}))) as {
         summary?: ActivitySummary;
       };
@@ -858,7 +891,7 @@ export default function AdminClient({
       }
 
       if (isNew) {
-        const res = await fetch("/api/admin/directory", {
+        const res = await adminFetch("/api/admin/directory", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -872,7 +905,7 @@ export default function AdminClient({
         await loadDirectory(json.id ?? null, "full");
         if (json.id) setSelectedId(json.id);
       } else if (selectedId) {
-        const res = await fetch(`/api/admin/directory/${encodeURIComponent(selectedId)}`, {
+        const res = await adminFetch(`/api/admin/directory/${encodeURIComponent(selectedId)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -901,7 +934,7 @@ export default function AdminClient({
     setStatus(null);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/directory/${encodeURIComponent(selectedId)}`, {
+      const res = await adminFetch(`/api/admin/directory/${encodeURIComponent(selectedId)}`, {
         method: "DELETE",
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
@@ -937,7 +970,7 @@ export default function AdminClient({
     setStatus(null);
     setError(null);
     try {
-      const res = await fetch(
+      const res = await adminFetch(
         `/api/admin/directory/${encodeURIComponent(selectedId)}/categories`,
         {
           method: "PUT",
@@ -982,7 +1015,7 @@ export default function AdminClient({
             : null,
       };
       if (isNewCity) {
-        const res = await fetch("/api/admin/cities", {
+        const res = await adminFetch("/api/admin/cities", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -991,7 +1024,7 @@ export default function AdminClient({
         if (!res.ok) throw new Error(json.error ?? t("admin.saveErr"));
         await loadCities(json.id ?? null);
       } else if (selectedCityId) {
-        const res = await fetch(`/api/admin/cities/${encodeURIComponent(selectedCityId)}`, {
+        const res = await adminFetch(`/api/admin/cities/${encodeURIComponent(selectedCityId)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -1016,7 +1049,7 @@ export default function AdminClient({
     setStatus(null);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/cities/${encodeURIComponent(selectedCityId)}`, {
+      const res = await adminFetch(`/api/admin/cities/${encodeURIComponent(selectedCityId)}`, {
         method: "DELETE",
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
@@ -1035,7 +1068,7 @@ export default function AdminClient({
     setError(null);
     setStatus(null);
     try {
-      const res = await fetch(`/api/admin/ads/${encodeURIComponent(adId)}/approve`, {
+      const res = await adminFetch(`/api/admin/ads/${encodeURIComponent(adId)}/approve`, {
         method: "PATCH",
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
@@ -1072,7 +1105,7 @@ export default function AdminClient({
       for (const file of Array.from(files)) {
         const form = new FormData();
         form.append("file", file);
-        const res = await fetch("/api/admin/ads/upload-image", {
+        const res = await adminFetch("/api/admin/ads/upload-image", {
           method: "POST",
           body: form,
         });
@@ -1101,7 +1134,7 @@ export default function AdminClient({
     setError(null);
     setStatus(null);
     try {
-      const res = await fetch(`/api/admin/ads/${encodeURIComponent(activeEditingAdId)}`, {
+      const res = await adminFetch(`/api/admin/ads/${encodeURIComponent(activeEditingAdId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1147,7 +1180,7 @@ export default function AdminClient({
     setError(null);
     setStatus(null);
     try {
-      const res = await fetch(`/api/admin/ads/${encodeURIComponent(activeEditingAdId)}`, {
+      const res = await adminFetch(`/api/admin/ads/${encodeURIComponent(activeEditingAdId)}`, {
         method: "DELETE",
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
@@ -1185,7 +1218,7 @@ export default function AdminClient({
     try {
       const form = new FormData();
       form.append("file", file);
-      const res = await fetch("/api/admin/events/upload-image", {
+      const res = await adminFetch("/api/admin/events/upload-image", {
         method: "POST",
         body: form,
       });
@@ -1222,7 +1255,7 @@ export default function AdminClient({
         endAtMs,
       };
       if (isNewEvent) {
-        const res = await fetch("/api/admin/events", {
+        const res = await adminFetch("/api/admin/events", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
@@ -1236,7 +1269,7 @@ export default function AdminClient({
           selectId: json.id ?? null,
         });
       } else if (selectedEventId) {
-        const res = await fetch(`/api/admin/events/${encodeURIComponent(selectedEventId)}`, {
+        const res = await adminFetch(`/api/admin/events/${encodeURIComponent(selectedEventId)}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
@@ -1262,7 +1295,7 @@ export default function AdminClient({
     setError(null);
     setStatus(null);
     try {
-      const res = await fetch(`/api/admin/events/${encodeURIComponent(selectedEventId)}`, {
+      const res = await adminFetch(`/api/admin/events/${encodeURIComponent(selectedEventId)}`, {
         method: "DELETE",
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
@@ -1283,7 +1316,7 @@ export default function AdminClient({
     try {
       const form = new FormData();
       form.append("file", file);
-      const res = await fetch("/api/admin/directory/upload-image", {
+      const res = await adminFetch("/api/admin/directory/upload-image", {
         method: "POST",
         body: form,
       });
@@ -1321,6 +1354,63 @@ export default function AdminClient({
       }),
     );
   };
+
+  if (!authReady) {
+    return (
+      <main className={styles.page}>
+        <p className={styles.sub}>Loading…</p>
+      </main>
+    );
+  }
+
+  if (!getAuthClientOrNull()) {
+    return (
+      <main className={styles.page}>
+        <header className={styles.head}>
+          <h1 className={styles.title}>{t("admin.title")}</h1>
+          <p className={styles.sub}>Sign-in is not available (Firebase is not configured).</p>
+          <Link href={loc("/")} className={styles.backLink}>
+            {t("admin.backHome")}
+          </Link>
+        </header>
+      </main>
+    );
+  }
+
+  if (!firebaseUser || !adminEmailMatches(firebaseUser.email)) {
+    return (
+      <main className={styles.page}>
+        <header className={styles.head}>
+          <h1 className={styles.title}>{t("admin.title")}</h1>
+          <p className={styles.sub}>
+            {firebaseUser && !adminEmailMatches(firebaseUser.email)
+              ? `Signed in as ${firebaseUser.email ?? ""}. This account cannot open admin.`
+              : "Sign in with the authorized Google account to access admin."}
+          </p>
+          <p style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className={styles.tab}
+              onClick={async () => {
+                const auth = getAuthClientOrNull();
+                if (!auth) return;
+                try {
+                  await signInWithPopup(auth, getGoogleProvider());
+                } catch {
+                  /* ignore cancel / popup errors */
+                }
+              }}
+            >
+              Sign in with Google
+            </button>
+          </p>
+          <Link href={loc("/")} className={styles.backLink} style={{ display: "inline-block", marginTop: 16 }}>
+            {t("admin.backHome")}
+          </Link>
+        </header>
+      </main>
+    );
+  }
 
   return (
     <main className={styles.page}>
