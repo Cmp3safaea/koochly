@@ -1,36 +1,43 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import "./globals.css";
-import { getSiteBaseUrl } from "../lib/siteUrl";
+import { getSiteBaseUrlFromRequest } from "../lib/siteUrl";
 import { defaultLocale, isLocale, logoPublicPath, type Locale } from "@koochly/shared";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(getSiteBaseUrl()),
-  title: {
-    default: "Persiana",
-    template: "%s | Persiana",
-  },
-  description:
-    "Find Iranian businesses, services, and local ads by city and category on Persiana.",
-  robots: {
-    index: true,
-    follow: true,
-  },
-  openGraph: {
-    type: "website",
-    siteName: "Persiana",
-    title: "Persiana",
+/**
+ * Request-time metadata so `NEXT_PUBLIC_SITE_URL` on Cloud Run applies even if the image
+ * was built without it (static `metadata` is evaluated at build and bakes the wrong origin).
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const base = await getSiteBaseUrlFromRequest();
+  return {
+    metadataBase: new URL(base),
+    title: {
+      default: "Persiana",
+      template: "%s | Persiana",
+    },
     description:
       "Find Iranian businesses, services, and local ads by city and category on Persiana.",
-    url: getSiteBaseUrl(),
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Persiana",
-    description:
-      "Find Iranian businesses, services, and local ads by city and category on Persiana.",
-  },
-};
+    robots: {
+      index: true,
+      follow: true,
+    },
+    openGraph: {
+      type: "website",
+      siteName: "Persiana",
+      title: "Persiana",
+      description:
+        "Find Iranian businesses, services, and local ads by city and category on Persiana.",
+      url: base,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Persiana",
+      description:
+        "Find Iranian businesses, services, and local ads by city and category on Persiana.",
+    },
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -48,7 +55,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale: Locale = isLocale(raw) ? raw : defaultLocale;
   const dir = locale === "en" ? "ltr" : "rtl";
   const lang = locale === "en" ? "en" : "fa-IR";
-  const siteBaseUrl = getSiteBaseUrl();
+  const siteBaseUrl = await getSiteBaseUrlFromRequest();
   const logoPath = logoPublicPath(locale);
   const orgJsonLd = {
     "@context": "https://schema.org",

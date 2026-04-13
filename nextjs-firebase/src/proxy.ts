@@ -6,14 +6,21 @@ function firstSegment(pathname: string): string | undefined {
   return pathname.split("/").filter(Boolean)[0];
 }
 
+function pathWithoutQuery(pathname: string): string {
+  const q = pathname.indexOf("?");
+  return (q === -1 ? pathname : pathname.slice(0, q)).replace(/\/+$/, "") || "/";
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const base = pathWithoutQuery(pathname);
+  const baseLower = base.toLowerCase();
   // Next.js metadata routes live at the app root (`app/sitemap.ts`, `app/robots.ts`),
   // not under `/[locale]`. Skipping locale rewrite avoids 404 on `/sitemap.xml`, etc.
   if (
-    pathname === "/sitemap.xml" ||
-    pathname === "/robots.txt" ||
-    pathname.startsWith("/sitemap/")
+    baseLower === "/sitemap.xml" ||
+    baseLower === "/robots.txt" ||
+    baseLower.startsWith("/sitemap/")
   ) {
     return NextResponse.next();
   }
@@ -47,7 +54,8 @@ export const config = {
     /*
      * Match all request paths except:
      * - api, Next internals, static files
+     * - .xml / .txt so `/sitemap.xml` and `/robots.txt` never hit locale rewrite (fixes 404 on prod).
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|xml|txt)$).*)",
   ],
 };

@@ -8,7 +8,7 @@ substitutions:
   # Required for Maps on add-ad / city maps (inlined at build). Set in the trigger or override when running submit.
   _NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ""
   # Canonical public origin (sitemap, robots, metadataBase). Override per environment if needed.
-  _NEXT_PUBLIC_SITE_URL: "https://persianan.store"
+  _NEXT_PUBLIC_SITE_URL: "https://persiana.store"
   # OPENAI_API_KEY is not a build arg: set it on the Cloud Run service (or host) at deploy/runtime for AI listing search.
 
 steps:

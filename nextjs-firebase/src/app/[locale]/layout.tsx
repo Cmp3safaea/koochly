@@ -12,7 +12,6 @@ import {
 import { LanguageSwitcher } from "../../components/LanguageSwitcher";
 import FirebaseRuntimeInit from "../../components/FirebaseRuntimeInit";
 import { getFirebaseWebPublicConfig } from "../../lib/firebaseWebConfig";
-import { getSiteBaseUrl } from "../../lib/siteUrl";
 import { ThemeToggle } from "../ThemeToggle";
 
 export function generateStaticParams() {
