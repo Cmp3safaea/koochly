@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { getFirestoreAdmin } from "../../../../../../lib/firebaseAdmin";
 import { resolveLocale } from "../../../../../../i18n/server";
@@ -31,12 +30,9 @@ import {
 } from "../../../../../../lib/seoIndexable";
 import { resolveCityFlagUrl } from "../../../../../../lib/cityFlagUrl";
 import {
-  buildFaqPageJsonLd,
   buildItemListLocalBusinessJsonLd,
   buildOrganizationJsonLd,
-  categoryLandingFaq,
   categoryLandingH1,
-  categoryLandingIntroParagraphs,
   categoryLandingMetaDescription,
   categoryLandingMetaTitle,
   getDirectoryCategoryLabelsCached,
@@ -47,34 +43,6 @@ import CityAdsViewClient, {
   type CityJumpOption,
   type DepartmentQuickItem,
 } from "../../../../city/[cityId]/CityAdsViewClient";
-
-const seoArticleStyle: CSSProperties = {
-  maxWidth: 720,
-  margin: "0 auto 28px",
-  lineHeight: 1.65,
-};
-const seoIntroStyle: CSSProperties = {
-  margin: "0 0 14px",
-  color: "#333",
-  fontSize: "1.02rem",
-};
-const seoFaqStyle: CSSProperties = {
-  marginTop: 28,
-  borderTop: "1px solid #eee",
-  paddingTop: 20,
-};
-const seoFaqTitleStyle: CSSProperties = {
-  fontSize: "1.15rem",
-  margin: "0 0 12px",
-};
-const seoDetailsStyle: CSSProperties = {
-  marginBottom: 10,
-  border: "1px solid #e5e5e5",
-  borderRadius: 8,
-  padding: "8px 12px",
-};
-const seoSummaryStyle: CSSProperties = { cursor: "pointer", fontWeight: 600 };
-const seoAnswerStyle: CSSProperties = { margin: "8px 0 0", paddingLeft: 4 };
 
 /** ISR-style revalidation; page still runs on each request when uncached. */
 export const revalidate = 600;
@@ -497,8 +465,6 @@ export default async function CityCategoryLandingPage({
     brandName,
   };
   const primaryH1 = categoryLandingH1(seoInput);
-  const introParagraphs = categoryLandingIntroParagraphs(seoInput);
-  const faqItems = categoryLandingFaq(seoInput);
   const departmentOptions: SelectOption[] = Array.from(
     new Set(adsForFilter.map((a) => a.departmentId).filter(Boolean) as string[]),
   )
@@ -577,7 +543,6 @@ export default async function CityCategoryLandingPage({
       description: `Iranian, Persian, and Farsi-speaking ${categoryLabel} directory listings.`,
     },
   };
-  const faqJsonLd = buildFaqPageJsonLd(faqItems, canonicalUrl);
   const itemListJsonLd = buildItemListLocalBusinessJsonLd(
     locale,
     canonicalUrl,
@@ -614,30 +579,8 @@ export default async function CityCategoryLandingPage({
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
       />
-      <article style={seoArticleStyle}>
-        {introParagraphs.map((p, i) => (
-          <p key={i} style={seoIntroStyle}>
-            {p}
-          </p>
-        ))}
-        <section style={seoFaqStyle} aria-labelledby="cat-faq-heading">
-          <h2 id="cat-faq-heading" style={seoFaqTitleStyle}>
-            {locale === "fa" ? "سوالات متداول" : "Frequently asked questions"}
-          </h2>
-          {faqItems.map((f) => (
-            <details key={f.question} style={seoDetailsStyle}>
-              <summary style={seoSummaryStyle}>{f.question}</summary>
-              <p style={seoAnswerStyle}>{f.answer}</p>
-            </details>
-          ))}
-        </section>
-      </article>
       <CityAdsViewClient
         googleMapsApiKey={googleMapsApiKey}
         cityTitle={pageTitle}
